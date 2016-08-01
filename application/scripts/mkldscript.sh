@@ -2,12 +2,15 @@
 
 LD_SCRIPT_TEMPLATE=$1
 BOOTLOADER_ELF=$2
-CMAKE_CACHE_FILE=$3
-USER_CODE_FLASH_OFFSET=$4
-TOOLCHAIN_PREFIX=$5
+#CMAKE_CACHE_FILE=$3
+HEADER_W1=$3
+HEADER_W2=$4
+USER_CODE_FLASH_OFFSET=$5
+TOOLCHAIN_PREFIX=$6
 
 if [[ $# < 2 ]]; then
-    echo "Usage: $0 <ld_script_template> <bootloader_elf> </path/to/CMakeCache.txt> <user_code_flash_offset> [toolcahin-prefix]"
+    echo "Usage: $0 <ld_script_template> <bootloader_elf>\
+        <HEADER_W1> <HEADER_W2> <user_code_flash_offset> [toolcahin-prefix]"
     exit 1
 fi
 
@@ -18,8 +21,8 @@ BOOTLOADER_END=`${TOOLCHAIN_PREFIX}readelf -l $BOOTLOADER_ELF | grep -P "LOAD.*R
 APP_START="$BOOTLOADER_START + $BOOTLOADER_SIZE + 8"
 APP_SIZE="$BOOTLOADER_END - ($APP_START)"
 
-HEADER_W1=`grep HEADER_W1 ${CMAKE_CACHE_FILE} | sed 's/HEADER_W1:.*=\(.*\)$/\1/'`
-HEADER_W2=`grep HEADER_W2 ${CMAKE_CACHE_FILE} | sed 's/HEADER_W2:.*=\(.*\)$/\1/'`
+#HEADER_W1=`grep HEADER_W1 ${CMAKE_CACHE_FILE} | sed 's/HEADER_W1:.*=\(.*\)$/\1/'`
+#HEADER_W2=`grep HEADER_W2 ${CMAKE_CACHE_FILE} | sed 's/HEADER_W2:.*=\(.*\)$/\1/'`
 
 sed -e "s/@APP_START@/$APP_START/"\
     -e "s/@APP_SIZE@/$APP_SIZE/"\

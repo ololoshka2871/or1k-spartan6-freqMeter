@@ -35,7 +35,7 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-project(or1k-spartan6-platform NONE)
+project(or1k-spartan6-FreqMeter NONE)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")

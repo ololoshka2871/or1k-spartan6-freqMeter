@@ -58,7 +58,8 @@ add_custom_command(
         ${MK_APP_LD_SCRIPT}
             ${LD_SCRIPT_FILE_IN}
             ${BOOTLOADER_IMAGE_ELF}
-            ${CMAKE_CACHEFILE_DIR}/CMakeCache.txt
+            ${HEADER_W1}
+            ${HEADER_W2}
             ${USER_CODE_FLASH_OFFSET}
             ${TOOLCHAIN_PREFIX} > ${LD_SCRIPT_FILE}
     DEPENDS
