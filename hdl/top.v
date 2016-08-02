@@ -92,16 +92,6 @@ wire                soc_stb;
 wire                soc_ack;
 wire		    soc_cyc;
 
-wire [31:0]         fm_addr;
-wire [31:0]         fm_data_w;
-wire [31:0]         fm_data_r;
-wire[3:0]           fm_sel;
-wire                fm_we;
-wire                fm_stb;
-wire                fm_ack;
-wire                fm_irq;
-wire                fm_stall;
-
 wire[31:0]          dmem_addr;
 wire[31:0]          dmem_data_w;
 wire[31:0]          dmem_data_r;
@@ -120,12 +110,12 @@ wire                imem_cyc;
 wire                imem_ack;
 wire                imem_stall;
 
-wire[3:0]	    GPIO_oe;
-wire[3:0]	    GPIO_o;
-wire[3:0]	    GPIO_i;
-
 wire		    clk_io;
 wire[6:0]           spi_cs_o;
+
+wire[3:0]           GPIO_oe;
+wire[3:0]           GPIO_o;
+wire[3:0]           GPIO_i;
 
 //-----------------------------------------------------------------
 // Instantiation
@@ -163,26 +153,6 @@ ram
     .b_ack_o(dmem_ack),
     .b_cyc_i(dmem_cyc),
     .b_stall_o(dmem_stall)
-);
-
-gpio_top gpioA
-(
-    .wb_clk_i(clk),
-    .wb_rst_i(reset),
-    .wb_cyc_i(fm_cyc),
-    .wb_adr_i(fm_addr),
-    .wb_dat_i(fm_data_w),
-    .wb_sel_i(fm_sel),
-    .wb_we_i(fm_we),
-    .wb_stb_i(fm_stb),
-    .wb_dat_o(fm_data_r),
-    .wb_ack_o(fm_ack),
-    .wb_err_o(fm_stall),
-    .wb_inta_o(),
-
-    .ext_pad_i(GPIO_i),
-    .ext_pad_o(GPIO_o),
-    .ext_padoe_o(GPIO_oe)
 );
 
 // CPU
@@ -228,16 +198,16 @@ u_cpu
     .dmem0_ack_i(dmem_ack),
 
     // Data Memory 1 (0x11000000 - 0x11FFFFFF)
-    .dmem1_addr_o(fm_addr),
-    .dmem1_data_o(fm_data_w),
-    .dmem1_data_i(fm_data_r),
-    .dmem1_sel_o(fm_sel),
-    .dmem1_we_o(fm_we),
-    .dmem1_stb_o(fm_stb),
-    .dmem1_cyc_o(fm_cyc),
-    .dmem1_cti_o(fm_cti),
-    .dmem1_stall_i(fm_stall),
-    .dmem1_ack_i(fm_ack),
+    .dmem1_addr_o(),
+    .dmem1_data_o(),
+    .dmem1_data_i(),
+    .dmem1_sel_o(),
+    .dmem1_we_o(),
+    .dmem1_stb_o(),
+    .dmem1_cyc_o(),
+    .dmem1_cti_o(),
+    .dmem1_stall_i(),
+    .dmem1_ack_i(),
 	  
     // Data Memory 2 (0x12000000 - 0x12FFFFFF)
     .dmem2_addr_o(soc_addr),
@@ -287,7 +257,11 @@ u_soc
     .spi_cs_o(spi_cs_o),
 
     .segments(segments),
-    .seg_selectors(seg_selectors)
+    .seg_selectors(seg_selectors),
+
+    .GPIO_oe(GPIO_oe),
+    .GPIO_o(GPIO_o),
+    .GPIO_i(GPIO_i)
 );
 
 //-----------------------------------------------------------------

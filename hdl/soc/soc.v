@@ -68,7 +68,12 @@ module soc
 
     //7sement indicator
     segments,
-    seg_selectors
+    seg_selectors,
+
+    // GPIO
+    GPIO_oe,
+    GPIO_o,
+    GPIO_i
 );
 
 //-----------------------------------------------------------------
@@ -103,9 +108,13 @@ output                  sck_o /*verilator public*/;
 output                  mosi_o /*verilator public*/;
 input                   miso_i /*verilator public*/;
 output [6:0]            spi_cs_o /*verilator public*/;
-//7seg indicator
+// 7seg indicator
 output [7:0]            segments /*verilator public*/;
 output [3:0]            seg_selectors /*verilator public*/;
+// gpio
+output [3:0]            GPIO_oe /*verilator public*/;
+output [3:0]            GPIO_o /*verilator public*/;
+input  [3:0]            GPIO_i /*verilator public*/;
 
 //-----------------------------------------------------------------
 // Registers / Wires
@@ -144,6 +153,13 @@ wire [31:0]        seg7_data_i;
 wire               seg7_we;
 wire               seg7_stb;
 wire               seg7_switch_digit;
+
+wire [7:0]         gpio_addr;
+wire [31:0]        gpio_data_w;
+wire [31:0]        gpio_data_r;
+wire               gpio_we;
+wire               gpio_stb;
+wire               gpio_irq;
 
 //-----------------------------------------------------------------
 // Peripheral Interconnect
@@ -193,19 +209,19 @@ u2_soc
     .periph3_we_o(spi_we),
     .periph3_stb_o(spi_stb),
 
-    // Unused = 0x12000400 - 0x120004FF
+    // seg7 = 0x12000400 - 0x120004FF
     .periph4_addr_o(seg7_addr),
     .periph4_data_o(seg7_data_o),
     .periph4_data_i(seg7_data_i),
     .periph4_we_o(seg7_we),
     .periph4_stb_o(seg7_stb),
 
-    // Unused = 0x12000500 - 0x120005FF
-    .periph5_addr_o(/*open*/),
-    .periph5_data_o(/*open*/),
-    .periph5_data_i(32'h00000000),
-    .periph5_we_o(/*open*/),
-    .periph5_stb_o(/*open*/),
+    // GPIO = 0x12000500 - 0x120005FF
+    .periph5_addr_o(gpio_addr),
+    .periph5_data_o(gpio_data_w),
+    .periph5_data_i(gpio_data_r),
+    .periph5_we_o(gpio_we),
+    .periph5_stb_o(gpio_stb),
 
     // Unused = 0x12000600 - 0x120006FF
     .periph6_addr_o(/*open*/),
@@ -283,7 +299,7 @@ u_intr
     .intr1_i(timer_intr_systick),
     .intr2_i(timer_intr_hires),
     .intr3_i(spi_intr),
-    .intr4_i(1'b0),
+    .intr4_i(gpio_irq),
     .intr5_i(1'b0),
     .intr6_i(1'b0),
     .intr7_i(1'b0),
@@ -322,6 +338,9 @@ spi_boot
     .cs_o(spi_cs_o)
 );
 
+//-----------------------------------------------------------------
+// 7-segment indicator controller
+//-----------------------------------------------------------------
 seg7_disp_drv
 #(
     .DIGITS_COUNT(4),
@@ -341,6 +360,29 @@ seg7_disp_drv
     .update_clock(seg7_switch_digit),
     .segments(segments),
     .selectors(seg_selectors)
+);
+
+//-----------------------------------------------------------------
+// GPIO Controller
+//-----------------------------------------------------------------
+gpio_top gpioA
+(
+    .wb_clk_i(clk_i),
+    .wb_rst_i(rst_i),
+    .wb_cyc_i(io_cyc_i),
+    .wb_adr_i(gpio_addr),
+    .wb_dat_i(gpio_data_w),
+    .wb_sel_i(4'b1111),
+    .wb_we_i(gpio_we),
+    .wb_stb_i(gpio_stb),
+    .wb_dat_o(gpio_data_r),
+    .wb_ack_o(/* open */),
+    .wb_err_o(/* open */),
+    .wb_inta_o(gpio_irq),
+
+    .ext_pad_i(GPIO_i),
+    .ext_pad_o(GPIO_o),
+    .ext_padoe_o(GPIO_oe)
 );
 
 //

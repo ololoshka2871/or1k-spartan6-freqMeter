@@ -30,7 +30,6 @@
 //* ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //* POSSIBILITY OF SUCH DAMAGE.
 //*
-//* this module provides access to FPGA boot SPI flash
 //*
 //****************************************************************************/
 
@@ -66,7 +65,7 @@ module freq_meter
     input   wire                                      F_in, // измеряемая частота
     input   wire                                      clk_i,
     input   wire                                      rst_i, // global reset
-    input   wire                                      restart_cycle_i, // manual reset
+    input   wire                                      restart_cycle_i, // reset cycle manualy
 
     // events
     output  wire                                      ready_o, // сигнал того, что цыкл завершился и данные готовы

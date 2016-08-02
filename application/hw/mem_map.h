@@ -20,6 +20,7 @@
 #define TIMER_BASE              (IO_BASE + 0x100)
 #define INTR_BASE               (IO_BASE + 0x200)
 #define SEG7_DISP_BASE          (IO_BASE + 0x400)
+#define GPIO_BASE               (IO_BASE + 0x500)
 
 //-----------------------------------------------------------------
 // Interrupts
@@ -28,6 +29,7 @@
 #define IRQ_TIMER_SYSTICK       1
 #define IRQ_TIMER_HIRES         2
 #define IRQ_BOOT_SPI		3
+#define IRQ_GPIO_		4
 #define IRQ_EXT_INT0            8
 
 //-----------------------------------------------------------------

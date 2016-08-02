@@ -226,7 +226,7 @@
 //
 // By default it is defined.
 //
-`define GPIO_FULL_DECODE
+//`define GPIO_FULL_DECODE
 
 //
 // Strict 32-bit WISHBONE access
@@ -259,7 +259,7 @@
 //
 // WISHBONE address bits used for full decoding of GPIO registers.
 //
-`define GPIO_ADDRHH 23
+`define GPIO_ADDRHH 7
 `define GPIO_ADDRHL 6
 `define GPIO_ADDRLH 1
 `define GPIO_ADDRLL 0
@@ -267,7 +267,7 @@
 //
 // Middle path of base address
 //
-`define GPIO_ADDR_BASE_M	18'b000000000000000000 //{(`GPIO_ADDRHH-`GPIO_ADDRHL+1){1'b0}}
+`define GPIO_ADDR_BASE_M	{(`GPIO_ADDRHH-`GPIO_ADDRHL+1){1'b0}}
 
 //
 // Bits of WISHBONE address used for partial decoding of GPIO registers.

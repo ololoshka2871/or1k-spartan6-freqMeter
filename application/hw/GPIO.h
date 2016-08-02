@@ -38,7 +38,7 @@
 
 #include <stdint.h>
 
-#define GPIO_BASE			(0x11000000)
+#include "mem_map.h"
 
 // bits
 #define GPIO_CTRL_INTE		(1 << 0)
