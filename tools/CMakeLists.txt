@@ -64,6 +64,7 @@ add_custom_target(tools.editor
         filter_debug_io_log.py
         mkserver.sh
         merge_binary.py
+        calc_best_signal_test_devider.py
     )
 
 set(tools_DIR       ${CMAKE_CURRENT_SOURCE_DIR}         PARENT_SCOPE)

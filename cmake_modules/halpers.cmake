@@ -1,5 +1,5 @@
 #****************************************************************************
-#* cmake_modules/or1k_toolchain.cmake
+#* halpers.cmake
 #*
 #*   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
 #*   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -33,56 +33,19 @@
 #*
 #****************************************************************************/
 
+cmake_minimum_required(VERSION 2.8.5)
 
-INCLUDE(CMakeForceCompiler)
+function(floterise RESULT VALUE DEVIDER)
+    math(EXPR RESULT_N
+        "${VALUE} / ${DEVIDER}")
+    math(EXPR RESULT_F
+        "${VALUE} - ${RESULT_N} * ${DEVIDER}")
 
-#MESSAGE(STATUS "Setting toolchain or1k-elf-")
+    set(${RESULT} "${RESULT_N}.${RESULT_F}" PARENT_SCOPE)
+endfunction()
 
-SET(CMAKE_SYSTEM_NAME Generic)
-SET(CMAKE_SYSTEM_VERSION 1)
+macro(calc_test_input_period_ms CALCULED_TEST_PERIOD_MS DEVIDER)
+    math(EXPR CALCULED_TEST_FREQ   "${REFERENCE_CLOCK_HZ} / ${DEVIDER}")
+    math(EXPR ${CALCULED_TEST_PERIOD_MS} "1000 / ${CALCULED_TEST_FREQ}")
+endmacro()
 
-SET(TOOLCHAIN_PREFIX	or1k-elf-)
-
-# specify the cross compiler
-set(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}gcc)
-SET(CMAKE_LINKER ${TOOLCHAIN_PREFIX}gcc)
-SET(CMAKE_C_LINK_EXECUTABLE
-    "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
-SET(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}gcc)
-SET(CMAKE_ASM_COMPILE_OBJECT
-    "<CMAKE_ASM_COMPILER> <FLAGS> -c <SOURCE> -o <OBJECT>")
-
-SET(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}objdump)
-SET(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}objcopy)
-
-SET(COMMON_FLAGS "-msoft-float -std=gnu99 -mno-delay")
-
-SET(CMAKE_C_FLAGS_COMMON "\
-    -Ttext ${MEM_BASE} \
-    -Wall \
-    -pipe \
-    -ffunction-sections -fdata-sections \
-    -msoft-div -msoft-mul -mno-ror -mno-cmov -mno-sext \
-    ${COMMON_FLAGS}"
-    )
-
-add_definitions(-D__OR1K_NODELAY__ -D__OR1K__)
-
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_COMMON} -g -Os")
-set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_COMMON} -Os")
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_COMMON} -g -Os")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_COMMON} -Os")
-
-SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
-
-SET(CMAKE_ASM_FLAGS "-mno-delay -Wa,--defsym,__OR1K_NODELAY__=1")
-
-set(CMAKE_EXE_LINKER_FLAGS "\
-    ${COMMON_FLAGS} \
-    -nostartfiles \
-    -T${LD_SCRIPT_FILE} \
-    -Wl,-gc-sections"
-    )
-
-#-nodefaultlibs -nostdlib
-#-Wl,--whole-archive \

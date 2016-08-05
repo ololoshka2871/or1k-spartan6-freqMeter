@@ -46,7 +46,7 @@
 module top
 (
     // 48MHz clock
-    input           clk,
+    input           clk_i,
 
     // UART
     input           rx,
@@ -70,9 +70,9 @@ module top
 //-----------------------------------------------------------------
 // Params
 //-----------------------------------------------------------------
-parameter       OSC_KHZ             = `INPUT_CLOCK_MHZ * 1000;
-parameter       CLK_KHZ             = OSC_KHZ; // for timer
-parameter       UART_BAUD           = 115200;
+parameter OSC_KHZ = `INPUT_CLOCK_HZ;
+parameter CLK_KHZ = OSC_KHZ * `PLL_MULTIPLYER / `CPU_CLOCK_DEVIDER / 1000;
+parameter UART_BAUD = 115200;
 
 //-----------------------------------------------------------------
 // Ports
@@ -110,12 +110,31 @@ wire                imem_cyc;
 wire                imem_ack;
 wire                imem_stall;
 
+wire[31:0]          freqmeter_addr;
+wire[31:0]          freqmeter_data_r;
+wire[31:0]          freqmeter_data_w;
+wire[3:0]           freqmeter_sel;
+wire                freqmeter_we;
+wire                freqmeter_stb;
+wire                freqmeter_cyc;
+wire                freqmeter_ack;
+wire                freqmeter_inta;
+
+wire                pllFB;
+wire                clk;
+wire                clk_ref;
+
 wire		    clk_io;
 wire[6:0]           spi_cs_o;
 
 wire[3:0]           GPIO_oe;
 wire[3:0]           GPIO_o;
 wire[3:0]           GPIO_i;
+
+wire[`MASER_FREQ_COUNTER_LEN-1:0] devided_clocks;
+wire[`F_INPUTS_COUNT-1:0] Fin;
+wire[15:0]          clock_devider16 = devided_clocks[15:0];
+
 
 //-----------------------------------------------------------------
 // Instantiation
@@ -198,16 +217,16 @@ u_cpu
     .dmem0_ack_i(dmem_ack),
 
     // Data Memory 1 (0x11000000 - 0x11FFFFFF)
-    .dmem1_addr_o(),
-    .dmem1_data_o(),
-    .dmem1_data_i(),
-    .dmem1_sel_o(),
-    .dmem1_we_o(),
-    .dmem1_stb_o(),
-    .dmem1_cyc_o(),
-    .dmem1_cti_o(),
-    .dmem1_stall_i(),
-    .dmem1_ack_i(),
+    .dmem1_addr_o(freqmeter_addr),
+    .dmem1_data_o(freqmeter_data_w),
+    .dmem1_data_i(freqmeter_data_r),
+    .dmem1_sel_o(/* open */),
+    .dmem1_we_o(freqmeter_we),
+    .dmem1_stb_o(freqmeter_stb),
+    .dmem1_cyc_o(freqmeter_cyc),
+    .dmem1_cti_o(/* open */),
+    .dmem1_stall_i(1'b0),
+    .dmem1_ack_i(freqmeter_ack),
 	  
     // Data Memory 2 (0x12000000 - 0x12FFFFFF)
     .dmem2_addr_o(soc_addr),
@@ -221,6 +240,41 @@ u_cpu
     .dmem2_stall_i(1'b0),
     .dmem2_ack_i(soc_ack)
 );
+
+// Freq meter
+freqmeters
+#(
+    .INPUTS_COUNT(`F_INPUTS_COUNT),
+    .MASER_FREQ_COUNTER_LEN(`MASER_FREQ_COUNTER_LEN),
+    .INPUT_FREQ_COUNTER_LEN(`INPUT_FREQ_COUNTER_LEN),
+    .TEST_INPUT_AT_2_POW_CLK(`TEST_SIGNAL_DEVIDER)
+) fm (
+    .clk_i(clk),
+    .rst_i(reset),
+    .cyc_i(freqmeter_cyc),
+    .stb_i(freqmeter_stb),
+    .adr_i(freqmeter_addr),
+    .we_i(freqmeter_we),
+    .dat_i(freqmeter_data_w),
+    .dat_o(freqmeter_data_r),
+    .ack_o(freqmeter_ack),
+    .inta_o(freqmeter_inta),
+
+    .F_master(clk_ref),
+    .F_in(Fin),
+
+    .devided_clocks(devided_clocks)
+);
+
+/*
+reg [15:0] devider = 0;
+
+assign devided_clocks = devider;
+
+always @(posedge clk_i) begin
+    devider = devider + 1;
+end
+*/
 
 // CPU SOC
 soc
@@ -236,7 +290,7 @@ u_soc
     // General - clocking & reset
     .clk_i(clk),
     .rst_i(reset),
-    .ext_intr_i(1'b0),
+    .ext_intr_i(freqmeter_inta),
     .intr_o(soc_irq),
 
     .uart_tx_o(tx),
@@ -251,6 +305,8 @@ u_soc
     .io_ack_o(soc_ack),
     .io_cyc_i(soc_cyc),
 
+    .devided_clocks(clock_devider16),
+
     .sck_o(sck_o),
     .mosi_o(mosi_o),
     .miso_i(miso_i),
@@ -264,9 +320,67 @@ u_soc
     .GPIO_i(GPIO_i)
 );
 
+// reference clock gen clk_ref = clk_i * `PLL_MULTIPLYER / `REFERENCE_CLOCK_DEVIDER
+DCM_CLKGEN #(
+   .CLKFXDV_DIVIDE(2),       // CLKFXDV divide value (2, 4, 8, 16, 32)
+   .CLKFX_DIVIDE(`REFERENCE_CLOCK_DEVIDER),         // Divide value - D - (1-256)
+   .CLKFX_MD_MAX(`PLL_MULTIPLYER * 2 / `REFERENCE_CLOCK_DEVIDER),       // Specify maximum M/D ratio for timing anlysis
+   .CLKFX_MULTIPLY(`PLL_MULTIPLYER * 2),       // Multiply value - M - (2-256)
+   .CLKIN_PERIOD(`INPUT_CLOCK_PERIOD_NS_F),       // Input clock period specified in nS
+   .SPREAD_SPECTRUM("NONE"), // Spread Spectrum mode "NONE", "CENTER_LOW_SPREAD", "CENTER_HIGH_SPREAD",
+                             // "VIDEO_LINK_M0", "VIDEO_LINK_M1" or "VIDEO_LINK_M2"
+   .STARTUP_WAIT("TRUE")    // Delay config DONE until DCM_CLKGEN LOCKED (TRUE/FALSE)
+)
+DCM_CLKGEN_f_ref (
+   .CLKFX(/* open */),         // 1-bit output: Generated clock output
+   .CLKFX180(/* open */),   // 1-bit output: Generated clock output 180 degree out of phase from CLKFX.
+   .CLKFXDV(clk_ref),     // 1-bit output: Divided clock output
+   .LOCKED(/* open */),       // 1-bit output: Locked output
+   .PROGDONE(/* open */),   // 1-bit output: Active high output to indicate the successful re-programming
+   .STATUS(/* open */),       // 2-bit output: DCM_CLKGEN status
+   .CLKIN(clk_i),         // 1-bit input: Input clock
+   .FREEZEDCM(1'b0), // 1-bit input: Prevents frequency adjustments to input clock
+   .PROGCLK(1'b0),     // 1-bit input: Clock input for M/D reconfiguration
+   .PROGDATA(1'b0),   // 1-bit input: Serial data input for M/D reconfiguration
+   .PROGEN(1'b0),       // 1-bit input: Active high program enable
+   .RST(1'b0)              // 1-bit input: Reset input pin
+);
+
+// CPU clock gen clk = clk_i * `PLL_MULTIPLYER / `CPU_CLOCK_DEVIDER
+DCM_CLKGEN #(
+   .CLKFXDV_DIVIDE(2),       // CLKFXDV divide value (2, 4, 8, 16, 32)
+   .CLKFX_DIVIDE(`CPU_CLOCK_DEVIDER),         // Divide value - D - (1-256)
+   .CLKFX_MD_MAX(`PLL_MULTIPLYER * 2 / `CPU_CLOCK_DEVIDER),       // Specify maximum M/D ratio for timing anlysis
+   .CLKFX_MULTIPLY(`PLL_MULTIPLYER * 2),       // Multiply value - M - (2-256)
+   .CLKIN_PERIOD(`INPUT_CLOCK_PERIOD_NS_F),       // Input clock period specified in nS
+   .SPREAD_SPECTRUM("NONE"), // Spread Spectrum mode "NONE", "CENTER_LOW_SPREAD", "CENTER_HIGH_SPREAD",
+                             // "VIDEO_LINK_M0", "VIDEO_LINK_M1" or "VIDEO_LINK_M2"
+   .STARTUP_WAIT("TRUE")    // Delay config DONE until DCM_CLKGEN LOCKED (TRUE/FALSE)
+)
+DCM_CLKGEN_f_cpu (
+   .CLKFX(/* open */),         // 1-bit output: Generated clock output
+   .CLKFX180(/* open */),   // 1-bit output: Generated clock output 180 degree out of phase from CLKFX.
+   .CLKFXDV(clk),     // 1-bit output: Divided clock output
+   .LOCKED(/* open */),       // 1-bit output: Locked output
+   .PROGDONE(/* open */),   // 1-bit output: Active high output to indicate the successful re-programming
+   .STATUS(/* open */),       // 2-bit output: DCM_CLKGEN status
+   .CLKIN(clk_i),         // 1-bit input: Input clock
+   .FREEZEDCM(1'b0), // 1-bit input: Prevents frequency adjustments to input clock
+   .PROGCLK(1'b0),     // 1-bit input: Clock input for M/D reconfiguration
+   .PROGDATA(1'b0),   // 1-bit input: Serial data input for M/D reconfiguration
+   .PROGEN(1'b0),       // 1-bit input: Active high program enable
+   .RST(1'b0)              // 1-bit input: Reset input pin
+);
+
 //-----------------------------------------------------------------
 // Implementation
 //-----------------------------------------------------------------
+
+// test freqs
+assign Fin[0] = devided_clocks[10];
+assign Fin[1] = devided_clocks[11];
+assign Fin[2] = devided_clocks[12];
+assign Fin[3] = devided_clocks[13];
 
 // Reset Generator
 always @(posedge clk) 

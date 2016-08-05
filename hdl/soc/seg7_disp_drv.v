@@ -115,7 +115,7 @@ always @(posedge update_clock) begin
     if (digit_selector == DIGITS_COUNT - 1) begin
         digit_selector <= {DIGIT_SELECTOR_SIZE{1'b0}};
     end else begin
-        digit_selector <= digit_selector + 1;
+        digit_selector <= digit_selector + 1'b1;
     end
     segments <= IS_COM_CATODE ? digits_storage[digit_selector] :
         ~digits_storage[digit_selector];

@@ -1,5 +1,5 @@
 #clock
-NET "clk" LOC = P56;
+NET "clk_i" LOC = P56;
 
 #UART
 NET "tx" LOC = P12;
@@ -34,3 +34,6 @@ NET "seg_selectors[0]" LOC = P66;
 NET "seg_selectors[1]" LOC = P74;
 NET "seg_selectors[2]" LOC = P67;
 NET "seg_selectors[3]" LOC = P75;
+
+# Freqmeter inputs
+#NET "Fin[0]" LOC =

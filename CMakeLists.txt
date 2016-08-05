@@ -41,16 +41,24 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
+find_package(PythonInterp 3 REQUIRED)
+
+add_subdirectory(tools)
+
 # указать путь до модулей
 set(CMAKE_MODULE_PATH
 	${CMAKE_MODULE_PATH}
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
 
+include("halpers")
+
 find_package(Xilinx REQUIRED)
+
+#-----------------------------------config--------------------------------------
 
 set(PART_NAME               "xc6slx9-3-tqg144"
     CACHE STRING "Xilinx FPGA model to synthesis")
-set(INPUT_CLOCK_MHZ         48
+set(INPUT_CLOCK_HZ          48000000
     CACHE STRING "FPGA main clock source (MHz)")
 set(SPI_FLASH_CHIP          "W25Q32BV"
     CACHE STRING "SPI flash memory part name")
@@ -65,10 +73,61 @@ set(HEADER_W2               0x1f1f1f1f
 set(DEBUGER_AT_BOOTLOADER   OFF
     CACHE BOOL   "Start debuger in bootloader")
 
+set(MASER_FREQ_COUNTER_LEN  30
+    CACHE STRING "Master clock counter length (in bits)")
+set(INPUT_FREQ_COUNTER_LEN  24
+    CACHE STRING "Input clock counter length (in bits)")
+set(TEST_SIGNAL_EVERY_MS    1000
+    CACHE STRING "Test input signal present aproximaly every")
+
+set(PLL_MULTIPLYER          1
+    CACHE STRING "Input clock multiplier")
+
+set(REFERENCE_CLOCK_DEVIDER 1
+    CACHE STRING "Master clock devider")
+
+set(CPU_CLOCK_DEVIDER       1
+    CACHE STRING "CPU clock devider")
+
+#----------------------------------/config--------------------------------------
+
+#--------------------------------Calculable-------------------------------------
+
+math(EXPR PLL_CLOCK_HZ
+    "${INPUT_CLOCK_HZ} * ${PLL_MULTIPLYER}")
+
+math(EXPR REFERENCE_CLOCK_HZ
+    "${PLL_CLOCK_HZ} / ${REFERENCE_CLOCK_DEVIDER}")
+
+math(EXPR CPU_CLOCK_HZ
+    "${PLL_CLOCK_HZ} / ${CPU_CLOCK_DEVIDER}")
+
+math(EXPR INPUT_CLOCK_PERIOD_NS_F_m100
+    "1000000000 / (${INPUT_CLOCK_HZ} / 100)")
+
+
+floterise(INPUT_CLOCK_PERIOD_NS_F ${INPUT_CLOCK_PERIOD_NS_F_m100} 100)
+message(STATUS
+    "Input clock = ${INPUT_CLOCK_HZ}Hz, period = ${INPUT_CLOCK_PERIOD_NS_F}ns")
+
+set(calc_best_signal_test_devider ${tools_DIR}/calc_best_signal_test_devider.py)
+execute_process(
+    COMMAND
+        ${PYTHON_EXECUTABLE} ${calc_best_signal_test_devider}
+            --mindev=1
+            --maxdev=${MASER_FREQ_COUNTER_LEN}
+            --freq=${REFERENCE_CLOCK_HZ}
+            --target=${TEST_SIGNAL_EVERY_MS}
+    OUTPUT_VARIABLE TEST_SIGNAL_DEVIDER)
+
+string(STRIP ${TEST_SIGNAL_DEVIDER} TEST_SIGNAL_DEVIDER)
+math(EXPR TEST_SIGNAL_HZ10 "${REFERENCE_CLOCK_HZ} * 10 / (1 << ${TEST_SIGNAL_DEVIDER})")
+floterise(TEST_SIGNAL_HZ ${TEST_SIGNAL_HZ10} 10)
+message(STATUS "Actual test input signal freq: ${TEST_SIGNAL_HZ}Hz (/ ${TEST_SIGNAL_DEVIDER})")
+
+#-------------------------------/Calculable-------------------------------------
+
 set(MAIN_MEMORY_BASE        0x10000000) # memory base address
-
-
-add_subdirectory(tools)
 
 #---------------------------------bootloader------------------------------------
 add_subdirectory(bootloader)

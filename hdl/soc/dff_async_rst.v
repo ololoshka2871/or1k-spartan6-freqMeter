@@ -30,20 +30,21 @@
 //* ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //* POSSIBILITY OF SUCH DAMAGE.
 //*
+//*
 //****************************************************************************/
 
-`define     INPUT_CLOCK_HZ          @INPUT_CLOCK_HZ@
-`define     INPUT_CLOCK_PERIOD_NS_F @INPUT_CLOCK_PERIOD_NS_F@
-`define	    NUM_OF_16k_MEM	    @FPGA_DP_MEMORY_USE@
+// synopsys translate_off
+`include "timescale.v"
+// synopsys translate_on
+`include "config.v"
 
-`define     MASER_FREQ_COUNTER_LEN  @MASER_FREQ_COUNTER_LEN@
-`define     INPUT_FREQ_COUNTER_LEN  @INPUT_FREQ_COUNTER_LEN@
-`define     TEST_SIGNAL_DEVIDER     @TEST_SIGNAL_DEVIDER@
+module dff_async_rst (data, clk, reset, q);
+input wire data,clk, reset;
+output reg q;
 
-// Clock
-`define     PLL_MULTIPLYER          @PLL_MULTIPLYER@
-`define     REFERENCE_CLOCK_DEVIDER @REFERENCE_CLOCK_DEVIDER@
-`define     CPU_CLOCK_DEVIDER       @CPU_CLOCK_DEVIDER@
-
-// TODO : generate from .ucf file
-`define     F_INPUTS_COUNT          4
+always @(posedge clk or posedge reset)
+    if (reset)
+        q = 1'b0;
+    else
+        q = data;
+endmodule

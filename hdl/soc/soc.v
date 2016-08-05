@@ -60,6 +60,8 @@ module soc
     io_ack_o,
     io_cyc_i,
 
+    devided_clocks,
+
     // SPI
     sck_o,
     mosi_o,
@@ -103,6 +105,8 @@ input                   io_we_i /*verilator public*/;
 input                   io_stb_i /*verilator public*/;
 output                  io_ack_o /*verilator public*/;
 input                   io_cyc_i /*verilator public*/;
+// devided_clocks
+input  [15:0]           devided_clocks /*verilator public*/;
 // SPI
 output                  sck_o /*verilator public*/;
 output                  mosi_o /*verilator public*/;
@@ -300,11 +304,11 @@ u_intr
     .intr2_i(timer_intr_hires),
     .intr3_i(spi_intr),
     .intr4_i(gpio_irq),
-    .intr5_i(1'b0),
+    .intr5_i(ext_intr_i),
     .intr6_i(1'b0),
     .intr7_i(1'b0),
 
-    .intr_ext_i(ext_intr_i),
+    .intr_ext_i(1'b0),
 
     .addr_i(intr_addr),
     .data_o(intr_data_i),
@@ -385,14 +389,7 @@ gpio_top gpioA
     .ext_padoe_o(GPIO_oe)
 );
 
-//
-reg [12:0] devider = 0;
-assign seg7_switch_digit = devider[12];
-
-always @(posedge clk_i) begin
-    devider = devider + 1;
-end
-
+assign seg7_switch_digit = devided_clocks[12];
 
 //-------------------------------------------------------------------
 // Hooks for debug
