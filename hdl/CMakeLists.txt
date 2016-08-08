@@ -69,6 +69,7 @@ set(config_v_file_name		    "${CMAKE_CURRENT_BINARY_DIR}/config.v")
 add_subdirectory(altor32)
 add_subdirectory(soc)
 add_subdirectory(memory)
+add_subdirectory(utils)
 
 #-------------------------------top module--------------------------------------
 
@@ -91,6 +92,7 @@ configure_file(${config_v_file_name_in} ${config_v_file_name} @ONLY)
 build_prj(ALTOR32_CORE_PRJ  "verilog altor32	%f\n"	"${ALTOR32_HDL_V}")
 build_prj(SOC_PRJ	    "verilog soc	%f\n"	"${SOC_HDL_V}")
 build_prj(MEMORY_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_V}")
+build_prj(UTILS_PRJ	    "verilog utils	%f\n"	"${UTILS_HDL_V}")
 build_prj(CONFIG_PRJ        "verilog config     %f\n"   "${config_v_file_name}")
 
 set(PRJ_TEXT
@@ -98,6 +100,7 @@ set(PRJ_TEXT
     ${ALTOR32_CORE_PRJ}
     ${SOC_PRJ}
     ${MEMORY_PRJ}
+    ${UTILS_PRJ}
     ${TOP_PRJ}
     )
 
