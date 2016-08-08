@@ -141,13 +141,16 @@ message(STATUS "User code will be at ${USER_CODE_FLASH_OFFSET} in flash")
 #-------------------------------------sym---------------------------------------
 add_subdirectory(testbench)
 
-set(prj_libs altor32 soc memory work)
+set(prj_libs altor32 soc memory utils work)
 set(testlibs_list)
 foreach(l ${prj_libs})
     list(APPEND testlibs_list -lib ${l})
 endforeach()
 
-set(test_include_path -i ${CMAKE_CURRENT_BINARY_DIR} -i ${CMAKE_CURRENT_SOURCE_DIR})
+set(test_include_path
+        -i ${CMAKE_CURRENT_BINARY_DIR}
+        -i ${CMAKE_CURRENT_SOURCE_DIR}
+        )
 
 build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	${XILINX_VERILOG_glbl})
 build_prj(MEMORY_HDL_SIM_PRJ	    "verilog memory	%f\n"	${MEMORY_HDL_SIM_V})
@@ -168,6 +171,7 @@ foreach(testfile ${TESTBENCH_HDL_V})
 	${ALTOR32_CORE_PRJ}
 	${SOC_PRJ}
 	${MEMORY_HDL_SIM_PRJ}
+        ${UTILS_PRJ}
 	${TOP_PRJ}
 	${TB_PRJ}
 	${XILINX_VERILOG_glbl_PRJ}

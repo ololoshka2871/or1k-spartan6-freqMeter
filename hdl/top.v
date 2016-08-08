@@ -368,7 +368,7 @@ DCM_CLKGEN_f_cpu (
 
 // test freqs
 assign Fin[11:0] = devided_clocks[20:9];
-assign Fin[23:12] = devided_clocks[20:9];
+assign Fin[23:12] = ~devided_clocks[20:9];
 
 // Reset Generator
 always @(posedge clk) 

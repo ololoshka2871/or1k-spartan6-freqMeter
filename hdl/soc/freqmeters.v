@@ -61,6 +61,8 @@ module freqmeters
     output wire [MASER_FREQ_COUNTER_LEN-1:0] devided_clocks // clk_i деленная на 2, 4, ... 2^MASER_FREQ_COUNTER_LEN
 );
 
+parameter REGFILE_ADDR_WIDTH = $clog2(INPUTS_COUNT);
+
 // Счетчик опорной частоты
 // FM_MASTER_CNT (RO)
 reg  [MASER_FREQ_COUNTER_LEN-1:0] mester_freq_counter;
@@ -69,6 +71,8 @@ reg  [MASER_FREQ_COUNTER_LEN-1:0] mester_freq_counter;
 
 // FM_IE (RW)
 reg  [INPUTS_COUNT-1:0]           irq_enable; // разрешить прерывания на этих каналах (RW)
+
+reg  [INPUTS_COUNT-1:0]           irq_flags; // Флаги готовности каналов
 
 //--------------------------------memory----------------------------------------
 
@@ -100,7 +104,17 @@ wire [INPUTS_COUNT - 1:0] stop_requests;
 wire start_write_enabled = (start_requests == {INPUTS_COUNT{1'b0}});
 wire stop_write_enabled = (stop_requests == {INPUTS_COUNT{1'b0}});
 
+wire [REGFILE_ADDR_WIDTH - 1:0] start_req_addr;
+wire [REGFILE_ADDR_WIDTH - 1:0] stop_req_addr;
+
 wire [INPUTS_COUNT - 1:0] restarts;
+
+wire ready_start;
+wire ready_stop;
+
+//------------------------------------------------------------------------------
+
+assign inta_o = (irq_flags & irq_enable) != {INPUTS_COUNT{1'b0}};
 
 //------------------------------------------------------------------------------
 
@@ -130,6 +144,20 @@ generate
     end
 endgenerate
 
+coder
+#(
+    .INPUTS_COUNT(INPUTS_COUNT)
+)  start_addr_coder (
+    .inputs(start_requests),
+    .outputs(start_req_addr),
+    .error(ready_start)
+), stop_addr_coder  (
+    .inputs(stop_requests),
+    .outputs(stop_req_addr),
+    .error(ready_stop)
+);
+
+
 //------------------------------------------------------------------------------
 
 // endian control
@@ -153,6 +181,17 @@ initial begin
         START_vals[j] = 32'h00000000;
         STOP_vals[j]  = 32'h00000000;
     end
+end
+
+//------------------------------------------------------------------------------
+
+always @(negedge ready_start) begin
+    START_vals[start_req_addr] <= mester_freq_counter; // захват старта
+end
+
+always @(negedge ready_stop) begin
+    STOP_vals[stop_req_addr] <= mester_freq_counter; // захват стопа
+    irq_flags <= irq_flags | stop_requests;
 end
 
 //------------------------------------------------------------------------------
