@@ -46,4 +46,4 @@
 `define     CPU_CLOCK_DEVIDER       @CPU_CLOCK_DEVIDER@
 
 // TODO : generate from .ucf file
-`define     F_INPUTS_COUNT          4
+`define     F_INPUTS_COUNT          24

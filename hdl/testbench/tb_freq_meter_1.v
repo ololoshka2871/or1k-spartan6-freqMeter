@@ -30,56 +30,49 @@
 //* ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //* POSSIBILITY OF SUCH DAMAGE.
 //*
-//* this module provides access to FPGA boot SPI flash
 //*
 //****************************************************************************/
 
-module tb_freq_meter
+module tb_freq_meter_1
 #(
     parameter MASER_FREQ_COUNTER_LEN = 30,
     parameter INPUT_FREQ_COUNTER_LEN = 24
 ) (
-    output  wire  [MASER_FREQ_COUNTER_LEN - 1:0]      result_master_val_o,
-    output  wire  [INPUT_FREQ_COUNTER_LEN - 1:0]      result_input_val_o,
+    output reg F_in,
+    output reg clk_i,
 
-    output  wire  [MASER_FREQ_COUNTER_LEN - 1:0]      result_timestamp_o,
-
-    // events
-    output  wire                                      ready_o, // сигнал того, что цыкл завершился и данные готовы
-    output  wire                                      no_input_signal_o // флаг отсутсвия входной частоты
+    output wire write_start_req,
+    output wire write_stop_req
 );
 
 reg [MASER_FREQ_COUNTER_LEN - 1:0]      master_counter;
-reg [INPUT_FREQ_COUNTER_LEN - 1:0]      input_counter_reload;
+reg restart_req;
+reg [INPUT_FREQ_COUNTER_LEN - 1:0]      reload_val;
 
-reg F_in;
-reg clk_i;
+reg enable_start;
+reg enable_stop;
+
 reg rst_i;
-reg restart_cycle;
 
-reg ready_accept;
-reg test_no_input_signal_i;
-
-freq_meter
+freq_meter_1
 #(
-    .MASER_FREQ_COUNTER_LEN(MASER_FREQ_COUNTER_LEN),
     .INPUT_FREQ_COUNTER_LEN(INPUT_FREQ_COUNTER_LEN)
 ) fm (
-    .master_counter_i(master_counter),
-    .result_master_val_o(result_master_val_o),
-    .result_input_val_o(result_input_val_o),
-    .result_timestamp_o(result_timestamp_o),
-    .input_counter_reload_i(input_counter_reload),
-    .F_in(F_in),
-    .clk_i(clk_i),
     .rst_i(rst_i),
-    .restart_cycle_i(restart_cycle),
+    .clk_i(clk_i),
 
-    .ready_o(ready_o),
-    .ready_accept_i(ready_accept),
+    .reload_val(reload_val),
 
-    .no_input_signal_o(no_input_signal_o),
-    .test_no_input_signal_i(test_no_input_signal_i)
+    .restart(restart_req),
+
+    .write_start_req(write_start_req),
+    .write_start_enable_i(enable_start),
+
+
+    .write_stop_req(write_stop_req),
+    .write_stop_enable_i(enable_stop),
+
+    .Fin_unsync(F_in)
 );
 
 
@@ -89,38 +82,42 @@ initial begin
 
         rst_i = 1;
 
-        master_counter = 0;
-        input_counter_reload = 3;
-
+        reload_val = 1;
         F_in = 0;
-        restart_cycle = 0;
+        clk_i = 0;
+        restart_req = 0;
+        master_counter = 0;
 
-        ready_accept = 0;
-        test_no_input_signal_i = 0;
+        enable_start = 0;
+        enable_stop = 0;
 
         #10;
         rst_i = 0;
 
-        // Wait 10 ns for global reset to finish
-        #10;
+        // Wait 101 ns for global reset to finish
+        #101;
+
+        restart_req = 1;
+
+        #583
+        enable_start = 1;
+
+        #585
+        enable_stop = 1;
+
 end
 
-    always #10 begin
+    always #5 begin
         clk_i <= !clk_i;
-        if (!clk_i) begin
-            master_counter = master_counter + 1;
-            ready_accept <= ready_o; // accept ready
-            if (restart_cycle)
-                restart_cycle <= 1'b0;
+        if (clk_i) begin
+            master_counter <= master_counter + 1;
+            if (restart_req)
+                restart_req <= 0;
         end
     end
 
     always #253 begin
         F_in <= !F_in;
-    end
-
-    always #3000 begin
-        restart_cycle <= 1'b1;
     end
 
 endmodule

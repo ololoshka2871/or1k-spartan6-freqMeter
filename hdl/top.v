@@ -266,16 +266,6 @@ freqmeters
     .devided_clocks(devided_clocks)
 );
 
-/*
-reg [15:0] devider = 0;
-
-assign devided_clocks = devider;
-
-always @(posedge clk_i) begin
-    devider = devider + 1;
-end
-*/
-
 // CPU SOC
 soc
 #(
@@ -377,10 +367,8 @@ DCM_CLKGEN_f_cpu (
 //-----------------------------------------------------------------
 
 // test freqs
-assign Fin[0] = devided_clocks[10];
-assign Fin[1] = devided_clocks[11];
-assign Fin[2] = devided_clocks[12];
-assign Fin[3] = devided_clocks[13];
+assign Fin[11:0] = devided_clocks[20:9];
+assign Fin[23:12] = devided_clocks[20:9];
 
 // Reset Generator
 always @(posedge clk) 

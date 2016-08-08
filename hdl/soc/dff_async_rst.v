@@ -39,7 +39,7 @@
 `include "config.v"
 
 module dff_async_rst (data, clk, reset, q);
-input wire data,clk, reset;
+input wire data, clk, reset;
 output reg q;
 
 always @(posedge clk or posedge reset)

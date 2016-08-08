@@ -92,7 +92,43 @@ wire memory_selector = ~adr_i[6];
 
 wire test_no_input_signal_i = mester_freq_counter[TEST_INPUT_AT_2_POW_CLK];
 
+wire reload_value;
+
+wire [INPUTS_COUNT - 1:0] start_requests;
+wire [INPUTS_COUNT - 1:0] stop_requests;
+
+wire start_write_enabled = (start_requests == {INPUTS_COUNT{1'b0}});
+wire stop_write_enabled = (stop_requests == {INPUTS_COUNT{1'b0}});
+
+wire [INPUTS_COUNT - 1:0] restarts;
+
 //------------------------------------------------------------------------------
+
+genvar i;
+
+generate
+    for (i = 0; i < INPUTS_COUNT; i = i + 1) begin
+        freq_meter_1
+        #(
+            .INPUT_FREQ_COUNTER_LEN(INPUT_FREQ_COUNTER_LEN)
+        ) fm_inst (
+            .rst_i(rst_i),
+            .clk_i(F_master),
+
+            .reload_val(reload_value),
+
+            .restart(restarts[i]),
+
+            .write_start_req(start_requests[i]),
+            .write_start_enable_i(start_write_enabled),
+
+            .write_stop_req(stop_requests[i]),
+            .write_stop_enable_i(stop_write_enabled),
+
+            .Fin_unsync(F_in[i])
+        );
+    end
+endgenerate
 
 //------------------------------------------------------------------------------
 
@@ -110,12 +146,12 @@ assign _dat_i = dat_i;
 // interrupt
 //------------------------------------------------------------------------------
 
-integer i;
+integer j;
 
 initial begin
-    for(i = 0; i < INPUTS_COUNT; i = i + 1) begin
-        START_vals[i] = 32'h00000000;
-        STOP_vals[i]  = 32'h00000000;
+    for(j = 0; j < INPUTS_COUNT; j = j + 1) begin
+        START_vals[j] = 32'h00000000;
+        STOP_vals[j]  = 32'h00000000;
     end
 end
 
