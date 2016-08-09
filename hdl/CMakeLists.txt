@@ -152,8 +152,8 @@ set(test_include_path
         -i ${CMAKE_CURRENT_SOURCE_DIR}
         )
 
-build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	${XILINX_VERILOG_glbl})
-build_prj(MEMORY_HDL_SIM_PRJ	    "verilog memory	%f\n"	${MEMORY_HDL_SIM_V})
+build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	"${XILINX_VERILOG_glbl}")
+build_prj(MEMORY_HDL_SIM_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_SIM_V}")
 
 foreach(testfile ${TESTBENCH_HDL_V})
     string(REGEX REPLACE ".*/(.*)\\.v" "\\1" testname ${testfile})

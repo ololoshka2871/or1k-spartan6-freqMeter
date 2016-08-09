@@ -52,6 +52,9 @@ reg [INPUT_FREQ_COUNTER_LEN - 1:0]      reload_val;
 reg enable_start;
 reg enable_stop;
 
+reg start_enabled;
+reg stop_enabled;
+
 reg rst_i;
 
 freq_meter_1
@@ -88,8 +91,8 @@ initial begin
         restart_req = 0;
         master_counter = 0;
 
-        enable_start = 0;
-        enable_stop = 0;
+        start_enabled = 0;
+        stop_enabled = 0;
 
         #10;
         rst_i = 0;
@@ -99,12 +102,14 @@ initial begin
 
         restart_req = 1;
 
-        #583
-        enable_start = 1;
+        #204
+        start_enabled = 1;
 
         #585
-        enable_stop = 1;
+        stop_enabled = 1;
 
+        #351
+        restart_req = 1;
 end
 
     always #5 begin
@@ -113,6 +118,9 @@ end
             master_counter <= master_counter + 1;
             if (restart_req)
                 restart_req <= 0;
+        end else begin
+            enable_start <= ~write_start_req & start_enabled;
+            enable_stop  <= ~write_stop_req  & stop_enabled;
         end
     end
 

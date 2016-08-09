@@ -94,9 +94,14 @@ wire memory_selector = ~adr_i[6];
 
 //------------------------------------------------------------------------------
 
-wire test_no_input_signal_i = mester_freq_counter[TEST_INPUT_AT_2_POW_CLK];
+reg  [INPUT_FREQ_COUNTER_LEN - 1:0] reload_value;
+reg  [INPUTS_COUNT - 1:0] restarts;
 
-wire reload_value;
+//------------------------------------------------------------------------------
+
+wire not_clk_i = ~clk_i;
+
+wire test_no_input_signal_i = mester_freq_counter[TEST_INPUT_AT_2_POW_CLK];
 
 wire [INPUTS_COUNT - 1:0] start_requests;
 wire [INPUTS_COUNT - 1:0] stop_requests;
@@ -107,14 +112,27 @@ wire stop_write_enabled = (stop_requests == {INPUTS_COUNT{1'b0}});
 wire [REGFILE_ADDR_WIDTH - 1:0] start_req_addr;
 wire [REGFILE_ADDR_WIDTH - 1:0] stop_req_addr;
 
-wire [INPUTS_COUNT - 1:0] restarts;
-
 wire ready_start;
 wire ready_stop;
+
+wire [INPUTS_COUNT - 1:0] decoded_freqmeter_num;
+wire decoded_freqmeter_num_err;
 
 //------------------------------------------------------------------------------
 
 assign inta_o = (irq_flags & irq_enable) != {INPUTS_COUNT{1'b0}};
+
+//------------------------------------------------------------------------------
+// endian control
+//------------------------------------------------------------------------------
+
+reg [`WB_DATA_WIDTH - 1:0] _dat_o;
+
+assign dat_o = _dat_o;
+
+wire [`WB_DATA_WIDTH - 1:0] _dat_i;
+
+assign _dat_i = dat_i;
 
 //------------------------------------------------------------------------------
 
@@ -148,30 +166,27 @@ coder
 #(
     .INPUTS_COUNT(INPUTS_COUNT)
 )  start_addr_coder (
+    .clk_i(F_master),
     .inputs(start_requests),
     .outputs(start_req_addr),
     .error(ready_start)
 ), stop_addr_coder  (
+    .clk_i(F_master),
     .inputs(stop_requests),
     .outputs(stop_req_addr),
     .error(ready_stop)
 );
 
+decoder
+#(
+    .OUTPUTS_COUNT(INPUTS_COUNT)
+) freq_meter_n_decoder (
+    .clk_i(F_master),
+    .inputs(_dat_i),
+    .outputs(decoded_freqmeter_num),
+    .error(decoded_freqmeter_num_err)
+);
 
-//------------------------------------------------------------------------------
-
-// endian control
-
-reg [`WB_DATA_WIDTH - 1:0] _dat_o;
-
-assign dat_o = _dat_o;
-
-wire [`WB_DATA_WIDTH - 1:0] _dat_i;
-
-assign _dat_i = dat_i;
-
-//------------------------------------------------------------------------------
-// interrupt
 //------------------------------------------------------------------------------
 
 integer j;
@@ -185,36 +200,54 @@ end
 
 //------------------------------------------------------------------------------
 
-always @(negedge ready_start) begin
-    START_vals[start_req_addr] <= mester_freq_counter; // захват старта
+always @(posedge F_master) begin
+    if (~ready_start)
+        START_vals[start_req_addr] <= mester_freq_counter; // захват старта
+    if (~ready_stop)
+        STOP_vals[stop_req_addr] <= mester_freq_counter; // захват стопа
 end
 
-always @(negedge ready_stop) begin
-    STOP_vals[stop_req_addr] <= mester_freq_counter; // захват стопа
-    irq_flags <= irq_flags | stop_requests;
+
+always @(posedge F_master) begin
+    if (we_i & cyc_i & stb_i & ~ack_o &
+        ({START_selector, memory_addr} == 6'b000001))
+        irq_flags <= irq_flags & (~_dat_i[INPUTS_COUNT-1:0]);
+    else
+        irq_flags <= irq_flags | stop_requests;
 end
 
 //------------------------------------------------------------------------------
 
 always @(posedge clk_i) begin
     ack_o <= 1'b0;
+    restarts <= {INPUTS_COUNT{1'b0}};
+
     if (cyc_i & stb_i & ~ack_o) begin
         if (memory_selector) begin
             _dat_o <= START_selector ? START_vals[memory_addr] : STOP_vals[memory_addr];
         end else begin
             if (we_i) begin
-            case (memory_addr)
-                6'b111111:
-                    irq_enable <= _dat_i[INPUTS_COUNT-1:0];
-                default:
-                    ;
-                endcase
+                if (START_selector) begin
+                    reload_value <= _dat_i[INPUT_FREQ_COUNTER_LEN - 1:0];
+                    if (~decoded_freqmeter_num_err) begin
+                        restarts <= decoded_freqmeter_num;
+                    end
+                end else
+                    // write registers
+                    case (memory_addr)
+                        5'b00000:
+                            irq_enable <= _dat_i[INPUTS_COUNT-1:0];
+                        default:
+                            ;
+                        endcase
             end
-            case (memory_addr)
-                6'b111111:
+            case ({START_selector, memory_addr}) // read registers
+                6'b000000:
                     _dat_o <= {{(`WB_DATA_WIDTH - INPUTS_COUNT){1'b0}}, irq_enable};
+                6'b000001:
+                    _dat_o <= {{(`WB_DATA_WIDTH - INPUTS_COUNT){1'b0}}, irq_flags};
                 default:
-                    ;
+                    _dat_o <= {`WB_DATA_WIDTH{1'b0}};
             endcase
         end
         ack_o <= 1'b1;

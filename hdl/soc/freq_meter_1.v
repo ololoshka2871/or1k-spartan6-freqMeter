@@ -60,64 +60,79 @@ module freq_meter_1
 
 reg [INPUT_FREQ_COUNTER_LEN-1:0]    input_counter;
 
+reg input_enable;
+reg p_input_enable;
+
+reg r_write_start_req;
+reg r_write_stop_req;
+
 //------------------------------------------------------------------------------
 
 wire Fin;
-wire input_enable;
-wire Fin_count = Fin & input_enable;
+wire pFin;
 
-wire overflow_detector = input_counter == {INPUT_FREQ_COUNTER_LEN{1'b1}};
+wire write_stop_val_req;
+
+wire overflow_detector = input_counter == {INPUT_FREQ_COUNTER_LEN{1'b0}};
 
 wire w_await_start;
 
-assign write_stop_req = write_stop_enable_i & write_stop_val_req;
+wire w_input_front_detector = ~Fin & pFin;
+
+wire input_enable_rst_detector = (~input_enable & p_input_enable);
 
 //------------------------------------------------------------------------------
 
-synchronizer sync(
+assign write_start_req  = r_write_start_req & write_start_enable_i;
+assign write_stop_req   = r_write_stop_req  & write_stop_enable_i;
+
+//------------------------------------------------------------------------------
+
+input_synchronizer sync(
     .clk(clk_i),
     .reset(rst_i),
     .din(Fin_unsync),
-    .dout(Fin)
-);
-
-dff_async_rst input_enable_r(
-    .data(1'b1),
-    .clk(write_start_req),
-    .reset( restart | overflow_detector | rst_i),
-    .q(input_enable)
+    .dout(Fin),
+    .pdout(pFin)
 );
 
 srff r_await_start(
     .q(w_await_start),
-    .r(input_enable | rst_i),
+    .r(w_input_front_detector | rst_i),
     .s(restart),
     .clk(clk_i)
 );
 
-dff_async_rst write_start_detector(
-    .data(w_await_start & write_start_enable_i),
-    .clk(Fin),
-    .reset((~clk_i & write_start_req) | rst_i),
-    .q(write_start_req)
-);
-
-dff_async_rst write_stop_detector(
-    .data(1'b1),
-    .clk(~input_enable),
-    .reset((~clk_i & write_stop_req) | rst_i),
-    .q(write_stop_val_req)
-);
-
+//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 
-always @(posedge Fin_count or posedge restart) begin
-    if (restart) begin
-        input_counter <= reload_val;
-    end else
-        if (~overflow_detector)
-            input_counter <= input_counter - 1;
+always @(posedge clk_i or posedge rst_i) begin
+    if (rst_i) begin
+        input_enable <= 1'b0;
+        p_input_enable <= 1'b0;
+        r_write_start_req <= 1'b0;
+        r_write_stop_req <= 1'b0;
+    end else begin
+        p_input_enable <= input_enable;
+
+        if (restart) begin
+            input_counter <= reload_val;
+        end else begin
+            input_counter <= input_counter - (input_enable & w_input_front_detector);
+        end
+
+        input_enable <= ~input_enable ?
+            w_await_start & w_input_front_detector :
+            ~overflow_detector;
+
+        r_write_start_req <= r_write_start_req ?
+            ~write_start_req:
+            w_await_start & w_input_front_detector;
+        r_write_stop_req  <= r_write_stop_req ?
+            ~write_stop_req:
+            input_enable & w_input_front_detector;
+    end
 end
 
 endmodule

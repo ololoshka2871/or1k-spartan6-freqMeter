@@ -38,20 +38,25 @@
 // synopsys translate_on
 `include "config.v"
 
-module synchronizer (
+module input_synchronizer (
     input clk,
     input reset,
     input din,
-    output reg dout
+    output reg dout,
+    output reg pdout
 );
+
     reg d;
+
     always @(posedge clk, posedge reset) begin
         if (reset) begin
-            d <= 0;
-            dout <= 0;
+            d <= 1'b0;
+            dout <= 1'b0;
+            pdout <= 1'b0;
         end else begin
             d <= din;
-            dout <= d;
+            pdout <= d;
+            dout <= pdout;
         end
     end
 endmodule

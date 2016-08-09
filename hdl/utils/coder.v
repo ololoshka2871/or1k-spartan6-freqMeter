@@ -38,14 +38,15 @@ module coder
     parameter INPUTS_COUNT = 32,
     parameter OUTPUTS_COUNT = $clog2(INPUTS_COUNT)
 ) (
-    input wire  [INPUTS_COUNT - 1:0] inputs,
+    input wire  clk_i,
+    input wire [INPUTS_COUNT - 1:0]  inputs,
     output reg [OUTPUTS_COUNT - 1:0] outputs,
     output reg  error
 );
 
 integer i;
 
-always @(inputs) begin
+always @(posedge clk_i) begin
     outputs <= {OUTPUTS_COUNT{1'b0}};
     error <= 1'b1;
     for (i = 0; i < INPUTS_COUNT; i = i + 1) begin
