@@ -73,7 +73,10 @@ wire pFin;
 
 wire write_stop_val_req;
 
-wire overflow_detector = input_counter == {INPUT_FREQ_COUNTER_LEN{1'b0}};
+wire _zero_detector = input_counter[INPUT_FREQ_COUNTER_LEN-1:1]
+    == {(INPUT_FREQ_COUNTER_LEN-1){1'b0}};
+wire zero_detector = _zero_detector & ~input_counter[0];
+wire one_detector = _zero_detector & input_counter[0];
 
 wire w_await_start;
 
@@ -124,14 +127,14 @@ always @(posedge clk_i or posedge rst_i) begin
 
         input_enable <= ~input_enable ?
             w_await_start & w_input_front_detector :
-            ~overflow_detector;
+            ~zero_detector;
 
         r_write_start_req <= r_write_start_req ?
             ~write_start_req:
             w_await_start & w_input_front_detector;
         r_write_stop_req  <= r_write_stop_req ?
             ~write_stop_req:
-            input_enable & w_input_front_detector;
+            input_enable & w_input_front_detector & one_detector;
     end
 end
 

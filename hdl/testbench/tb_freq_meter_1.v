@@ -85,7 +85,7 @@ initial begin
 
         rst_i = 1;
 
-        reload_val = 1;
+        reload_val = 2;
         F_in = 0;
         clk_i = 0;
         restart_req = 0;
@@ -108,7 +108,7 @@ initial begin
         #585
         stop_enabled = 1;
 
-        #351
+        #2351
         restart_req = 1;
 end
 
