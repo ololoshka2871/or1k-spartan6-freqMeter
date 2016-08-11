@@ -3,19 +3,24 @@
 
 #include <stdint.h>
 
+#include "mem_map.h"
+
 #define ENTER_CRITICAL()        __or1k_disable_interrupts()
 #define EXIT_CRITICAL()         __or1k_enable_interrupts()
 
 
-typedef unsigned int* (*irq_handler)(unsigned int * registers);
-typedef void (*isr_handler)(unsigned int * registers);
+typedef unsigned int* (*irq_handler)(unsigned int * registers); // global interrupt handler
+typedef void (*isr_handler)(unsigned int * registers); // user interrupt
 
 enum InterruptSources {
-    IS_UART0 = 0,
-    IS_TIMER_SYSTICK = 1,
-    IS_TIMER_HIRES = 2,
+    IS_UART0 = IRQ_UART_RX,
+    IS_TIMER_SYSTICK = IRQ_TIMER_SYSTICK,
+    IS_TIMER_HIRES = IRQ_TIMER_HIRES,
+    IS_BOOT_SPI = IRQ_BOOT_SPI,
+    IS_GPIO = IRQ_GPIO,
+    IS_FREQMETERS = IRQ_FREQMETERS,
 
-    IS_Count = IS_TIMER_HIRES + 1
+    IS_Count = IS_FREQMETERS + 1
 };
 
 //-----------------------------------------------------------------

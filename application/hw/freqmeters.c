@@ -1,5 +1,5 @@
 /****************************************************************************
- * app_main.c
+ * freqmeters.c
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -33,37 +33,59 @@
  *
  ****************************************************************************/
 
+#include <string.h>
+
 #include "irq.h"
+
 #include "freqmeters.h"
-#include "GPIO.h"
-#include "seg7_display.h"
 
-void DELAY() {
-    for (int i = 0; i < 1000000; ++i)
-        asm volatile("l.nop");
-}
+static struct freqmeter_chanel freqmeters[FREQMETERS_COUNT];
 
-void main(void)
-{
-    interrupts_init();
+static void fm_isr_handler(unsigned int *registers) {
+    (void)registers;
 
-    fm_init();
+    uint32_t chanels_to_scan = FM_IE & FM_IF;
+    for (uint8_t ch = 0; ch < FREQMETERS_COUNT; ++ch) {
+        if (chanels_to_scan & (1 << ch)) {
 
-    GPIO portA = gpio_port_init(GPIO_PORTA, 0b1111);
-    uint8_t v = 1;
-    uint16_t count = 0;
-
-    EXIT_CRITICAL();
-
-    seg7_PutStr("1234", 4, ' ');
-    while(1) {
-        DELAY();
-        if (v == 1 << 4) v = 1;
-        gpio_port_set_all(portA, ~v);
-        seg7_printHex(count++);
-        for (uint8_t i = 0; i < 4; ++i) {
-            seg7_dpSet(seg7_num2Segment(i), v & (1 << i));
         }
-        v <<= 1;
     }
 }
+
+static void start_cycle(uint8_t chanel_num) {
+    struct freqmeter_chanel* chanel = &freqmeters[chanel_num];
+    chanel->newReload_vals[2] = chanel->newReload_vals[1];
+    uint32_t cycleval = chanel->newReload_vals[0];
+    if (!cycleval)
+        cycleval = 1;
+    chanel->newReload_vals[1] = cycleval;
+    FM_RELOAD_CH(chanel_num, cycleval);
+    FM_IE |= 1 << chanel_num;
+}
+
+void fm_init() {
+    const struct freqmeter_chanel init_value = {
+        .newReload_vals = {1, 1, 1},
+        .enabled = 0,
+    };
+    for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
+        memcpy(&freqmeters[i], &init_value, sizeof(struct freqmeter_chanel));
+    }
+
+    set_irq_handler(IS_FREQMETERS, fm_isr_handler);
+}
+
+
+
+void update_chanel(uint8_t chanel) {
+    const uint32_t chanel_mask = 1 << chanel;
+    if ((FM_IE & chanel_mask) || freqmeters[chanel].enabled == 0) {
+        // disable
+        FM_IE &= ~chanel_mask;
+    }
+    if (freqmeters[chanel].enabled) { // update/restart
+        start_cycle(chanel);
+    }
+}
+
+

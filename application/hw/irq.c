@@ -13,8 +13,11 @@ struct src_handler {
 
 static struct src_handler ISRs[IS_Count] = {
 { IS_TIMER_HIRES, NULL },
+{ IS_FREQMETERS, NULL },
 { IS_TIMER_SYSTICK, NULL },
-{ IS_UART0, NULL }
+{ IS_UART0, NULL },
+{ IS_BOOT_SPI, NULL },
+{ IS_GPIO, NULL },
 };
 
 static unsigned int irq_disable_counter = 1;

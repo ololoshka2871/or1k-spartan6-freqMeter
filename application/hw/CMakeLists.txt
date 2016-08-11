@@ -43,6 +43,7 @@ SET(LIBHW_SOURCES
     GPIO.c
     syscall.c
     seg7_display.c
+    freqmeters.c
     )
 
 INCLUDE_DIRECTORIES(.)

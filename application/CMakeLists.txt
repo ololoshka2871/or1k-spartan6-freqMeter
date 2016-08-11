@@ -70,6 +70,8 @@ add_custom_command(
 
 INCLUDE("or1k_toolchain")
 
+add_definitions(-DFREQMETERS_COUNT=${F_INPUTS_COUNT})
+
 add_custom_target(mkldscript DEPENDS ${LD_SCRIPT_FILE})
 
 add_subdirectory(hw)

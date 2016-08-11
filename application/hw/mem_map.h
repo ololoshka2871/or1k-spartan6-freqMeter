@@ -4,7 +4,8 @@
 //-----------------------------------------------------------------
 // Defines:
 //-----------------------------------------------------------------
-#define IO_BASE             0x12000000
+#define IO_BASE                 0x12000000
+#define FREQMETERS_BASE         0x11000000
 
 //-----------------------------------------------------------------
 // Macros:
@@ -29,8 +30,8 @@
 #define IRQ_TIMER_SYSTICK       1
 #define IRQ_TIMER_HIRES         2
 #define IRQ_BOOT_SPI		3
-#define IRQ_GPIO_		4
-#define IRQ_EXT_INT0            8
+#define IRQ_GPIO		4
+#define IRQ_FREQMETERS          5
 
 //-----------------------------------------------------------------
 // Peripheral Registers

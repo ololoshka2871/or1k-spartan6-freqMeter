@@ -53,7 +53,6 @@ set(XST_FILE_NAME	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.xst")
 set(XST_IN_FILE_NAME	"${CMAKE_CURRENT_SOURCE_DIR}/${TOP_MODULE_NAME}.xst.in")
 set(UT_FILE_NAME	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.ut")
 set(UT_IN_FILE_NAME	"${CMAKE_CURRENT_SOURCE_DIR}/${TOP_MODULE_NAME}.ut.in")
-set(UCF_FILE_NAME	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.ucf")
 
 if (NOT PART_NAME)
     message(WARNING "PART_NAME not selected, default: xc6slx9-3-tqg144")
@@ -128,6 +127,10 @@ set(ucf_filename    "${CMAKE_CURRENT_SOURCE_DIR}/ucf/xilinx-${PART_NAME}.ucf")
 configure_file(${ucf_filename} ${UCF_FILE_NAME} COPYONLY)
 
 #-------------------------------------ucp---------------------------------------
+
+#FIXME
+set(F_INPUTS_COUNT  24)
+set(F_INPUTS_COUNT  24 PARENT_SCOPE)
 
 set(ucp_filename    "${CMAKE_CURRENT_SOURCE_DIR}/ucf/xilinx-${PART_NAME}.ucp")
 file(STRINGS ${ucp_filename} USER_CODE_FLASH_OFFSET
@@ -205,6 +208,6 @@ set(TOP_MODULE_NAME         ${TOP_MODULE_NAME}          PARENT_SCOPE)
 set(PRJ_TEXT                ${PRJ_TEXT}                 PARENT_SCOPE)
 set(XST_FILE_NAME           ${XST_FILE_NAME}            PARENT_SCOPE)
 set(UT_FILE_NAME            ${UT_FILE_NAME}		PARENT_SCOPE)
-set(UCF_FILE_NAME           ${UCF_FILE_NAME}            PARENT_SCOPE)
+set(UCF_FILE_NAME           ${ucf_filename}             PARENT_SCOPE)
 
 set(USER_CODE_FLASH_OFFSET  ${USER_CODE_FLASH_OFFSET}   PARENT_SCOPE)

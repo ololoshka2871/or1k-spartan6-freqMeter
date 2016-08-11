@@ -1,5 +1,4 @@
 #****************************************************************************
-#* hard/cmake_modules/recursively_include_src.cmake
 #*
 #*   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
 #*   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
