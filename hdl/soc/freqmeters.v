@@ -47,7 +47,7 @@ module freqmeters
     input  wire				rst_i,         // reset (asynchronous active low)
     input  wire				cyc_i,         // cycle
     input  wire				stb_i,         // strobe
-    input  wire [10:0]                  adr_i,         // address
+    input  wire [8:0]                   adr_i,         // address
     input  wire				we_i,          // write enable
     input  wire [`WB_DATA_WIDTH - 1:0]	dat_i,         // data input
     output wire [`WB_DATA_WIDTH - 1:0]	dat_o,         // data output
@@ -80,15 +80,17 @@ reg  [INPUTS_COUNT-1:0]           irq_flags; // Флаги готовности 
 // 0x0 - 0x3F 
 // [0x00 - 0x1f] - START_vals
 // (* RAM_STYLE="BLOCK" *)
-reg  [MASER_FREQ_COUNTER_LEN-1:0] START_vals [INPUTS_COUNT - 1:0];
+reg  [MASER_FREQ_COUNTER_LEN-1:0] START_vals [31:0];
 
 // [0x20 - 0x3f] - STOP_vals
 // (* RAM_STYLE="BLOCK" *)
-reg  [MASER_FREQ_COUNTER_LEN-1:0] STOP_vals  [INPUTS_COUNT - 1:0];
+reg  [MASER_FREQ_COUNTER_LEN-1:0] STOP_vals  [31:0];
 
-wire memory_addr     = adr_i[4:0];
-wire START_selector  = adr_i[5];
-wire memory_selector = adr_i[6];
+wire [6:0] addr_valid = adr_i[8:2]; // 32 bit addr
+
+wire [4:0] memory_addr     = addr_valid[4:0];
+wire START_selector        = addr_valid[5];
+wire memory_selector       = addr_valid[6];
 
 //------------------------------------------------------------------------------
 
@@ -176,7 +178,7 @@ decoder
     .OUTPUTS_COUNT(INPUTS_COUNT)
 ) freq_meter_n_decoder (
     .clk_i(F_master),
-    .inputs(adr_i),
+    .inputs(addr_valid),
     .outputs(decoded_freqmeter_num),
     .error(decoded_freqmeter_num_err)
 );
@@ -186,9 +188,9 @@ decoder
 integer j;
 
 initial begin
-    for(j = 0; j < INPUTS_COUNT; j = j + 1) begin
-        START_vals[j] = 32'h00000000;
-        STOP_vals[j]  = 32'h00000000;
+    for(j = 0; j < 32; j = j + 1) begin
+        START_vals[j] = 32'h00000001;
+        STOP_vals[j]  = 32'h00000010;
     end
 end
 

@@ -49,9 +49,17 @@ void main(void)
 
     fm_init();
 
+    for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
+        fm_setChanelReloadValue(i, 10, false);
+        fm_enableChanel(i, true);
+    }
+
     GPIO portA = gpio_port_init(GPIO_PORTA, 0b1111);
     uint8_t v = 1;
     uint16_t count = 0;
+
+    double F;
+    uint8_t chanel = 0;
 
     EXIT_CRITICAL();
 
@@ -65,5 +73,13 @@ void main(void)
             seg7_dpSet(seg7_num2Segment(i), v & (1 << i));
         }
         v <<= 1;
+
+        if (fm_getActualMeasureTime(chanel))
+            F = (double)F_REF * fm_getActualReloadValue(chanel)
+                / fm_getActualMeasureTime(chanel);
+
+        chanel++;
+        if (chanel == FREQMETERS_COUNT)
+            chanel = 0;
     }
 }

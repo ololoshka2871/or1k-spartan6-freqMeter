@@ -29,7 +29,7 @@ module tb_freqmeters;
 	reg rst_i;
 	reg cyc_i;
 	reg stb_i;
-	reg [10:0] adr_i;
+        reg [8:0] adr_i;
 	reg we_i;
 	reg [31:0] dat_i;
 	reg F_master;
@@ -97,13 +97,13 @@ module tb_freqmeters;
             we_i = 1;
 
             #40 // start chanel 1 by writing 1 to counter
-            adr_i = 4'h11000001 | (1 << 5);
+            adr_i = 4'h11000004 | (1 << 5);
             dat_i = 4'h00000001;
             stb_i = 1;
             we_i = 1;
 
             #200 // start chanel 12 by writing 2 to counter
-            adr_i = 4'h1100000C | (1 << 5);
+            adr_i = 4'h11000030 | (1 << 5);
             dat_i = 4'h00000002;
             stb_i = 1;
             we_i = 1;
@@ -115,13 +115,13 @@ module tb_freqmeters;
             we_i = 1;
 
             #40  // start chanel 1 by writing 1 to counter
-            adr_i = 4'h11000001 | (1 << 5);
+            adr_i = 4'h11000004 | (1 << 5);
             dat_i = 4'h00000000;
             stb_i = 1;
             we_i = 1;
 
             #340  // start chanel 1 by writing 1 to counter
-            adr_i = 4'h11000001 | (1 << 5);
+            adr_i = 4'h11000004 | (1 << 5);
             dat_i = 4'h00000001;
             stb_i = 1;
             we_i = 1;

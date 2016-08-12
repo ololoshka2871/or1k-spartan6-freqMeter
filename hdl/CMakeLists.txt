@@ -69,6 +69,7 @@ add_subdirectory(altor32)
 add_subdirectory(soc)
 add_subdirectory(memory)
 add_subdirectory(utils)
+add_subdirectory(ucf)
 
 #-------------------------------top module--------------------------------------
 
@@ -119,25 +120,6 @@ configure_file(${XST_IN_FILE_NAME} ${XST_FILE_NAME} @ONLY)
 #-------------------------------------ut----------------------------------------
 
 configure_file(${UT_IN_FILE_NAME} ${UT_FILE_NAME} @ONLY)
-
-#-------------------------------------ucf---------------------------------------
-
-set(ucf_filename    "${CMAKE_CURRENT_SOURCE_DIR}/ucf/xilinx-${PART_NAME}.ucf")
-
-configure_file(${ucf_filename} ${UCF_FILE_NAME} COPYONLY)
-
-#-------------------------------------ucp---------------------------------------
-
-#FIXME
-set(F_INPUTS_COUNT  24)
-set(F_INPUTS_COUNT  24 PARENT_SCOPE)
-
-set(ucp_filename    "${CMAKE_CURRENT_SOURCE_DIR}/ucf/xilinx-${PART_NAME}.ucp")
-file(STRINGS ${ucp_filename} USER_CODE_FLASH_OFFSET
-    REGEX "USER_CODE_FLASH_OFFSET=.*"
-    )
-string(REGEX REPLACE "USER_CODE_FLASH_OFFSET=(.*)" "\\1" USER_CODE_FLASH_OFFSET ${USER_CODE_FLASH_OFFSET})
-message(STATUS "User code will be at ${USER_CODE_FLASH_OFFSET} in flash")
 
 #-------------------------------------------------------------------------------
 
@@ -208,6 +190,7 @@ set(TOP_MODULE_NAME         ${TOP_MODULE_NAME}          PARENT_SCOPE)
 set(PRJ_TEXT                ${PRJ_TEXT}                 PARENT_SCOPE)
 set(XST_FILE_NAME           ${XST_FILE_NAME}            PARENT_SCOPE)
 set(UT_FILE_NAME            ${UT_FILE_NAME}		PARENT_SCOPE)
-set(UCF_FILE_NAME           ${ucf_filename}             PARENT_SCOPE)
+set(UCF_FILE_NAME           ${UCF_FILE_NAME}            PARENT_SCOPE)
+set(F_INPUTS_COUNT          ${F_INPUTS_COUNT}           PARENT_SCOPE)
 
 set(USER_CODE_FLASH_OFFSET  ${USER_CODE_FLASH_OFFSET}   PARENT_SCOPE)
