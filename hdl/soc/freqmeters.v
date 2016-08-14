@@ -80,11 +80,11 @@ reg  [INPUTS_COUNT-1:0]           irq_flags; // Флаги готовности 
 // 0x0 - 0x3F 
 // [0x00 - 0x1f] - START_vals
 // (* RAM_STYLE="BLOCK" *)
-reg  [MASER_FREQ_COUNTER_LEN-1:0] START_vals [31:0];
+reg  [31:0] START_vals [31:0];
 
 // [0x20 - 0x3f] - STOP_vals
 // (* RAM_STYLE="BLOCK" *)
-reg  [MASER_FREQ_COUNTER_LEN-1:0] STOP_vals  [31:0];
+reg  [31:0] STOP_vals  [31:0];
 
 wire [6:0] addr_valid = adr_i[8:2]; // 32 bit addr
 
@@ -189,8 +189,13 @@ integer j;
 
 initial begin
     for(j = 0; j < 32; j = j + 1) begin
-        START_vals[j] = 32'h00000001;
-        STOP_vals[j]  = 32'h00000010;
+        if (j < INPUTS_COUNT) begin
+            START_vals[j] = j;
+            STOP_vals[j]  = ~j;
+        end else begin
+            START_vals[j] = 32'hDEADBEAF;
+            STOP_vals[j]  = 32'hDEADBEAF;
+        end
     end
 end
 
@@ -230,7 +235,10 @@ always @(posedge clk_i or posedge rst_i) begin
 
         if (cyc_i & stb_i & ~ack_o) begin
             if (memory_selector) begin
-                _dat_o <= START_selector ? START_vals[memory_addr] : STOP_vals[memory_addr];
+                if (START_selector)
+                    _dat_o <= {{(`WB_DATA_WIDTH-MASER_FREQ_COUNTER_LEN){1'b0}}, START_vals[memory_addr]};
+                else
+                    _dat_o <= {{(`WB_DATA_WIDTH-MASER_FREQ_COUNTER_LEN){1'b0}}, STOP_vals[memory_addr]};
             end else begin
                 if (we_i) begin
                     if (START_selector) begin
@@ -238,14 +246,10 @@ always @(posedge clk_i or posedge rst_i) begin
                         if (~decoded_freqmeter_num_err) begin
                             restarts <= decoded_freqmeter_num;
                         end
-                    end else
-                        // write registers
-                        case (memory_addr)
-                            5'b00000:
-                                irq_enable <= _dat_i[INPUTS_COUNT-1:0];
-                            default:
-                                ;
-                            endcase
+                    end else begin
+                        if (memory_addr == 5'b00000)
+                            irq_enable <= _dat_i[INPUTS_COUNT-1:0];
+                    end
                 end
                 case ({START_selector, memory_addr}) // read registers
                     6'b000000:

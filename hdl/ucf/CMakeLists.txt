@@ -39,7 +39,15 @@ set(F_INPUTS_COUNT  24)
 
 #-------------------------------------ucf---------------------------------------
 
-set(UCF_FILE_NAME    "${CMAKE_CURRENT_SOURCE_DIR}/xilinx-${PART_NAME}.ucf")
+set(UCF_FILE_NAME_IN    "${CMAKE_CURRENT_SOURCE_DIR}/xilinx-${PART_NAME}.ucf.in")
+set(UCF_FILE_NAME       "${CMAKE_CURRENT_BINARY_DIR}/xilinx-${PART_NAME}.ucf")
+
+configure_file(${UCF_FILE_NAME_IN} ${UCF_FILE_NAME} @ONLY)
+
+add_custom_target(constraints_src
+    SOURCES
+        ${UCF_FILE_NAME_IN}
+    )
 
 #-------------------------------------ucp---------------------------------------
 

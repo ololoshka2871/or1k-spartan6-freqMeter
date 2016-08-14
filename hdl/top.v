@@ -113,7 +113,6 @@ wire                imem_stall;
 wire[31:0]          freqmeter_addr;
 wire[31:0]          freqmeter_data_r;
 wire[31:0]          freqmeter_data_w;
-wire[3:0]           freqmeter_sel;
 wire                freqmeter_we;
 wire                freqmeter_stb;
 wire                freqmeter_cyc;
@@ -252,7 +251,7 @@ freqmeters
     .rst_i(reset),
     .cyc_i(freqmeter_cyc),
     .stb_i(freqmeter_stb),
-    .adr_i(freqmeter_addr),
+    .adr_i(freqmeter_addr[8:0]),
     .we_i(freqmeter_we),
     .dat_i(freqmeter_data_w),
     .dat_o(freqmeter_data_r),

@@ -91,40 +91,48 @@ module tb_freqmeters;
             we_i = 1;
 
             #40 // start chanel 0 by writing 2 to counter
-            adr_i = 4'h11000000 | (1 << 5);
+            adr_i = 4'h11000000 | (1 << 7);
             dat_i = 4'h00000002;
             stb_i = 1;
             we_i = 1;
 
             #40 // start chanel 1 by writing 1 to counter
-            adr_i = 4'h11000004 | (1 << 5);
+            adr_i = 4'h11000004 | (1 << 7);
             dat_i = 4'h00000001;
             stb_i = 1;
             we_i = 1;
 
             #200 // start chanel 12 by writing 2 to counter
-            adr_i = 4'h11000030 | (1 << 5);
+            adr_i = 4'h11000030 | (1 << 7);
             dat_i = 4'h00000002;
             stb_i = 1;
             we_i = 1;
 
             #1000 // start chanel 0 by writing 3 to counter
-            adr_i = 4'h11000000 | (1 << 5);
+            adr_i = 4'h11000000 | (1 << 7);
             dat_i = 4'h00000003;
             stb_i = 1;
             we_i = 1;
 
             #40  // start chanel 1 by writing 1 to counter
-            adr_i = 4'h11000004 | (1 << 5);
+            adr_i = 4'h11000004 | (1 << 7);
             dat_i = 4'h00000000;
             stb_i = 1;
             we_i = 1;
 
             #340  // start chanel 1 by writing 1 to counter
-            adr_i = 4'h11000004 | (1 << 5);
+            adr_i = 4'h11000004 | (1 << 7);
             dat_i = 4'h00000001;
             stb_i = 1;
             we_i = 1;
+
+            #1500 // read test
+            adr_i = 4'h11000000 | (1 << 8);
+            stb_i = 1;
+
+            #40
+            adr_i = 4'h11000000 | (1 << 8) | (1 << 7);
+            stb_i = 1;
 	end
 	
 	always #10 begin
