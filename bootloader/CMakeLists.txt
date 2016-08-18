@@ -50,12 +50,23 @@ configure_file(${LD_SCRIPT_FILE_IN} ${LD_SCRIPT_FILE} @ONLY)
 INCLUDE("or1k_toolchain")
 
 add_subdirectory(gdb_stub)
-SET(BOOT_LIB_NOTRAP	    gdb_stub_notrap)
+SET(BOOT_LIB_SIM_NOTRAP	    gdb_stub_sim_notrap)
 if(DEBUGER_AT_BOOTLOADER)
     SET(BOOT_LIB    gdb_stub)
 else()
     SET(BOOT_LIB    gdb_stub_notrap)
 endif()
+
+add_definitions(-DBOOTLOADER)
+
+# TESTS
+include_directories(gdb_stub)
+set(TEST_SRC    freqmeters.c)
+add_definitions(
+    -DSTART_FREQMETER
+    -DFREQMETERS_COUNT=24
+    -DF_REF=${REFERENCE_CLOCK_HZ})
+#
 
 add_executable(${PROJECT_NAME}.elf
     ${BOOT_S}
@@ -66,9 +77,11 @@ target_link_libraries(${PROJECT_NAME}.elf
 
 add_executable(${PROJECT_NAME}_sim.elf
     ${BOOT_S}
+    ${TEST_SRC}
+    test.c
     )
 target_link_libraries(${PROJECT_NAME}_sim.elf
-    ${BOOT_LIB_NOTRAP}
+    ${BOOT_LIB_SIM_NOTRAP}
     )
 
 function(elf2hex ELF_FILE HEX_FILE)

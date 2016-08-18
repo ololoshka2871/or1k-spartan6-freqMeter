@@ -39,30 +39,36 @@ module tb_top;
         wire     sck_o;
         wire     mosi_o;
 
+        wire [7:0] segments;
+        wire [3:0] seg_selectors;
+
 	// Bidirs
 
 	// Instantiate the Unit Under Test (UUT)
 	top uut (
-		.clk(clk), 
-		.rx(rx), 
-		.tx(tx),
-		.leds_io(leds_io),
-                .rst_i(rst),
-                .flash_CS(flash_CS),
-                .sck_o(sck_o),
-                .mosi_o(mosi_o),
-                .miso_i(mosi_o)
+            .clk_i(clk),
+            .rx(rx),
+            .tx(tx),
+            .leds_io(leds_io),
+            .rst_i(rst),
+            .flash_CS(flash_CS),
+            .sck_o(sck_o),
+            .mosi_o(mosi_o),
+            .miso_i(mosi_o),
+
+            .segments(segments),
+            .seg_selectors(seg_selectors)
 	);
 
 	initial begin
-		// Initialize Inputs
-		clk = 0;
-		rx = 0;
+            // Initialize Inputs
+            clk = 0;
+            rx = 0;
 
-		// Wait 100 ns for global reset to finish
-		#100;
-        
-		// Add stimulus here
+            // Wait 100 ns for global reset to finish
+            #100;
+
+            // Add stimulus here
 
 	end
 	

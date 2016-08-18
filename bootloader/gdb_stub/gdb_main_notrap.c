@@ -39,6 +39,8 @@ extern void GDB_STUB_SECTION_TEXT try_load(void);
 extern void GDB_STUB_SECTION_TEXT gdb_putchar(char c);
 extern int  GDB_STUB_SECTION_BSS  _initial_trap;
 
+extern void GDB_STUB_SECTION_TEXT start_tests();
+
 //-----------------------------------------------------------------
 // gdb_main
 //-----------------------------------------------------------------
@@ -47,5 +49,6 @@ void GDB_STUB_SECTION_TEXT gdb_main(void)
 #ifndef NDEBUG
     gdb_putchar('.');
 #endif /* NDEBUG */
+
     try_load();
 }

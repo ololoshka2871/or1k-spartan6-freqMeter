@@ -35,9 +35,11 @@
 
 #include <string.h>
 
-#include "irq.h"
-
 #include "freqmeters.h"
+
+#ifndef BOOTLOADER
+#include "irq.h"
+#endif
 
 static struct freqmeter_chanel freqmeters[FREQMETERS_COUNT];
 static uint32_t alive_flags;
@@ -75,7 +77,9 @@ void fm_init() {
     }
 
     alive_flags = 0;
+#ifndef BOOTLOADER
     set_irq_handler(IS_FREQMETERS, fm_isr_handler);
+#endif
 }
 
 void fm_updateChanel(uint8_t chanel) {

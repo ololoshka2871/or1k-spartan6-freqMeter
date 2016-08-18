@@ -133,6 +133,12 @@ module tb_freqmeters;
             #40
             adr_i = 4'h11000000 | (1 << 8) | (1 << 7);
             stb_i = 1;
+
+            #740
+            adr_i = 4'h11000004;
+            dat_i = 4'h00000003;
+            stb_i = 1;
+            we_i = 1;
 	end
 	
 	always #10 begin

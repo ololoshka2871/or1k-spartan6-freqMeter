@@ -38,6 +38,7 @@ cmake_minimum_required(VERSION 2.8.5)
 SET(GDB_HW_SRC		    gdb_hw.c gdb.c boot_spi.c)
 SET(GDB_NORMAL_SRC	    gdb_main.c)
 SET(GDB_NOTRAP_SRC	    gdb_main_notrap.c)
+SET(GDB_NOTRAP_SIM_SRC	    gdb_main_sim_notrap.c)
 
 INCLUDE_DIRECTORIES(.)
 
@@ -45,5 +46,6 @@ add_definitions(-DHEADER_W1=${HEADER_W1} -DHEADER_W2=${HEADER_W2} -DSPI_MODULE_T
 
 add_library(gdb_stub STATIC ${GDB_HW_SRC} ${GDB_NORMAL_SRC})
 add_library(gdb_stub_notrap STATIC ${GDB_HW_SRC} ${GDB_NOTRAP_SRC})
+add_library(gdb_stub_sim_notrap STATIC ${GDB_HW_SRC} ${GDB_NOTRAP_SIM_SRC})
 
 set(BOOT_S	${CMAKE_CURRENT_SOURCE_DIR}/boot.S	PARENT_SCOPE)

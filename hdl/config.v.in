@@ -45,5 +45,6 @@
 `define     REFERENCE_CLOCK_DEVIDER @REFERENCE_CLOCK_DEVIDER@
 `define     CPU_CLOCK_DEVIDER       @CPU_CLOCK_DEVIDER@
 
-// TODO : generate from .ucf file
+// inputs
 `define     F_INPUTS_COUNT          @F_INPUTS_COUNT@
+@USE_PHISICAL_INPUTS@

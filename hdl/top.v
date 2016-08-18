@@ -65,6 +65,11 @@ module top
 
     output wire[7:0] segments,
     output wire[3:0] seg_selectors
+
+`ifdef USE_PHISICAL_INPUTS
+    ,
+    input wire [`F_INPUTS_COUNT-1:0] Fin
+`endif
 );
 
 //-----------------------------------------------------------------
@@ -131,8 +136,14 @@ wire[3:0]           GPIO_o;
 wire[3:0]           GPIO_i;
 
 wire[`MASER_FREQ_COUNTER_LEN-1:0] devided_clocks;
-wire[`F_INPUTS_COUNT-1:0] Fin;
 wire[15:0]          clock_devider16 = devided_clocks[15:0];
+
+`ifdef USE_PHISICAL_INPUTS
+`else
+wire[`F_INPUTS_COUNT-1:0] Fin;
+`endif
+
+wire[`F_INPUTS_COUNT-1:0] Fin_inv_pars;
 
 
 //-----------------------------------------------------------------
@@ -259,7 +270,7 @@ freqmeters
     .inta_o(freqmeter_inta),
 
     .F_master(clk_ref),
-    .F_in(Fin),
+    .F_in(Fin_inv_pars),
 
     .devided_clocks(devided_clocks)
 );
@@ -364,9 +375,38 @@ DCM_CLKGEN_f_cpu (
 // Implementation
 //-----------------------------------------------------------------
 
-// test freqs
-assign Fin[11:0] = devided_clocks[20:9];
-assign Fin[23:12] = ~devided_clocks[20:9];
+`ifdef USE_PHISICAL_INPUTS
+genvar j;
+generate
+    for (j = 0; j < `F_INPUTS_COUNT; j = j + 1) begin
+        if (j % 2)
+            assign Fin_inv_pars[j] = Fin[j];
+        else
+            assign Fin_inv_pars[j] = ~Fin[j];
+    end
+endgenerate
+`else
+// test freqs (24)
+wire [11:0] test_sig;
+
+assign test_sig[0] = devided_clocks[3] & devided_clocks[8];
+assign test_sig[1] = devided_clocks[2] & devided_clocks[9];
+assign test_sig[2] = devided_clocks[1] & devided_clocks[0];
+assign test_sig[3] = devided_clocks[8] & devided_clocks[1];
+assign test_sig[4] = devided_clocks[7] & devided_clocks[2];
+assign test_sig[5] = devided_clocks[6] & devided_clocks[3];
+assign test_sig[6] = devided_clocks[5] & devided_clocks[4];
+assign test_sig[7] = devided_clocks[4] & devided_clocks[5];
+assign test_sig[8] = devided_clocks[3] & devided_clocks[6];
+assign test_sig[9] = devided_clocks[2] & devided_clocks[7];
+assign test_sig[10] = devided_clocks[1] & devided_clocks[8];
+assign test_sig[11] = devided_clocks[0] & devided_clocks[9];
+
+assign Fin[11:0] = devided_clocks[28:17] & test_sig;
+assign Fin[23:12] = devided_clocks[28:17] & ~test_sig;
+
+assign Fin_inv_pars = Fin;
+`endif
 
 // Reset Generator
 always @(posedge clk) 

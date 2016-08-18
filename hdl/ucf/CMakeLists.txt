@@ -34,9 +34,6 @@
 
 cmake_minimum_required(VERSION 3.0.2)
 
-#FIXME
-set(F_INPUTS_COUNT  24)
-
 #-------------------------------------ucf---------------------------------------
 
 set(UCF_FILE_NAME_IN    "${CMAKE_CURRENT_SOURCE_DIR}/xilinx-${PART_NAME}.ucf.in")
@@ -44,10 +41,10 @@ set(UCF_FILE_NAME       "${CMAKE_CURRENT_BINARY_DIR}/xilinx-${PART_NAME}.ucf")
 
 configure_file(${UCF_FILE_NAME_IN} ${UCF_FILE_NAME} @ONLY)
 
-add_custom_target(constraints_src
-    SOURCES
-        ${UCF_FILE_NAME_IN}
+file(STRINGS ${UCF_FILE_NAME_IN} F_INPUTS_COUNT
+    REGEX "^NET.*Fin\\[.*\\].*"
     )
+list(LENGTH F_INPUTS_COUNT F_INPUTS_COUNT)
 
 #-------------------------------------ucp---------------------------------------
 
@@ -58,8 +55,28 @@ file(STRINGS ${ucp_filename} USER_CODE_FLASH_OFFSET
 string(REGEX REPLACE "USER_CODE_FLASH_OFFSET=(.*)" "\\1" USER_CODE_FLASH_OFFSET ${USER_CODE_FLASH_OFFSET})
 message(STATUS "User code will be at ${USER_CODE_FLASH_OFFSET} in flash")
 
+file(STRINGS ${ucp_filename} USE_PHISICAL_INPUTS
+    REGEX "USE_PHISICAL_INPUTS=.*"
+    )
+string(REGEX REPLACE "USE_PHISICAL_INPUTS=(.*)" "\\1" USE_PHISICAL_INPUTS ${USE_PHISICAL_INPUTS})
+if (USE_PHISICAL_INPUTS EQUAL 0)
+    set(F_INPUTS_COUNT  24)
+    set(USE_PHISICAL_INPUTS "")
+    message(STATUS "Using test signals as inputs: 24")
+else()
+    set(USE_PHISICAL_INPUTS "`define     USE_PHISICAL_INPUTS")
+    message(STATUS "Using physical inputs: ${F_INPUTS_COUNT}")
+endif()
+
 #-------------------------------------------------------------------------------
+
+add_custom_target(constraints_src
+    SOURCES
+        ${UCF_FILE_NAME_IN}
+        ${ucp_filename}
+    )
 
 set(UCF_FILE_NAME           ${UCF_FILE_NAME}            PARENT_SCOPE)
 set(USER_CODE_FLASH_OFFSET  ${USER_CODE_FLASH_OFFSET}   PARENT_SCOPE)
 set(F_INPUTS_COUNT          ${F_INPUTS_COUNT}           PARENT_SCOPE)
+set(USE_PHISICAL_INPUTS     ${USE_PHISICAL_INPUTS}      PARENT_SCOPE)

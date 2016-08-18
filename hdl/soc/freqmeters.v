@@ -111,7 +111,6 @@ wire ready_start;
 wire ready_stop;
 
 wire [INPUTS_COUNT - 1:0] decoded_freqmeter_num;
-wire decoded_freqmeter_num_err;
 
 //------------------------------------------------------------------------------
 
@@ -180,7 +179,7 @@ decoder
     .clk_i(F_master),
     .inputs(addr_valid),
     .outputs(decoded_freqmeter_num),
-    .error(decoded_freqmeter_num_err)
+    .error(/* open */)
 );
 
 //------------------------------------------------------------------------------
@@ -190,7 +189,7 @@ integer j;
 initial begin
     for(j = 0; j < 32; j = j + 1) begin
         if (j < INPUTS_COUNT) begin
-            START_vals[j] = j;
+            START_vals[j] = j+1;
             STOP_vals[j]  = ~j;
         end else begin
             START_vals[j] = 32'hDEADBEAF;
@@ -213,13 +212,11 @@ always @(posedge F_master or posedge rst_i) begin
     if (rst_i) begin
         irq_flags <= {INPUTS_COUNT{1'b0}};
     end else begin
-        irq_flags <= irq_flags | stop_requests;
-        if (we_i & cyc_i & stb_i & ~ack_o) begin
-            if (~memory_selector & ({START_selector, memory_addr} == 6'b000001))
+        irq_flags <= (irq_flags | stop_requests) & ~restarts;
+        if (we_i & cyc_i & stb_i & ~ack_o & ~memory_selector) begin
+            // reset ready flag on write 1 in irq_flags[bit]
+            if ({START_selector, memory_addr} == 6'b000001)
                 irq_flags <= irq_flags & (~_dat_i[INPUTS_COUNT-1:0]);
-            else
-            if (START_selector & ~decoded_freqmeter_num_err & ~memory_selector)
-                irq_flags <= irq_flags & ~decoded_freqmeter_num;
         end
     end
 end
@@ -243,9 +240,7 @@ always @(posedge clk_i or posedge rst_i) begin
                 if (we_i) begin
                     if (START_selector) begin
                         reload_value <= _dat_i[INPUT_FREQ_COUNTER_LEN - 1:0];
-                        if (~decoded_freqmeter_num_err) begin
-                            restarts <= decoded_freqmeter_num;
-                        end
+                        restarts <= decoded_freqmeter_num;
                     end else begin
                         if (memory_addr == 5'b00000)
                             irq_enable <= _dat_i[INPUTS_COUNT-1:0];

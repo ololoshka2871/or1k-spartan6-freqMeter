@@ -39,7 +39,7 @@
 #include "seg7_display.h"
 
 void DELAY() {
-    for (int i = 0; i < 1000000; ++i)
+    for (int i = 0; i < 100000; ++i)
         asm volatile("l.nop");
 }
 
@@ -50,7 +50,7 @@ void main(void)
     fm_init();
 
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        fm_setChanelReloadValue(i, 10, false);
+        fm_setChanelReloadValue(i, 5000, false);
         fm_enableChanel(i, true);
     }
 
@@ -58,8 +58,7 @@ void main(void)
     uint8_t v = 1;
     uint16_t count = 0;
 
-    double F;
-    uint8_t chanel = 0;
+    irq_enable(IS_FREQMETERS);
 
     EXIT_CRITICAL();
 
@@ -68,18 +67,12 @@ void main(void)
         DELAY();
         if (v == 1 << 4) v = 1;
         gpio_port_set_all(portA, ~v);
-        seg7_printHex(count++);
+        seg7_printHex(fm_getActualMeasureTime(count));
         for (uint8_t i = 0; i < 4; ++i) {
             seg7_dpSet(seg7_num2Segment(i), v & (1 << i));
         }
         v <<= 1;
-
-        if (fm_getActualMeasureTime(chanel))
-            F = (double)F_REF * fm_getActualReloadValue(chanel)
-                / fm_getActualMeasureTime(chanel);
-
-        chanel++;
-        if (chanel == FREQMETERS_COUNT)
-            chanel = 0;
+        count = (count + 1) % FREQMETERS_COUNT;
+        //fm_updateChanel(count);
     }
 }

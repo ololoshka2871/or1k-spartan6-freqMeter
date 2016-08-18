@@ -4,7 +4,8 @@
 //-----------------------------------------------------------------
 // Defines:
 //-----------------------------------------------------------------
-#define IO_BASE             0x12000000
+#define IO_BASE                 0x12000000
+#define FREQMETERS_BASE         0x11000000
 
 //-----------------------------------------------------------------
 // Macros:
@@ -16,10 +17,12 @@
 //-----------------------------------------------------------------
 // Peripheral Base Addresses
 //-----------------------------------------------------------------
-#define UART_BASE           (IO_BASE + 0x000)
-#define TIMER_BASE          (IO_BASE + 0x100)
-#define INTR_BASE           (IO_BASE + 0x200)
-#define SPI_BASE            (IO_BASE + 0x300)
+#define UART_BASE               (IO_BASE + 0x000)
+#define TIMER_BASE              (IO_BASE + 0x100)
+#define INTR_BASE               (IO_BASE + 0x200)
+#define SPI_BASE                (IO_BASE + 0x300)
+#define SEG7_DISP_BASE          (IO_BASE + 0x400)
+#define GPIO_BASE               (IO_BASE + 0x500)
 
 //-----------------------------------------------------------------
 // Interrupts
@@ -27,7 +30,9 @@
 #define IRQ_UART_RX             0
 #define IRQ_TIMER_SYSTICK       1
 #define IRQ_TIMER_HIRES         2
-#define IRQ_EXT_INT0            8
+#define IRQ_BOOT_SPI		3
+#define IRQ_GPIO		4
+#define IRQ_FREQMETERS          5
 
 //-----------------------------------------------------------------
 // Peripheral Registers
@@ -47,4 +52,16 @@
 #define IRQ_MASK_CLR        (*(REG32 (INTR_BASE + 0x04)))
 #define IRQ_STATUS          (*(REG32 (INTR_BASE + 0x08)))
 
-#endif 
+//-----------------------------------------------------------------
+// pecial-Purpose Registers
+//-----------------------------------------------------------------
+
+// SR Register
+#define SPR_SR                  (17)
+
+// bits
+#define SPR_SR_GIE              (1 << 2)
+#define SPR_SR_ICACHE_FLUSH     (1 << 17)
+#define SPR_SR_DCACHE_FLUSH     (1 << 18)
+
+#endif
