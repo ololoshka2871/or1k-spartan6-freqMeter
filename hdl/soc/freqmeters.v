@@ -176,10 +176,8 @@ decoder
 #(
     .OUTPUTS_COUNT(INPUTS_COUNT)
 ) freq_meter_n_decoder (
-    .clk_i(F_master),
     .inputs(addr_valid),
-    .outputs(decoded_freqmeter_num),
-    .error(/* open */)
+    .outputs(decoded_freqmeter_num)
 );
 
 //------------------------------------------------------------------------------

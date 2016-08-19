@@ -38,23 +38,10 @@ module decoder
     parameter OUTPUTS_COUNT = 32,
     parameter INPUTS_COUNT = $clog2(OUTPUTS_COUNT)
 ) (
-    input wire  clk_i,
     input wire  [INPUTS_COUNT - 1:0] inputs,
-    output reg  [OUTPUTS_COUNT - 1:0] outputs,
-    output reg  error
+    output wire  [OUTPUTS_COUNT - 1:0] outputs
 );
 
-integer i;
-
-always @(posedge clk_i) begin
-    outputs <= {OUTPUTS_COUNT{1'b0}};
-    error <= 1'b1;
-    for (i = 0; i < OUTPUTS_COUNT; i = i + 1) begin
-        if(inputs == i) begin
-            outputs <= (1 << i);
-            error <= 1'b0;
-        end
-    end
-end
+assign outputs = 1 << inputs;
 
 endmodule
