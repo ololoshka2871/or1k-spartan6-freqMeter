@@ -46,7 +46,7 @@ module decoder
 
 integer i;
 
-always @(posedge clk_i) begin
+always @(inputs) begin
     outputs <= {OUTPUTS_COUNT{1'b0}};
     error <= 1'b1;
     for (i = 0; i < OUTPUTS_COUNT; i = i + 1) begin

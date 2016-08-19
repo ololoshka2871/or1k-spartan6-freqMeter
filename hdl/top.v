@@ -376,15 +376,7 @@ DCM_CLKGEN_f_cpu (
 //-----------------------------------------------------------------
 
 `ifdef USE_PHISICAL_INPUTS
-genvar j;
-generate
-    for (j = 0; j < `F_INPUTS_COUNT; j = j + 1) begin
-        if (j % 2)
-            assign Fin_inv_pars[j] = Fin[j];
-        else
-            assign Fin_inv_pars[j] = ~Fin[j];
-    end
-endgenerate
+assign Fin_inv_pars = Fin ^ {16{2'b10}};
 `else
 // test freqs (24)
 wire [11:0] test_sig;
@@ -402,8 +394,8 @@ assign test_sig[9] = devided_clocks[2] & devided_clocks[7];
 assign test_sig[10] = devided_clocks[1] & devided_clocks[8];
 assign test_sig[11] = devided_clocks[0] & devided_clocks[9];
 
-assign Fin[11:0] = devided_clocks[28:17] & test_sig;
-assign Fin[23:12] = devided_clocks[28:17] & ~test_sig;
+assign Fin[11:0] = /*devided_clocks[28:17] &*/ test_sig;
+assign Fin[23:12] = /*devided_clocks[28:17] &*/ ~test_sig;
 
 assign Fin_inv_pars = Fin;
 `endif

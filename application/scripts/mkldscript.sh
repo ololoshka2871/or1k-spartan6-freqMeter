@@ -8,7 +8,7 @@ HEADER_W2=$4
 USER_CODE_FLASH_OFFSET=$5
 TOOLCHAIN_PREFIX=$6
 
-if [ $# -ne 6 ]; then
+if [[ $# -ne 6 ]]; then
     echo "Usage: $0 <ld_script_template> <bootloader_elf>\
         <HEADER_W1> <HEADER_W2> <user_code_flash_offset> [toolcahin-prefix]"
     exit 1

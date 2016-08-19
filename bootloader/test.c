@@ -38,7 +38,10 @@
 #include "freqmeters.h"
 
 void GDB_STUB_SECTION_TEXT tests_freqmeter(void) {
-// fixme
+    for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
+        fm_setChanelReloadValue(i, 100, false);
+        fm_enableChanel(i, true);
+    }
 }
 
 void GDB_STUB_SECTION_TEXT start_tests(void) {

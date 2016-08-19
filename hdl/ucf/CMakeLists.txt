@@ -42,7 +42,7 @@ set(UCF_FILE_NAME       "${CMAKE_CURRENT_BINARY_DIR}/xilinx-${PART_NAME}.ucf")
 configure_file(${UCF_FILE_NAME_IN} ${UCF_FILE_NAME} @ONLY)
 
 file(STRINGS ${UCF_FILE_NAME_IN} F_INPUTS_COUNT
-    REGEX "^NET.*Fin\\[.*\\].*"
+    REGEX "^NET.*Fin\\[.*\\].*LOC = "
     )
 list(LENGTH F_INPUTS_COUNT F_INPUTS_COUNT)
 

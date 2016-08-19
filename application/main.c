@@ -50,7 +50,7 @@ void main(void)
     fm_init();
 
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        fm_setChanelReloadValue(i, 5000, false);
+        fm_setChanelReloadValue(i, 100, false);
         fm_enableChanel(i, true);
     }
 
@@ -71,7 +71,7 @@ void main(void)
         for (uint8_t i = 0; i < 4; ++i) {
             seg7_dpSet(seg7_num2Segment(i), v & (1 << i));
         }
-        v <<= 1;
+        rv <<= 1;
         count = (count + 1) % FREQMETERS_COUNT;
         //fm_updateChanel(count);
     }
