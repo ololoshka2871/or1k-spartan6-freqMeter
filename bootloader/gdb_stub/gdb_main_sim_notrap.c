@@ -1,5 +1,5 @@
 /****************************************************************************
- * gdb_main_notrap.c
+ * gdb_main_sim_notrap.c
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -39,6 +39,8 @@ extern void GDB_STUB_SECTION_TEXT try_load(void);
 extern void GDB_STUB_SECTION_TEXT gdb_putchar(char c);
 extern int  GDB_STUB_SECTION_BSS  _initial_trap;
 
+extern void GDB_STUB_SECTION_TEXT start_tests();
+
 //-----------------------------------------------------------------
 // gdb_main
 //-----------------------------------------------------------------
@@ -48,5 +50,8 @@ void GDB_STUB_SECTION_TEXT gdb_main(void)
     gdb_putchar('.');
 #endif /* NDEBUG */
 
+    start_tests();
+
     try_load();
 }
+

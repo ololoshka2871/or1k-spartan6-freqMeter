@@ -42,6 +42,7 @@
 #endif
 
 static struct freqmeter_chanel freqmeters[FREQMETERS_COUNT];
+static volatile uint32_t diffs[FREQMETERS_COUNT];
 static uint32_t alive_flags;
 
 static void reload_cycle(uint8_t chanel_num) {
@@ -63,6 +64,7 @@ static void fm_isr_handler(unsigned int *registers) {
         if (chanels_to_scan & (1 << ch)) {
             freqmeters[ch].res_start_v = FM_START_VAL_CH(ch);
             freqmeters[ch].res_stop_v = FM_STOP_VAL_CH(ch);
+            diffs[ch] = fm_getActualMeasureTime(ch);
             reload_cycle(ch);
         }
     }

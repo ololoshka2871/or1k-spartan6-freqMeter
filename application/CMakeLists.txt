@@ -37,6 +37,8 @@ cmake_minimum_required(VERSION 2.8.5)
 
 project(or1k-spartan6-platform_application ASM C)
 
+INCLUDE("or1k_toolchain")
+
 # указать путь до модулей
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")

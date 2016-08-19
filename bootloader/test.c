@@ -1,5 +1,5 @@
 /****************************************************************************
- * gdb_main_notrap.c
+ * test.c
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -35,18 +35,14 @@
 
 #include "gdb-stub-sections.h"
 
-extern void GDB_STUB_SECTION_TEXT try_load(void);
-extern void GDB_STUB_SECTION_TEXT gdb_putchar(char c);
-extern int  GDB_STUB_SECTION_BSS  _initial_trap;
+#include "freqmeters.h"
 
-//-----------------------------------------------------------------
-// gdb_main
-//-----------------------------------------------------------------
-void GDB_STUB_SECTION_TEXT gdb_main(void)
-{
-#ifndef NDEBUG
-    gdb_putchar('.');
-#endif /* NDEBUG */
+void GDB_STUB_SECTION_TEXT tests_freqmeter(void) {
+// fixme
+}
 
-    try_load();
+void GDB_STUB_SECTION_TEXT start_tests(void) {
+#ifdef START_FREQMETER
+    tests_freqmeter();
+#endif
 }
