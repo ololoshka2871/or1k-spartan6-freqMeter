@@ -42,6 +42,28 @@ module tb_top;
         wire [7:0] segments;
         wire [3:0] seg_selectors;
 
+        wire [23:0] Fin;
+
+        reg [32:0] devided_clocks;
+
+        wire [11:0] test_sig;
+
+        assign test_sig[0] = devided_clocks[3] & devided_clocks[8];
+        assign test_sig[1] = devided_clocks[2] & devided_clocks[9];
+        assign test_sig[2] = devided_clocks[1] & devided_clocks[0];
+        assign test_sig[3] = devided_clocks[8] & devided_clocks[1];
+        assign test_sig[4] = devided_clocks[7] & devided_clocks[2];
+        assign test_sig[5] = devided_clocks[6] & devided_clocks[3];
+        assign test_sig[6] = devided_clocks[5] & devided_clocks[4];
+        assign test_sig[7] = devided_clocks[4] & devided_clocks[5];
+        assign test_sig[8] = devided_clocks[3] & devided_clocks[6];
+        assign test_sig[9] = devided_clocks[2] & devided_clocks[7];
+        assign test_sig[10] = devided_clocks[1] & devided_clocks[8];
+        assign test_sig[11] = devided_clocks[0] & devided_clocks[9];
+
+        assign Fin[11:0] = test_sig;
+        assign Fin[23:12] = ~test_sig;
+
 	// Bidirs
 
 	// Instantiate the Unit Under Test (UUT)
@@ -57,14 +79,16 @@ module tb_top;
             .miso_i(mosi_o),
 
             .segments(segments),
-            .seg_selectors(seg_selectors)
+            .seg_selectors(seg_selectors),
+
+            .Fin(Fin)
 	);
 
 	initial begin
             // Initialize Inputs
             clk = 0;
             rx = 0;
-
+            devided_clocks = 0;
             // Wait 100 ns for global reset to finish
             #100;
 
@@ -73,6 +97,10 @@ module tb_top;
 	end
 	
 	always #10 clk <= !clk;
+
+        always @(posedge clk) begin
+            devided_clocks = devided_clocks + 1;
+        end
       
 endmodule
 

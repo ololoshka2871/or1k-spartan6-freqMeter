@@ -71,7 +71,7 @@ void main(void)
         for (uint8_t i = 0; i < 4; ++i) {
             seg7_dpSet(seg7_num2Segment(i), v & (1 << i));
         }
-        rv <<= 1;
+        v <<= 1;
         count = (count + 1) % FREQMETERS_COUNT;
         //fm_updateChanel(count);
     }
