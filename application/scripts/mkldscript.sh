@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 LD_SCRIPT_TEMPLATE=$1
 BOOTLOADER_ELF=$2
@@ -20,9 +20,6 @@ BOOTLOADER_END=`${TOOLCHAIN_PREFIX}readelf -l $BOOTLOADER_ELF | grep -P "LOAD.*R
 
 APP_START="$BOOTLOADER_START + $BOOTLOADER_SIZE + 8"
 APP_SIZE="$BOOTLOADER_END - ($APP_START)"
-
-#HEADER_W1=`grep HEADER_W1 ${CMAKE_CACHE_FILE} | sed 's/HEADER_W1:.*=\(.*\)$/\1/'`
-#HEADER_W2=`grep HEADER_W2 ${CMAKE_CACHE_FILE} | sed 's/HEADER_W2:.*=\(.*\)$/\1/'`
 
 sed -e "s/@APP_START@/$APP_START/"\
     -e "s/@APP_SIZE@/$APP_SIZE/"\
