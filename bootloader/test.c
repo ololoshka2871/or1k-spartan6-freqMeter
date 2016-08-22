@@ -1,5 +1,9 @@
 /****************************************************************************
+<<<<<<< HEAD
  * test.c
+=======
+ * src/main.c
+>>>>>>> 86d77ec81b6f418f3ee788de8fda8521ba7936f2
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -37,15 +41,20 @@
 
 #include "freqmeters.h"
 
-void GDB_STUB_SECTION_TEXT tests_freqmeter(void) {
+void GDB_STUB_SECTION_TEXT start_freqmeter() {
+    fm_init();
+
+    FM_IF = 0xFFFFFFFF;
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        fm_setChanelReloadValue(i, 100, false);
+        FM_START_VAL_CH(i);
+        FM_STOP_VAL_CH(i);
+        fm_setChanelReloadValue(i, 10, false);
         fm_enableChanel(i, true);
     }
 }
 
-void GDB_STUB_SECTION_TEXT start_tests(void) {
+void GDB_STUB_SECTION_TEXT start_tests() {
 #ifdef START_FREQMETER
-    tests_freqmeter();
+    start_freqmeter();
 #endif
 }

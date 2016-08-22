@@ -1,5 +1,9 @@
 /****************************************************************************
+<<<<<<< HEAD
  * gdb_main_sim_notrap.c
+=======
+ * gdb_main_notrap.c
+>>>>>>> 86d77ec81b6f418f3ee788de8fda8521ba7936f2
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -52,6 +56,5 @@ void GDB_STUB_SECTION_TEXT gdb_main(void)
 
     start_tests();
 
-    try_load();
+    while(1);
 }
-

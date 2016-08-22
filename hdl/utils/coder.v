@@ -44,18 +44,24 @@ module coder
     output reg  error
 );
 
-/*
+
 integer i;
 
 always @(inputs) begin
     outputs = {OUTPUTS_COUNT{1'b0}};
     error = 1'b1;
     for (i = 0; i < INPUTS_COUNT; i = i + 1) begin : U
+/*
+always @(posedge clk_i) begin
+    outputs = {OUTPUTS_COUNT{1'b0}};
+    error = 1'b1;
+    for (i = 0; i < INPUTS_COUNT; i = i + 1) begin
+*/
         if(inputs == (1 << i)) begin
             outputs = i;
             error = 1'b0;
         end
     end
 end
-*/
+
 endmodule

@@ -47,17 +47,4 @@ always @(inputs) begin
     outputs[inputs] = 1'b1;
 end
 
-//assign outputs = 1 << inputs;
-/*
-integer i;
-
-always @(inputs) begin
-    outputs <= {OUTPUTS_COUNT{1'b0}};
-    for (i = 0; i < OUTPUTS_COUNT; i = i + 1) begin
-        if(inputs == i) begin
-            outputs <= (1 << i);
-        end
-    end
-end*/
-
 endmodule
