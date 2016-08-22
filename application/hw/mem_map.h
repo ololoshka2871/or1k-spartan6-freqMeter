@@ -17,11 +17,12 @@
 //-----------------------------------------------------------------
 // Peripheral Base Addresses
 //-----------------------------------------------------------------
-#define UART_BASE               (IO_BASE + 0x000)
+#define UART0_BASE              (IO_BASE + 0x000)
 #define TIMER_BASE              (IO_BASE + 0x100)
 #define INTR_BASE               (IO_BASE + 0x200)
 #define SEG7_DISP_BASE          (IO_BASE + 0x400)
 #define GPIO_BASE               (IO_BASE + 0x500)
+#define UART1_BASE              (IO_BASE + 0x700)
 
 //-----------------------------------------------------------------
 // Interrupts
@@ -37,9 +38,13 @@
 // Peripheral Registers
 //-----------------------------------------------------------------
 
-// UART
-#define UART_USR            (*(REG32 (UART_BASE + 0x4)))
-#define UART_UDR            (*(REG32 (UART_BASE + 0x8)))
+// UART0
+#define UART0_USR           (*(REG32 (UART0_BASE + 0x4)))
+#define UART0_UDR           (*(REG32 (UART0_BASE + 0x8)))
+
+// UART1
+#define UART1_USR           (*(REG32 (UART1_BASE + 0x4)))
+#define UART1_UDR           (*(REG32 (UART1_BASE + 0x8)))
 
 // TIMER
 #define TIMER_VAL           (*(REG32 (TIMER_BASE + 0x0)))

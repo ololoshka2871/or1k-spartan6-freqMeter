@@ -38,7 +38,8 @@ cmake_minimum_required(VERSION 2.8.5)
 SET(LIBHW_SOURCES
     cache.c
     irq.c
-    serial.c
+    serial0.c
+    serial1.c
     timer.c
     GPIO.c
     syscall.c

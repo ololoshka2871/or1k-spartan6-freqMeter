@@ -37,10 +37,35 @@
 #include "freqmeters.h"
 #include "GPIO.h"
 #include "seg7_display.h"
+#include "serial.h"
+
+static uint32_t timestamps[FREQMETERS_COUNT];
 
 void DELAY() {
     for (int i = 0; i < 100000; ++i)
         asm volatile("l.nop");
+}
+
+void Send_Data() {
+    for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
+        uint32_t ts = fm_GetMeasureTimestamp(i);
+        if (ts != timestamps[i]) {
+            timestamps[i] = ts;
+            uint32_t periods = fm_getActualReloadValue(i);
+            uint32_t value   = fm_getActualMeasureTime(i);
+            if ((!value) || (!periods))
+                continue;
+            double F = (double)value * (double)periods;
+
+            serial1_putchar('#');
+            serial1_putchar(i);
+            serial1_putchar('=');
+            for (uint8_t j = 0; j < sizeof(double); ++j) {
+                serial1_putchar(((uint8_t*)&F)[j]);
+            }
+            serial1_putchar('$');
+        }
+    }
 }
 
 void main(void)
@@ -64,7 +89,7 @@ void main(void)
 
     seg7_PutStr("1234", 4, ' ');
     while(1) {
-        DELAY();
+        //DELAY();
         if (v == 1 << 4) v = 1;
         gpio_port_set_all(portA, ~v);
         seg7_printHex(fm_getActualMeasureTime(count));
@@ -73,6 +98,7 @@ void main(void)
         }
         v <<= 1;
         count = (count + 1) % FREQMETERS_COUNT;
+        Send_Data();
         //fm_updateChanel(count);
     }
 }

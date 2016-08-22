@@ -74,7 +74,7 @@ INCLUDE("or1k_toolchain")
 
 add_definitions(
     -DFREQMETERS_COUNT=${F_INPUTS_COUNT}
-    -DF_REF=${REFERENCE_CLOCK_HZ}
+    -DF_REF=${REFERENCE_CLOCK_HZ}UL
     )
 
 add_custom_target(mkldscript DEPENDS ${LD_SCRIPT_FILE})

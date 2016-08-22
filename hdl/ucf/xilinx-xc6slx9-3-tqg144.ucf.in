@@ -2,11 +2,11 @@
 NET "clk_i" LOC = P56;
 
 #UART0
-NET "tx" LOC = P12;
-NET "rx" LOC = P14;
+NET "tx0" LOC = P12;
+NET "rx0" LOC = P14;
 
 #UART1
-NET "tx" LOC = P95;
+NET "tx1" LOC = P95;
 
 #LEDS
 #NET "leds_io[3]" LOC = P95;
@@ -88,3 +88,6 @@ NET "Fin[21]" IOSTANDARD = LVCMOS33; # EXT-
 ## TIMINGS
 NET "clk_i" TNM_NET = "clk_i_grp";
 TIMESPEC "TS_clk_i" = PERIOD "clk_i_grp" @INPUT_CLOCK_PERIOD_NS_F@ns HIGH;
+
+TIMESPEC "TS_clk_to_clk_ref" = FROM "clk" TO "clk_ref" TIG;
+TIMESPEC "TS_clk_ref_to_clk" = FROM "clk_ref" TO "clk" TIG;
