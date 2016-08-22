@@ -46,6 +46,11 @@ file(STRINGS ${UCF_FILE_NAME_IN} F_INPUTS_COUNT
     )
 list(LENGTH F_INPUTS_COUNT F_INPUTS_COUNT)
 
+file(STRINGS ${UCF_FILE_NAME_IN} LEDS_COUNT
+    REGEX "^NET.*leds_io\\[.*\\].*LOC = "
+    )
+list(LENGTH LEDS_COUNT LEDS_COUNT)
+
 #-------------------------------------ucp---------------------------------------
 
 set(ucp_filename    "${CMAKE_CURRENT_SOURCE_DIR}/xilinx-${PART_NAME}.ucp")
@@ -61,7 +66,7 @@ file(STRINGS ${ucp_filename} USE_PHISICAL_INPUTS
 string(REGEX REPLACE "USE_PHISICAL_INPUTS=(.*)" "\\1" USE_PHISICAL_INPUTS ${USE_PHISICAL_INPUTS})
 if (USE_PHISICAL_INPUTS EQUAL 0)
     set(F_INPUTS_COUNT  24)
-    set(USE_PHISICAL_INPUTS "")
+    set(USE_PHISICAL_INPUTS "// Macro USE_PHISICAL_INPUTS is not defined")
     message(STATUS "Using test signals as inputs: 24")
 else()
     set(USE_PHISICAL_INPUTS "`define     USE_PHISICAL_INPUTS")
@@ -79,4 +84,5 @@ add_custom_target(constraints_src
 set(UCF_FILE_NAME           ${UCF_FILE_NAME}            PARENT_SCOPE)
 set(USER_CODE_FLASH_OFFSET  ${USER_CODE_FLASH_OFFSET}   PARENT_SCOPE)
 set(F_INPUTS_COUNT          ${F_INPUTS_COUNT}           PARENT_SCOPE)
+set(LEDS_COUNT              ${LEDS_COUNT}               PARENT_SCOPE)
 set(USE_PHISICAL_INPUTS     ${USE_PHISICAL_INPUTS}      PARENT_SCOPE)

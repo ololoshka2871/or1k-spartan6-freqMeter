@@ -69,8 +69,8 @@ module tb_top;
 	// Instantiate the Unit Under Test (UUT)
 	top uut (
             .clk_i(clk),
-            .rx(rx),
-            .tx(tx),
+            .rx0(rx),
+            .tx0(tx),
             .leds_io(leds_io),
             .rst_i(rst),
             .flash_CS(flash_CS),

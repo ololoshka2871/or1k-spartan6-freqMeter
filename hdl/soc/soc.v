@@ -50,8 +50,12 @@ module soc
     intr_o,
 
     // UART0
-    uart_tx_o,
-    uart_rx_i,
+    uart0_tx_o,
+    uart0_rx_i,
+
+    // UART1
+    uart1_tx_o,
+    uart1_rx_i,
 
     // Memory interface
     io_addr_i,
@@ -85,7 +89,8 @@ module soc
 //-----------------------------------------------------------------
 parameter  [31:0]   CLK_KHZ              = 12288;
 parameter  [31:0]   EXTERNAL_INTERRUPTS  = 1;
-parameter           UART_BAUD            = 115200;
+parameter           UART0_BAUD           = 115200;
+parameter           UART1_BAUD           = 115200;
 parameter           SYSTICK_INTR_MS      = 1;
 parameter           ENABLE_SYSTICK_TIMER = "ENABLED";
 parameter           ENABLE_HIGHRES_TIMER = "ENABLED";
@@ -97,8 +102,10 @@ input                   clk_i /*verilator public*/;
 input                   rst_i /*verilator public*/;
 input [(EXTERNAL_INTERRUPTS - 1):0]  ext_intr_i /*verilator public*/;
 output                  intr_o /*verilator public*/;
-output                  uart_tx_o /*verilator public*/;
-input                   uart_rx_i /*verilator public*/;
+output                  uart0_tx_o /*verilator public*/;
+input                   uart0_rx_i /*verilator public*/;
+output                  uart1_tx_o /*verilator public*/;
+input                   uart1_rx_i /*verilator public*/;
 // Memory Port
 input [31:0]            io_addr_i /*verilator public*/;
 input [31:0]            io_data_i /*verilator public*/;
@@ -131,6 +138,13 @@ wire [31:0]        uart0_data_r;
 wire               uart0_we;
 wire               uart0_stb;
 wire               uart0_intr;
+
+wire [7:0]         uart1_addr;
+wire [31:0]        uart1_data_w;
+wire [31:0]        uart1_data_r;
+wire               uart1_we;
+wire               uart1_stb;
+wire               uart1_intr;
 
 wire [7:0]         timer_addr;
 wire [31:0]        timer_data_o;
@@ -236,12 +250,12 @@ u2_soc
     .periph6_we_o(/*open*/),
     .periph6_stb_o(/*open*/),
 
-    // Unused = 0x12000700 - 0x120007FF
-    .periph7_addr_o(/*open*/),
-    .periph7_data_o(/*open*/),
-    .periph7_data_i(32'h00000000),
-    .periph7_we_o(/*open*/),
-    .periph7_stb_o(/*open*/)
+    // UART1 = 0x12000700 - 0x120007FF
+    .periph7_addr_o(uart1_addr),
+    .periph7_data_o(uart1_data_w),
+    .periph7_data_i(uart1_data_r),
+    .periph7_we_o(uart1_we),
+    .periph7_stb_o(uart1_stb)
 );
 
 //-----------------------------------------------------------------
@@ -250,9 +264,9 @@ u2_soc
 `ifdef UART0_ENABLED
 uart_periph
 #(
-    .UART_DIVISOR(((CLK_KHZ * 1000) / UART_BAUD))
+    .UART_DIVISOR(((CLK_KHZ * 1000) / UART0_BAUD))
 )
-u_uart
+u_uart0
 (
     .clk_i(clk_i),
     .rst_i(rst_i),
@@ -262,13 +276,40 @@ u_uart
     .data_i(uart0_data_w),
     .we_i(uart0_we),
     .stb_i(uart0_stb),
-    .rx_i(uart_rx_i),
-    .tx_o(uart_tx_o)
+    .rx_i(uart0_rx_i),
+    .tx_o(uart0_tx_o)
 );
 `else
 assign uart0_intr = 1'b0;
 assign uart0_data_r = 4'h000000;
-assign uart_tx_o = 1'b1;
+assign uart0_tx_o = 1'b1;
+`endif
+
+//-----------------------------------------------------------------
+// UART1
+//-----------------------------------------------------------------
+`ifdef UART1_ENABLED
+uart_periph
+#(
+    .UART_DIVISOR(((CLK_KHZ * 1000) / UART1_BAUD))
+)
+u_uart1
+(
+    .clk_i(clk_i),
+    .rst_i(rst_i),
+    .intr_o(uart1_intr),
+    .addr_i(uart1_addr),
+    .data_o(uart1_data_r),
+    .data_i(uart1_data_w),
+    .we_i(uart1_we),
+    .stb_i(uart1_stb),
+    .rx_i(uart1_rx_i),
+    .tx_o(uart1_tx_o)
+);
+`else
+assign uart1_intr = 1'b0;
+assign uart1_data_r = 4'h000000;
+assign uart1_tx_o = 1'b1;
 `endif
 
 //-----------------------------------------------------------------
@@ -320,7 +361,7 @@ u_intr
     .intr4_i(gpio_irq),
     .intr5_i(ext_intr_i),
     .intr6_i(1'b0),
-    .intr7_i(1'b0),
+    .intr7_i(uart1_intr),
 
     .intr_ext_i(1'b0),
 

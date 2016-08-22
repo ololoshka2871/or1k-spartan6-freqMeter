@@ -53,6 +53,13 @@
 @TIMER_ENABLED_STR@
 @ETHERNET_ENABLED_STR@
 
+// leds
+`define     LEDS_COUNT              @LEDS_COUNT@
+
+// uarts
+`define     UART0_BAUD              @UART0_BAUD@
+`define     UART1_BAUD              @UART1_BAUD@
+
 // inputs
 `define     F_INPUTS_COUNT          @F_INPUTS_COUNT@
 @USE_PHISICAL_INPUTS@

@@ -88,6 +88,13 @@ set(PERIPHERIAL_ENABLE_ETHERNET OFF
     CACHE BOOL  "Enable ETHERNET IPCore 0x")
 #--- /peripherial ---
 
+#--- UARTs ----
+set(UART0_BAUD              115200
+    CACHE STRING "UART0 (debug) speed")
+set(UART1_BAUD              921600
+    CACHE STRING "UART1 speed")
+#--- /UARTs ---
+
 set(MASER_FREQ_COUNTER_LEN  30
     CACHE STRING "Master clock counter length (in bits)")
 set(INPUT_FREQ_COUNTER_LEN  24

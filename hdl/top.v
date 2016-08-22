@@ -49,11 +49,13 @@ module top
     input           clk_i,
 
     // UART
-    input           rx,
-    output          tx,
+    input           rx0,
+    output          tx0,
+
+    output          tx1,
 
     // leds
-    inout wire[3:0] leds_io,
+    inout wire[`LEDS_COUNT - 1:0] leds_io,
 
     // reset CPU key
     input wire	    rst_i,
@@ -77,7 +79,6 @@ module top
 //-----------------------------------------------------------------
 parameter OSC_KHZ = `INPUT_CLOCK_HZ;
 parameter CLK_KHZ = OSC_KHZ * `PLL_MULTIPLYER / `CPU_CLOCK_DEVIDER / 1000;
-parameter UART_BAUD = 115200;
 
 //-----------------------------------------------------------------
 // Ports
@@ -281,7 +282,8 @@ soc
     .CLK_KHZ(CLK_KHZ),
     .ENABLE_SYSTICK_TIMER("ENABLED"),
     .ENABLE_HIGHRES_TIMER("ENABLED"),
-    .UART_BAUD(UART_BAUD),
+    .UART0_BAUD(`UART0_BAUD),
+    .UART1_BAUD(`UART1_BAUD),
     .EXTERNAL_INTERRUPTS(1)
 )
 u_soc
@@ -292,8 +294,11 @@ u_soc
     .ext_intr_i(freqmeter_inta),
     .intr_o(soc_irq),
 
-    .uart_tx_o(tx),
-    .uart_rx_i(rx),
+    .uart0_tx_o(tx0),
+    .uart0_rx_i(rx0),
+
+    .uart1_tx_o(tx1),
+    .uart1_rx_i(1'b1), // no input
 
     // Memory Port
     .io_addr_i(soc_addr),    
@@ -412,7 +417,7 @@ else
 // bidirectional GPIO
 genvar i;
 generate
-for (i = 0; i < 4; i = i + 1)
+for (i = 0; i < `LEDS_COUNT; i = i + 1)
 begin : iobuf_gen
     IOBUF
     #(

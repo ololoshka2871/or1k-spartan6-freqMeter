@@ -1,12 +1,15 @@
 #clock
 NET "clk_i" LOC = P56;
 
-#UART
+#UART0
 NET "tx" LOC = P12;
 NET "rx" LOC = P14;
 
+#UART1
+NET "tx" LOC = P95;
+
 #LEDS
-NET "leds_io[3]" LOC = P95;
+#NET "leds_io[3]" LOC = P95;
 NET "leds_io[2]" LOC = P94;
 NET "leds_io[1]" LOC = P98;
 NET "leds_io[0]" LOC = P97;
