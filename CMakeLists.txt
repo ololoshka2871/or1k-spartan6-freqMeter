@@ -73,6 +73,21 @@ set(HEADER_W2               0x1f1f1f1f
 set(DEBUGER_AT_BOOTLOADER   OFF
     CACHE BOOL   "Start debuger in bootloader")
 
+#--- peripherial ----
+set(PERIPHERIAL_ENABLE_GPIO OFF
+    CACHE BOOL  "Enable GPIO IPCore at 0x12000500")
+set(PERIPHERIAL_ENABLE_SEG7 OFF
+    CACHE BOOL  "Enable SEG7 indicator IPCore at 0x12000400")
+set(PERIPHERIAL_ENABLE_TIMER ON
+    CACHE BOOL  "Enable UART1 IPCore at 0x12000100")
+set(PERIPHERIAL_ENABLE_UART0 ON
+    CACHE BOOL  "Enable UART1 IPCore at 0x12000000")
+set(PERIPHERIAL_ENABLE_UART1 OFF
+    CACHE BOOL  "Enable UART1 IPCore at 0x12000700")
+set(PERIPHERIAL_ENABLE_ETHERNET OFF
+    CACHE BOOL  "Enable ETHERNET IPCore 0x")
+#--- /peripherial ---
+
 set(MASER_FREQ_COUNTER_LEN  30
     CACHE STRING "Master clock counter length (in bits)")
 set(INPUT_FREQ_COUNTER_LEN  24

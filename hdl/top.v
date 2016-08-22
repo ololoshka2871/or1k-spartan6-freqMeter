@@ -51,7 +51,7 @@ module top
     // UART
     input           rx,
     output          tx,
-	
+
     // leds
     inout wire[3:0] leds_io,
 

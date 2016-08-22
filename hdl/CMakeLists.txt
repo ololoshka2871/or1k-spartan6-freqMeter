@@ -63,6 +63,15 @@ endif(NOT PART_NAME)
 set(config_v_file_name_in	    "${CMAKE_CURRENT_SOURCE_DIR}/config.v.in")
 set(config_v_file_name		    "${CMAKE_CURRENT_BINARY_DIR}/config.v")
 
+#--------------------------------config-----------------------------------------
+
+Verilog_GenControlMacro(GPIO_ENABLED_STR "GPIO_ENABLED" ${PERIPHERIAL_ENABLE_GPIO})
+Verilog_GenControlMacro(SEG7_ENABLED_STR "SEG7_ENABLED" ${PERIPHERIAL_ENABLE_SEG7})
+Verilog_GenControlMacro(UART0_ENABLED_STR "UART0_ENABLED" ${PERIPHERIAL_ENABLE_UART0})
+Verilog_GenControlMacro(UART1_ENABLED_STR "UART1_ENABLED" ${PERIPHERIAL_ENABLE_UART1})
+Verilog_GenControlMacro(TIMER_ENABLED_STR "TIMER_ENABLED" ${PERIPHERIAL_ENABLE_TIMER})
+Verilog_GenControlMacro(ETHERNET_ENABLED_STR "ETHERNET_ENABLED" ${PERIPHERIAL_ENABLE_ETHERNET})
+
 #---------------------------------files-----------------------------------------
 
 add_subdirectory(altor32)

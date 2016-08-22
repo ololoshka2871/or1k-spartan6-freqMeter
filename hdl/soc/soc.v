@@ -35,6 +35,8 @@
 // Boston, MA  02111-1307  USA
 //-----------------------------------------------------------------
 
+`include "config.v"
+
 //-----------------------------------------------------------------
 // Module:
 //-----------------------------------------------------------------
@@ -245,6 +247,7 @@ u2_soc
 //-----------------------------------------------------------------
 // UART0
 //-----------------------------------------------------------------
+`ifdef UART0_ENABLED
 uart_periph
 #(
     .UART_DIVISOR(((CLK_KHZ * 1000) / UART_BAUD))
@@ -262,10 +265,16 @@ u_uart
     .rx_i(uart_rx_i),
     .tx_o(uart_tx_o)
 );
+`else
+assign uart0_intr = 1'b0;
+assign uart0_data_r = 4'h000000;
+assign uart_tx_o = 1'b1;
+`endif
 
 //-----------------------------------------------------------------
 // Timer
 //-----------------------------------------------------------------
+`ifdef TIMER_ENABLED
 timer_periph
 #(
     .CLK_KHZ(CLK_KHZ),
@@ -285,6 +294,11 @@ u_timer
     .we_i(timer_we),
     .stb_i(timer_stb)
 );
+`else
+assign timer_intr_systick = 1'b0;
+assign timer_intr_hires = 1'b0;
+assign timer_data_i = 4'h000000;
+`endif
 
 //-----------------------------------------------------------------
 // Interrupt Controller
@@ -345,6 +359,7 @@ spi_boot
 //-----------------------------------------------------------------
 // 7-segment indicator controller
 //-----------------------------------------------------------------
+`ifdef SEG7_ENABLED
 seg7_disp_drv
 #(
     .DIGITS_COUNT(4),
@@ -365,10 +380,16 @@ seg7_disp_drv
     .segments(segments),
     .selectors(seg_selectors)
 );
+`else
+assign seg7_data_i = 32'b0;
+assign seg_selectors = 4'b0000;
+assign seg7_switch_digit = 1'h00;
+`endif
 
 //-----------------------------------------------------------------
 // GPIO Controller
 //-----------------------------------------------------------------
+`ifdef GPIO_ENABLED
 gpio_top gpioA
 (
     .wb_clk_i(clk_i),
@@ -388,6 +409,12 @@ gpio_top gpioA
     .ext_pad_o(GPIO_o),
     .ext_padoe_o(GPIO_oe)
 );
+`else
+assign gpio_data_r = 4'h000000;
+assign GPIO_o = 0;
+assign GPIO_oe = 0;
+assign gpio_irq = 1'b0;
+`endif
 
 assign seg7_switch_digit = devided_clocks[12];
 

@@ -157,6 +157,7 @@ generate
     end
 endgenerate
 
+
 coder
 #(
     .INPUTS_COUNT(INPUTS_COUNT)
@@ -171,6 +172,20 @@ coder
     .outputs(stop_req_addr),
     .error(ready_stop)
 );
+/*
+sync_coder32i
+start_addr_coder(
+    .clk_i(F_master),
+    .inputs(start_requests),
+    .outputs(start_req_addr),
+    .error(ready_start)
+), stop_addr_coder (
+    .clk_i(F_master),
+    .inputs(stop_requests),
+    .outputs(stop_req_addr),
+    .error(ready_stop)
+);
+*/
 
 decoder
 #(

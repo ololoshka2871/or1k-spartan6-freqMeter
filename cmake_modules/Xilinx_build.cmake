@@ -297,3 +297,12 @@ function(append_data_to_file RESULT iHEX_FILE BINARY_FILE OFFSET)
             "Appending file ${BINARY_FILE} to ${iHEX_FILE}"
     )
 endfunction()
+
+function(Verilog_GenControlMacro OUTVALUE MACRO STATE)
+    if (${STATE})
+        set(result "`define ${MACRO}")
+    else()
+        set(result "// Macro ${MACRO} is not defined")
+    endif()
+    set(${OUTVALUE} ${result} PARENT_SCOPE)
+endfunction()
