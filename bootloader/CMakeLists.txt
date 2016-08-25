@@ -63,7 +63,8 @@ add_definitions(-DBOOTLOADER)
 include_directories(gdb_stub)
 set(TEST_SRC    freqmeters.c)
 add_definitions(
-    -DSTART_FREQMETER
+    #-DSTART_FREQMETER
+    -DTEST_MULTIPLICATION
     -DFREQMETERS_COUNT=24
     -DF_REF=${REFERENCE_CLOCK_HZ})
 #

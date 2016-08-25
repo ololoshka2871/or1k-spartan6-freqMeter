@@ -41,7 +41,7 @@
 
 #include "freqmeters.h"
 
-void GDB_STUB_SECTION_TEXT start_freqmeter() {
+static void GDB_STUB_SECTION_TEXT start_freqmeter() {
     fm_init();
 
     FM_IF = 0xFFFFFFFF;
@@ -51,10 +51,23 @@ void GDB_STUB_SECTION_TEXT start_freqmeter() {
         fm_setChanelReloadValue(i, 10, false);
         fm_enableChanel(i, true);
     }
+    // sim to 280us
+}
+
+static void GDB_STUB_SECTION_TEXT test_multiplication() {
+    volatile uint32_t a = 15;
+    volatile uint32_t b = 48;
+    volatile uint32_t res;
+
+    asm volatile("l.mul %0, %1, %2" : "=r" (res) : "r" (a), "r" (b)); // sim to 130us
 }
 
 void GDB_STUB_SECTION_TEXT start_tests() {
 #ifdef START_FREQMETER
     start_freqmeter();
+#endif
+
+#ifdef TEST_MULTIPLICATION
+    test_multiplication();
 #endif
 }
