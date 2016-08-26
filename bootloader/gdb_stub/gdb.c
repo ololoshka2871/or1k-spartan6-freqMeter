@@ -409,6 +409,15 @@ interrupt_handler(unsigned int *registers)
 }
 
 //-----------------------------------------------------------------
+// fault_handler
+//-----------------------------------------------------------------
+unsigned int * GDB_STUB_SECTION_TEXT
+fault_handler(unsigned int *registers)
+{
+    return gdb_exception(registers, 1 /* fault */);
+}
+
+//-----------------------------------------------------------------
 // gdb_exception
 //-----------------------------------------------------------------
 unsigned int * GDB_STUB_SECTION_TEXT
