@@ -35,4 +35,7 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
+# use 64bit presision for fixedptc.h
+add_definitions(-DFIXEDPT_BITS=64)
+
 set(APP_STARTUP_SRC      ${CMAKE_CURRENT_SOURCE_DIR}/startup.c   PARENT_SCOPE)

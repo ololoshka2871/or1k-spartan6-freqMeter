@@ -83,6 +83,7 @@ add_subdirectory(hw)
 add_subdirectory(lib)
 
 include_directories(hw)
+include_directories(lib)
 
 set(APPLICATION_ELF_NAME app.elf)
 

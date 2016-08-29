@@ -33,6 +33,8 @@
  *
  ****************************************************************************/
 
+#include "fixedptc.h"
+
 #include "irq.h"
 #include "freqmeters.h"
 #include "GPIO.h"
@@ -47,6 +49,7 @@ void DELAY() {
 }
 
 void Send_Data() {
+    uint8_t buff[128];
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
         uint32_t ts = fm_GetMeasureTimestamp(i);
         if (ts != timestamps[i]) {
@@ -55,15 +58,16 @@ void Send_Data() {
             uint32_t value   = fm_getActualMeasureTime(i);
             if ((!value) || (!periods))
                 continue;
-            double F = (double)value * (double)periods;
+            fixedpt F = fixedpt_div(fixedpt_fromint(periods),
+                                    fixedpt_fromint(value));
+            F = fixedpt_mul(F, F_REF / 1000);
+            F = fixedpt_mul(F, 1000);
+            fixedpt_str(F, buff, -1);
 
-            serial1_putchar('#');
-            serial1_putchar(i);
-            serial1_putchar('=');
-            for (uint8_t j = 0; j < sizeof(double); ++j) {
-                serial1_putchar(((uint8_t*)&F)[j]);
-            }
-            serial1_putchar('$');
+            serial1_putchar('0' + i);
+            serial1_putchar(';');
+            serial1_putstr(buff);
+            serial1_putchar('\n');
         }
     }
 }
