@@ -65,6 +65,7 @@ add_custom_target(tools.editor
         mkgdb_server.sh
         merge_binary.py
         calc_best_signal_test_devider.py
+        decodeDoubleDump.py
     )
 
 set(tools_DIR       ${CMAKE_CURRENT_SOURCE_DIR}         PARENT_SCOPE)

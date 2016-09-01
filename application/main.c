@@ -46,6 +46,8 @@ void DELAY() {
         asm volatile("l.nop");
 }
 
+static const uint16_t measure_time_ms = 10;
+
 void Send_Data() {
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
         uint32_t ts = fm_GetMeasureTimestamp(i);
@@ -57,11 +59,21 @@ void Send_Data() {
                 continue;
             double F = (double)periods / (double)value * F_REF;
 
+            //recalc new reload value
+            uint32_t reload_val = (uint32_t)(F * measure_time_ms / 1000);
+            if (!reload_val)
+                reload_val = 1;
+            fm_setChanelReloadValue(i, reload_val, false); // set new reload val
+
             serial1_putchar('#');
-            serial1_putchar(i);
+            serial1_putchar('0' + i);
             serial1_putchar('=');
             for (uint8_t j = 0; j < sizeof(double); ++j) {
                 serial1_putchar(((uint8_t*)&F)[j]);
+            }
+            serial1_putchar('=');
+            for (uint8_t j = 0; j < sizeof(uint32_t); ++j) {
+                serial1_putchar(((uint8_t*)&reload_val)[j]);
             }
             serial1_putchar('$');
         }
