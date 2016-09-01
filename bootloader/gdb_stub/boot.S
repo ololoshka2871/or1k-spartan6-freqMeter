@@ -87,17 +87,10 @@ vector_fault:
     # Save context
     asm_save_context
 
-    # Copy stack pointer to arg1
-    l.add r3, r0, r1
+    # Arg 2 = Fault
+    l.addi r4, r0, 1
 
-    # Jump to interrupt handler
-    l.movhi r10,hi(fault_handler);
-    l.ori r10,r10,lo(fault_handler);
-    l.jalr r10
-    l.nop
-
-    # restore context
-    l.j exception_return
+    l.j handle_exception
     l.nop
 
 .size vector_fault, .-vector_fault

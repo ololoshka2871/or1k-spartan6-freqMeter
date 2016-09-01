@@ -55,7 +55,7 @@ void Send_Data() {
             uint32_t value   = fm_getActualMeasureTime(i);
             if ((!value) || (!periods))
                 continue;
-            double F = (double)value * (double)periods;
+            double F = (double)periods / (double)value * F_REF;
 
             serial1_putchar('#');
             serial1_putchar(i);
