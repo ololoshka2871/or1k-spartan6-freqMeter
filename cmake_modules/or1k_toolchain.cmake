@@ -42,7 +42,18 @@ INCLUDE(CMakeForceCompiler)
 SET(CMAKE_SYSTEM_NAME Generic)
 SET(CMAKE_SYSTEM_VERSION 1)
 
-SET(TOOLCHAIN_PREFIX	or1k-elf-)
+find_program (OR1KND or1knd-elf-gcc)
+if (OR1KND)
+    SET(TOOLCHAIN_PREFIX	or1knd-elf-)
+else()
+    find_program (OR1K or1k-elf-gcc)
+    if (OR1K)
+       SET(TOOLCHAIN_PREFIX	or1k-elf-)
+    else(OR1K)
+        message(ERROR "NO SUTABLE TOOLCHAIN FOUND")
+    endif(OR1K)
+endif()
+
 
 # specify the cross compiler
 set(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}gcc)
