@@ -77,6 +77,7 @@ Verilog_GenControlMacro(ETHERNET_ENABLED_STR "ETHERNET_ENABLED" ${PERIPHERIAL_EN
 add_subdirectory(altor32)
 add_subdirectory(soc)
 add_subdirectory(memory)
+add_subdirectory(ethmac)
 add_subdirectory(utils)
 add_subdirectory(ucf)
 
@@ -101,6 +102,7 @@ configure_file(${config_v_file_name_in} ${config_v_file_name} @ONLY)
 build_prj(ALTOR32_CORE_PRJ  "verilog altor32	%f\n"	"${ALTOR32_HDL_V}")
 build_prj(SOC_PRJ	    "verilog soc	%f\n"	"${SOC_HDL_V}")
 build_prj(MEMORY_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_V}")
+build_prj(ETHMAC_PRJ	    "verilog ethmac	%f\n"	"${ETHMAC_HDL_V}")
 build_prj(UTILS_PRJ	    "verilog utils	%f\n"	"${UTILS_HDL_V}")
 build_prj(CONFIG_PRJ        "verilog config     %f\n"   "${config_v_file_name}")
 
@@ -109,6 +111,7 @@ set(PRJ_TEXT
     ${ALTOR32_CORE_PRJ}
     ${SOC_PRJ}
     ${MEMORY_PRJ}
+    ${ETHMAC_PRJ}
     ${UTILS_PRJ}
     ${TOP_PRJ}
     )
@@ -165,6 +168,7 @@ foreach(testfile ${TESTBENCH_HDL_V})
 	${ALTOR32_CORE_PRJ}
 	${SOC_PRJ}
 	${MEMORY_HDL_SIM_PRJ}
+        ${ETHMAC_PRJ}
         ${UTILS_PRJ}
 	${TOP_PRJ}
 	${TB_PRJ}
