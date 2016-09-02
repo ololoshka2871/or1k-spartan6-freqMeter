@@ -51,31 +51,28 @@ static const uint16_t measure_time_ms = 10;
 void Send_Data() {
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
         uint32_t ts = fm_GetMeasureTimestamp(i);
-        if (ts != timestamps[i]) {
-            timestamps[i] = ts;
+        if (ts != timestamps[i]) {            
+#if 0
+            irq_disable(IRQ_FREQMETERS);
             uint32_t periods = fm_getActualReloadValue(i);
             uint32_t value   = fm_getActualMeasureTime(i);
-            if ((!value) || (!periods))
-                continue;
-            double F = (double)periods / (double)value * F_REF;
-
-            //recalc new reload value
-            uint32_t reload_val = (uint32_t)(F * measure_time_ms / 1000);
-            if (!reload_val)
-                reload_val = 1;
-            fm_setChanelReloadValue(i, reload_val, false); // set new reload val
-
+            irq_enable(IRQ_FREQMETERS);
+#endif
             serial1_putchar('#');
-            serial1_putchar('0' + i);
-            serial1_putchar('=');
-            for (uint8_t j = 0; j < sizeof(double); ++j) {
-                serial1_putchar(((uint8_t*)&F)[j]);
-            }
-            serial1_putchar('=');
+            serial1_putchar(i);
+#if 0
             for (uint8_t j = 0; j < sizeof(uint32_t); ++j) {
-                serial1_putchar(((uint8_t*)&reload_val)[j]);
+                serial1_putchar(((uint8_t*)&ts)[j]);
             }
+            for (uint8_t j = 0; j < sizeof(uint32_t); ++j) {
+                serial1_putchar(((uint8_t*)&value)[j]);
+            }
+            for (uint8_t j = 0; j < sizeof(uint32_t); ++j) {
+                serial1_putchar(((uint8_t*)&timestamps[i])[j]);
+            }
+#endif
             serial1_putchar('$');
+            timestamps[i] = ts;
         }
     }
 }

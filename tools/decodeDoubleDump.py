@@ -4,8 +4,6 @@
 import sys, struct
 import locale
 
-n = [ord('0') + i for i in range(22)]
-
 
 def main():
     locale.setlocale(locale.LC_ALL, "")
@@ -15,12 +13,12 @@ def main():
     datafile = open(sys.argv[1], 'rb')
     while True:
         try:
-            data = datafile.read(1 + 1 + 1 + 8 + 1 + 4 + 1)
-            v = struct.unpack_from('>BBBdBIB', data)
+            data = datafile.read(1 + 1 + 4 + 4 + 4 + 1)
+            v = struct.unpack_from('>BBIIIB', data)
         except:
             exit(0)
-        if v[0] == ord('#') and v[2] == ord('=') and v[4] == ord('=') and v[6] == ord('$'):
-            print('{};{};{}'.format(v[1] - ord('0'), locale.format("%f", v[3]), v[5]))
+        if v[0] == ord('#') and v[5] == ord('$'):
+            print('{};{};{};{}'.format(v[1], v[2], v[3], v[4]))
 
 # чтобы при импорте не выполнялся код автоматом
 if __name__ == '__main__':
