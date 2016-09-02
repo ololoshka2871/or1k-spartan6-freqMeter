@@ -16,12 +16,12 @@ def main():
             if datafile.read(1) == b'$':
                 break;
         try:
-            data = datafile.read(1 + 1 + 1)
-            v = struct.unpack_from('>BBB', data)
+            data = datafile.read(1 + 1 + 4 + 1)
+            v = struct.unpack_from('>BBIB', data)
         except:
             exit(0)
-        if v[0] == ord('#') and v[2] == ord('$'):
-            print('{}'.format(v[1]))
+        if v[0] == ord('#') and v[3] == ord('$'):
+            print('{};{}'.format(v[1], v[2]))
 
 # чтобы при импорте не выполнялся код автоматом
 if __name__ == '__main__':

@@ -39,6 +39,7 @@ struct freqmeter_chanel {
     uint32_t newReload_vals[3]; // 0 - new, 1 - in_work, 2 - ready
     uint32_t res_start_v;
     uint32_t res_stop_v;
+    uint32_t irq_count;
 
     unsigned enabled:1;
 };
@@ -51,7 +52,8 @@ void fm_setChanelReloadValue(uint8_t chanel, uint32_t reload_value,
                              bool force_restart);
 uint32_t fm_getActualMeasureTime(uint8_t chanel);
 uint32_t fm_getActualReloadValue(uint8_t chanel);
-uint32_t fm_GetMeasureTimestamp(uint8_t chanel);
+uint32_t fm_getMeasureTimestamp(uint8_t chanel);
+uint32_t fm_getIRQCount(uint8_t chanel);
 bool     fm_checkAlive(uint8_t chanel);
 
 #endif // FREQMETERS_H

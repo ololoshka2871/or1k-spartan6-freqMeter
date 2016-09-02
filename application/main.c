@@ -37,7 +37,7 @@
 #include "freqmeters.h"
 #include "serial.h"
 
-static uint32_t timestamps[FREQMETERS_COUNT];
+static uint32_t irqCountes[FREQMETERS_COUNT];
 
 void DELAY() {
     for (int i = 0; i < 100000; ++i)
@@ -48,29 +48,19 @@ static const uint16_t measure_time_ms = 10;
 
 void Send_Data() {
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        uint32_t ts = fm_GetMeasureTimestamp(i);
+        irq_disable(IRQ_FREQMETERS);
+        uint32_t irqs = fm_getIRQCount(i);
         if (ts != timestamps[i]) {
-#if 0
-            irq_disable(IRQ_FREQMETERS);
-            uint32_t periods = fm_getActualReloadValue(i);
-            uint32_t value   = fm_getActualMeasureTime(i);
             irq_enable(IRQ_FREQMETERS);
-#endif
+            irqCountes[i] = irqs;
             serial1_putchar('#');
             serial1_putchar(i);
-#if 0
             for (uint8_t j = 0; j < sizeof(uint32_t); ++j) {
-                serial1_putchar(((uint8_t*)&ts)[j]);
+                serial1_putchar(((uint8_t*)&irqs)[j]);
             }
-            for (uint8_t j = 0; j < sizeof(uint32_t); ++j) {
-                serial1_putchar(((uint8_t*)&value)[j]);
-            }
-            for (uint8_t j = 0; j < sizeof(uint32_t); ++j) {
-                serial1_putchar(((uint8_t*)&timestamps[i])[j]);
-            }
-#endif
             serial1_putchar('$');
-            timestamps[i] = ts;
+        } else {
+            irq_enable(IRQ_FREQMETERS);
         }
     }
 }
