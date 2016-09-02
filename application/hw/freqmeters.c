@@ -63,7 +63,7 @@ static void fm_isr_handler(unsigned int *registers) {
         if (chanels_to_scan & (1 << ch)) {
             freqmeters[ch].res_start_v = FM_START_VAL_CH(ch);
             freqmeters[ch].res_stop_v = FM_STOP_VAL_CH(ch);
-            ++freqmeters[ch].count;
+            ++freqmeters[ch].irq_count;
             reload_cycle(ch);
         }
     }
