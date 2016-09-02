@@ -38,13 +38,19 @@ cmake_minimum_required(VERSION 3.0.2)
 file(GLOB_RECURSE
     TESTBENCH_HDL_V
     FOLLOW_SYMLINKS
+    "tb_*.v"
+    )
+
+file(GLOB_RECURSE
+    TESTBENCH_FILES_HDL_V
+    FOLLOW_SYMLINKS
     "*.v"
     )
 
 # Fake target: add sources to project tree (Qt Creator)
 add_custom_target(testbench_sources
     SOURCES
-	${TESTBENCH_HDL_V}
+        ${TESTBENCH_FILES_HDL_V}
     )
 
 set(TESTBENCH_HDL_V		    ${TESTBENCH_HDL_V}		PARENT_SCOPE)
