@@ -63,6 +63,7 @@ static void fm_isr_handler(unsigned int *registers) {
         if (chanels_to_scan & (1 << ch)) {
             freqmeters[ch].res_start_v = FM_START_VAL_CH(ch);
             freqmeters[ch].res_stop_v = FM_STOP_VAL_CH(ch);
+            ++freqmeters[ch].count;
             reload_cycle(ch);
         }
     }
@@ -112,7 +113,7 @@ uint32_t fm_getActualMeasureTime(uint8_t chanel) {
     return r & (1 << 31) ? ~r + 1 : r;
 }
 
-uint32_t fm_GetMeasureTimestamp(uint8_t chanel) {
+uint32_t fm_getMeasureTimestamp(uint8_t chanel) {
     return freqmeters[chanel].res_stop_v;
 }
 
@@ -124,4 +125,8 @@ bool fm_checkAlive(uint8_t chanel) {
 
 uint32_t fm_getActualReloadValue(uint8_t chanel) {
     return freqmeters[chanel].newReload_vals[2];
+}
+
+uint32_t fm_getIRQCount(uint8_t chanel) {
+    return freqmeters[chanel].irq_count;
 }

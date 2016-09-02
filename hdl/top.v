@@ -54,19 +54,13 @@ module top
 
     output          tx1,
 
-    // leds
-    inout wire[`LEDS_COUNT - 1:0] leds_io,
-
     // reset CPU key
     input wire	    rst_i,
 
     inout  wire     flash_CS,      // spi flash CS wire
     output wire     sck_o,         // serial clock output
     output wire     mosi_o,        // MasterOut SlaveIN
-    input  wire     miso_i,        // MasterIn SlaveOut
-
-    output wire[7:0] segments,
-    output wire[3:0] seg_selectors
+    input  wire     miso_i         // MasterIn SlaveOut
 
 `ifdef USE_PHISICAL_INPUTS
     ,
@@ -125,16 +119,11 @@ wire                freqmeter_cyc;
 wire                freqmeter_ack;
 wire                freqmeter_inta;
 
-wire                pllFB;
 wire                clk;
 wire                clk_ref;
 
 wire		    clk_io;
 wire[6:0]           spi_cs_o;
-
-wire[3:0]           GPIO_oe;
-wire[3:0]           GPIO_o;
-wire[3:0]           GPIO_i;
 
 wire[`MASER_FREQ_COUNTER_LEN-1:0] devided_clocks;
 wire[15:0]          clock_devider16 = devided_clocks[15:0];
@@ -314,14 +303,7 @@ u_soc
     .sck_o(sck_o),
     .mosi_o(mosi_o),
     .miso_i(miso_i),
-    .spi_cs_o(spi_cs_o),
-
-    .segments(segments),
-    .seg_selectors(seg_selectors),
-
-    .GPIO_oe(GPIO_oe),
-    .GPIO_o(GPIO_o),
-    .GPIO_i(GPIO_i)
+    .spi_cs_o(spi_cs_o)
 );
 
 // reference clock gen clk_ref = clk_i * `PLL_MULTIPLYER / `REFERENCE_CLOCK_DEVIDER
@@ -413,27 +395,6 @@ else
     reset       <= 1'b0;
 //else 
 //    rst_next    <= 1'b0;
-
-// bidirectional GPIO
-genvar i;
-generate
-for (i = 0; i < `LEDS_COUNT; i = i + 1)
-begin : iobuf_gen
-    IOBUF
-    #(
-	.DRIVE(12), // Specify the output drive strength
-	.IOSTANDARD("DEFAULT"), // Specify the I/O standard
-	.SLEW("SLOW") // Specify the output slew rate
-    )
-    IOBUF_inst
-    (
-	.O(GPIO_i[i]),     // Buffer output
-	.IO(leds_io[i]),   // Buffer inout port (connect directly to top-level port)
-	.I(GPIO_o[i]),     // Buffer input
-	.T(~GPIO_oe[i])    // 3-state enable input, high=input, low=output
-    );
-end
-endgenerate
 
 // flash_CS
 assign flash_CS = spi_cs_o[0];

@@ -35,11 +35,9 @@
 
 #include "irq.h"
 #include "freqmeters.h"
-#include "GPIO.h"
-#include "seg7_display.h"
 #include "serial.h"
 
-static uint32_t timestamps[FREQMETERS_COUNT];
+static uint32_t irqCountes[FREQMETERS_COUNT];
 
 void DELAY() {
     for (int i = 0; i < 100000; ++i)
@@ -50,32 +48,19 @@ static const uint16_t measure_time_ms = 10;
 
 void Send_Data() {
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        uint32_t ts = fm_GetMeasureTimestamp(i);
+        irq_disable(IRQ_FREQMETERS);
+        uint32_t irqs = fm_getIRQCount(i);
         if (ts != timestamps[i]) {
-            timestamps[i] = ts;
-            uint32_t periods = fm_getActualReloadValue(i);
-            uint32_t value   = fm_getActualMeasureTime(i);
-            if ((!value) || (!periods))
-                continue;
-            double F = (double)periods / (double)value * F_REF;
-
-            //recalc new reload value
-            uint32_t reload_val = (uint32_t)(F * measure_time_ms / 1000);
-            if (!reload_val)
-                reload_val = 1;
-            fm_setChanelReloadValue(i, reload_val, false); // set new reload val
-
+            irq_enable(IRQ_FREQMETERS);
+            irqCountes[i] = irqs;
             serial1_putchar('#');
-            serial1_putchar('0' + i);
-            serial1_putchar('=');
-            for (uint8_t j = 0; j < sizeof(double); ++j) {
-                serial1_putchar(((uint8_t*)&F)[j]);
-            }
-            serial1_putchar('=');
+            serial1_putchar(i);
             for (uint8_t j = 0; j < sizeof(uint32_t); ++j) {
-                serial1_putchar(((uint8_t*)&reload_val)[j]);
+                serial1_putchar(((uint8_t*)&irqs)[j]);
             }
             serial1_putchar('$');
+        } else {
+            irq_enable(IRQ_FREQMETERS);
         }
     }
 }
@@ -91,7 +76,6 @@ void main(void)
         fm_enableChanel(i, true);
     }
 
-    GPIO portA = gpio_port_init(GPIO_PORTA, 0b1111);
     uint8_t v = 1;
     uint16_t count = 0;
 
@@ -99,18 +83,7 @@ void main(void)
 
     EXIT_CRITICAL();
 
-    seg7_PutStr("1234", 4, ' ');
     while(1) {
-        //DELAY();
-        if (v == 1 << 4) v = 1;
-        gpio_port_set_all(portA, ~v);
-        seg7_printHex(fm_getActualMeasureTime(count));
-        for (uint8_t i = 0; i < 4; ++i) {
-            seg7_dpSet(seg7_num2Segment(i), v & (1 << i));
-        }
-        v <<= 1;
-        count = (count + 1) % FREQMETERS_COUNT;
         Send_Data();
-        //fm_updateChanel(count);
     }
 }
