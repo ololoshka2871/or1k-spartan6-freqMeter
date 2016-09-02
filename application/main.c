@@ -35,8 +35,6 @@
 
 #include "irq.h"
 #include "freqmeters.h"
-#include "GPIO.h"
-#include "seg7_display.h"
 #include "serial.h"
 
 static uint32_t timestamps[FREQMETERS_COUNT];
@@ -51,7 +49,7 @@ static const uint16_t measure_time_ms = 10;
 void Send_Data() {
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
         uint32_t ts = fm_GetMeasureTimestamp(i);
-        if (ts != timestamps[i]) {            
+        if (ts != timestamps[i]) {
 #if 0
             irq_disable(IRQ_FREQMETERS);
             uint32_t periods = fm_getActualReloadValue(i);
@@ -88,7 +86,6 @@ void main(void)
         fm_enableChanel(i, true);
     }
 
-    GPIO portA = gpio_port_init(GPIO_PORTA, 0b1111);
     uint8_t v = 1;
     uint16_t count = 0;
 
@@ -96,18 +93,7 @@ void main(void)
 
     EXIT_CRITICAL();
 
-    seg7_PutStr("1234", 4, ' ');
     while(1) {
-        //DELAY();
-        if (v == 1 << 4) v = 1;
-        gpio_port_set_all(portA, ~v);
-        seg7_printHex(fm_getActualMeasureTime(count));
-        for (uint8_t i = 0; i < 4; ++i) {
-            seg7_dpSet(seg7_num2Segment(i), v & (1 << i));
-        }
-        v <<= 1;
-        count = (count + 1) % FREQMETERS_COUNT;
         Send_Data();
-        //fm_updateChanel(count);
     }
 }
