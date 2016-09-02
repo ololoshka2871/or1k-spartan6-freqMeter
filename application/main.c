@@ -50,7 +50,7 @@ void Send_Data() {
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
         irq_disable(IRQ_FREQMETERS);
         uint32_t irqs = fm_getIRQCount(i);
-        if (ts != timestamps[i]) {
+        if (irqs != irqCountes[i]) {
             irq_enable(IRQ_FREQMETERS);
             irqCountes[i] = irqs;
             serial1_putchar('#');
