@@ -136,7 +136,7 @@ configure_file(${UT_IN_FILE_NAME} ${UT_FILE_NAME} @ONLY)
 #-------------------------------------sym---------------------------------------
 add_subdirectory(testbench)
 
-set(prj_libs altor32 soc memory utils work)
+set(prj_libs altor32 soc memory utils work ethmac simhalpers)
 set(testlibs_list)
 foreach(l ${prj_libs})
     list(APPEND testlibs_list -lib ${l})
@@ -145,10 +145,12 @@ endforeach()
 set(test_include_path
         -i ${CMAKE_CURRENT_BINARY_DIR}
         -i ${CMAKE_CURRENT_SOURCE_DIR}
+        -i ${ETHERNET_DIR}
         )
 
 build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	"${XILINX_VERILOG_glbl}")
 build_prj(MEMORY_HDL_SIM_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_SIM_V}")
+build_prj(SIM_HALPERS_HDL_PRJ       "verilog simhalpers %f\n"   "${TESTBENCH_ETH_HALPERS_HDL_V}")
 
 foreach(testfile ${TESTBENCH_HDL_V})
     string(REGEX REPLACE ".*/(.*)\\.v" "\\1" testname ${testfile})
@@ -162,13 +164,8 @@ foreach(testfile ${TESTBENCH_HDL_V})
     build_prj(TB_PRJ	"verilog tb	%f\n"	"${testfile}")
 
     file(WRITE ${test_prj_file}.tmp
-	${CONFIG_PRJ}
-	${ALTOR32_CORE_PRJ}
-	${SOC_PRJ}
-	${MEMORY_HDL_SIM_PRJ}
-        ${ETHMAC_PRJ}
-        ${UTILS_PRJ}
-	${TOP_PRJ}
+        ${PRJ_TEXT}
+        ${SIM_HALPERS_HDL_PRJ}
 	${TB_PRJ}
 	${XILINX_VERILOG_glbl_PRJ}
 	)

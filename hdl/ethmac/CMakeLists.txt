@@ -47,3 +47,4 @@ add_custom_target(ethmac_sources
     )
 
 set(ETHMAC_HDL_V	    ${ETHMAC_HDL_V}		PARENT_SCOPE)
+set(ETHERNET_DIR            ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
