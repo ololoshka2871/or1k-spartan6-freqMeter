@@ -125,6 +125,8 @@ wire                clk_ref;
 wire		    clk_io;
 wire[6:0]           spi_cs_o;
 
+wire[2:0]           ext_intr = {1'b0, 1'b0, freqmeter_inta};
+
 wire[`MASER_FREQ_COUNTER_LEN-1:0] devided_clocks;
 wire[15:0]          clock_devider16 = devided_clocks[15:0];
 
@@ -273,14 +275,14 @@ soc
     .ENABLE_HIGHRES_TIMER("ENABLED"),
     .UART0_BAUD(`UART0_BAUD),
     .UART1_BAUD(`UART1_BAUD),
-    .EXTERNAL_INTERRUPTS(1)
+    .EXTERNAL_INTERRUPTS(3)
 )
 u_soc
 (
     // General - clocking & reset
     .clk_i(clk),
     .rst_i(reset),
-    .ext_intr_i(freqmeter_inta),
+    .ext_intr_i(ext_intr),
     .intr_o(soc_irq),
 
     .uart0_tx_o(tx0),

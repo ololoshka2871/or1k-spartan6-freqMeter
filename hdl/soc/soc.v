@@ -328,12 +328,12 @@ u_intr
     .intr1_i(timer_intr_systick),
     .intr2_i(timer_intr_hires),
     .intr3_i(spi_intr),
-    .intr4_i(gpio_irq),
-    .intr5_i(ext_intr_i),
+    .intr4_i(1'b0),
+    .intr5_i(1'b0),
     .intr6_i(1'b0),
     .intr7_i(uart1_intr),
 
-    .intr_ext_i(1'b0),
+    .intr_ext_i(ext_intr_i),
 
     .addr_i(intr_addr),
     .data_o(intr_data_i),

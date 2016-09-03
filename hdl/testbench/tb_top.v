@@ -31,16 +31,11 @@ module tb_top;
 	// Outputs
 	wire tx;
 	
-	wire[3:0] leds_io;
-	
 	reg rst = 1'b1;
 
         wire     flash_CS;
         wire     sck_o;
         wire     mosi_o;
-
-        wire [7:0] segments;
-        wire [3:0] seg_selectors;
 
         wire [23:0] Fin;
 
@@ -71,15 +66,11 @@ module tb_top;
             .clk_i(clk),
             .rx0(rx),
             .tx0(tx),
-            .leds_io(leds_io),
             .rst_i(rst),
             .flash_CS(flash_CS),
             .sck_o(sck_o),
             .mosi_o(mosi_o),
             .miso_i(mosi_o),
-
-            .segments(segments),
-            .seg_selectors(seg_selectors),
 
             .Fin(Fin)
 	);
