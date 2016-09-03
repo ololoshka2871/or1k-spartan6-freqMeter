@@ -111,10 +111,9 @@ set(PRJ_TEXT
     ${MEMORY_PRJ}
     ${ETHMAC_PRJ}
     ${UTILS_PRJ}
-    ${TOP_PRJ}
     )
 
-file(WRITE ${PRJ_FILE_NAME}.tmp ${PRJ_TEXT})
+file(WRITE ${PRJ_FILE_NAME}.tmp ${PRJ_TEXT};${TOP_PRJ})
 
 add_custom_target(hdl
     COMMAND
@@ -151,6 +150,8 @@ set(test_include_path
 build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	"${XILINX_VERILOG_glbl}")
 build_prj(MEMORY_HDL_SIM_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_SIM_V}")
 build_prj(SIM_HALPERS_HDL_PRJ       "verilog simhalpers %f\n"   "${TESTBENCH_ETH_HALPERS_HDL_V}")
+
+file(MAKE_DIRECTORY ${TESTBENCH_DIR}/../log)
 
 foreach(testfile ${TESTBENCH_HDL_V})
     string(REGEX REPLACE ".*/(.*)\\.v" "\\1" testname ${testfile})
@@ -195,7 +196,7 @@ endforeach()
 
 set(PRJ_FILE_NAME           ${PRJ_FILE_NAME}            PARENT_SCOPE)
 set(TOP_MODULE_NAME         ${TOP_MODULE_NAME}          PARENT_SCOPE)
-set(PRJ_TEXT                ${PRJ_TEXT}                 PARENT_SCOPE)
+#set(PRJ_TEXT                ${PRJ_TEXT}                 PARENT_SCOPE)
 set(XST_FILE_NAME           ${XST_FILE_NAME}            PARENT_SCOPE)
 set(UT_FILE_NAME            ${UT_FILE_NAME}		PARENT_SCOPE)
 set(UCF_FILE_NAME           ${UCF_FILE_NAME}            PARENT_SCOPE)

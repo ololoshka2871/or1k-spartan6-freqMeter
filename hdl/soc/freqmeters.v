@@ -191,7 +191,7 @@ decoder
 #(
     .OUTPUTS_COUNT(INPUTS_COUNT)
 ) freq_meter_n_decoder (
-    .inputs(addr_valid),
+    .inputs(addr_valid[$clog2(INPUTS_COUNT) - 1:0]),
     .outputs(decoded_freqmeter_num)
 );
 

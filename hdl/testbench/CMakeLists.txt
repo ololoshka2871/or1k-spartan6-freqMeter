@@ -54,7 +54,7 @@ file(GLOB_RECURSE
     )
 
 set(TESTBENCH_ETH_HALPERS_HDL_V
-    ${TESTBENCH_WB_HALPERS_HDL_V};${TESTBENCH_EYH_HALPERS_HDL_V}
+    ${TESTBENCH_WB_HALPERS_HDL_V};${TESTBENCH_ETH_HALPERS_HDL_V}
     )
 
 # Fake target: add sources to project tree (Qt Creator)
