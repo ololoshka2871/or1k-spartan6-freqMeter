@@ -190,7 +190,7 @@ assign imem_ack         = imem0_ack_i;
 //-----------------------------------------------------------------
 // Data Memory MUX
 //-----------------------------------------------------------------
-dmem_mux3
+dmem_mux4
 #(
     .ADDR_MUX_START(24)
 )
@@ -232,6 +232,18 @@ u_dmux
     .out2_cti_o(dmem2_cti_o),
     .out2_ack_i(dmem2_ack_i),
     .out2_stall_i(dmem2_stall_i),
+
+    // 0x13000000 - 0x13FFFFFF
+    .out2_addr_o(/*open*/),
+    .out2_data_o(/*open*/),
+    .out2_data_i(4'h00000000),
+    .out2_sel_o(/*open*/),
+    .out2_we_o(/*open*/),
+    .out2_stb_o(/*open*/),
+    .out2_cyc_o(/*open*/),
+    .out2_cti_o(/*open*/),
+    .out2_ack_i(1'b0),
+    .out2_stall_i(1'b1),
 
     // Input - CPU core bus
     .mem_addr_i(dmem_addr),

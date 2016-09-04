@@ -38,7 +38,7 @@
 //-----------------------------------------------------------------
 // Module:
 //-----------------------------------------------------------------
-module dmem_mux3
+module dmem_mux4
 (
     // Outputs
     output reg [31:0] out0_addr_o,
@@ -73,6 +73,17 @@ module dmem_mux3
     output reg [2:0]  out2_cti_o,
     input             out2_ack_i,
     input             out2_stall_i,
+
+    output reg [31:0] out3_addr_o,
+    output reg [31:0] out3_data_o,
+    input [31:0]      out3_data_i,
+    output reg [3:0]  out3_sel_o,
+    output reg        out3_we_o,
+    output reg        out3_stb_o,
+    output reg        out3_cyc_o,
+    output reg [2:0]  out3_cti_o,
+    input             out3_ack_i,
+    input             out3_stall_i,
 
     // Input
     input [31:0]      mem_addr_i,
@@ -119,6 +130,13 @@ begin
    out2_stb_o       = 1'b0;
    out2_cyc_o       = 1'b0;
    out2_cti_o       = 3'b0;
+   out3_addr_o      = 32'h00000000;
+   out3_data_o      = 32'h00000000;
+   out3_sel_o       = 4'b0000;
+   out3_we_o        = 1'b0;
+   out3_stb_o       = 1'b0;
+   out3_cyc_o       = 1'b0;
+   out3_cti_o       = 3'b0;
 
    case (mem_addr_i[ADDR_MUX_START+2-1:ADDR_MUX_START])
 
@@ -152,6 +170,16 @@ begin
        out2_cyc_o       = mem_cyc_i;
        out2_cti_o       = mem_cti_i;
    end
+   3'd3:
+   begin
+       out3_addr_o      = mem_addr_i;
+       out3_data_o      = mem_data_i;
+       out3_sel_o       = mem_sel_i;
+       out3_we_o        = mem_we_i;
+       out3_stb_o       = mem_stb_i;
+       out3_cyc_o       = mem_cyc_i;
+       out3_cti_o       = mem_cti_i;
+   end
 
    default :
       ;      
@@ -182,6 +210,12 @@ begin
        mem_data_o   = out2_data_i;
        mem_stall_o  = out2_stall_i;
        mem_ack_o    = out2_ack_i;
+    end
+    2'd3:
+    begin
+       mem_data_o   = out3_data_i;
+       mem_stall_o  = out3_stall_i;
+       mem_ack_o    = out3_ack_i;
     end
 
    default :

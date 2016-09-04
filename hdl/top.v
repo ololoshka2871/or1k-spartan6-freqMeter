@@ -110,14 +110,16 @@ wire                imem_cyc;
 wire                imem_ack;
 wire                imem_stall;
 
-wire[31:0]          freqmeter_addr;
-wire[31:0]          freqmeter_data_r;
-wire[31:0]          freqmeter_data_w;
-wire                freqmeter_we;
-wire                freqmeter_stb;
-wire                freqmeter_cyc;
-wire                freqmeter_ack;
-wire                freqmeter_inta;
+wire[31:0]          sf_addr;
+wire[31:0]          sf_data_r;
+wire[31:0]          sf_data_w;
+wire[3:0]           sf_sel;
+wire[2:0]           sf_cti;
+wire                sf_we;
+wire                sf_stb;
+wire                sf_cyc;
+wire                sf_ack;
+wire                sf_stall;
 
 wire                clk;
 wire                clk_ref;
@@ -125,7 +127,7 @@ wire                clk_ref;
 wire		    clk_io;
 wire[6:0]           spi_cs_o;
 
-wire[2:0]           ext_intr = {1'b0, 1'b0, freqmeter_inta};
+wire[2:0]           ext_intr;
 
 wire[`MASER_FREQ_COUNTER_LEN-1:0] devided_clocks;
 wire[15:0]          clock_devider16 = devided_clocks[15:0];
@@ -219,16 +221,16 @@ u_cpu
     .dmem0_ack_i(dmem_ack),
 
     // Data Memory 1 (0x11000000 - 0x11FFFFFF)
-    .dmem1_addr_o(freqmeter_addr),
-    .dmem1_data_o(freqmeter_data_w),
-    .dmem1_data_i(freqmeter_data_r),
-    .dmem1_sel_o(/* open */),
-    .dmem1_we_o(freqmeter_we),
-    .dmem1_stb_o(freqmeter_stb),
-    .dmem1_cyc_o(freqmeter_cyc),
-    .dmem1_cti_o(/* open */),
-    .dmem1_stall_i(1'b0),
-    .dmem1_ack_i(freqmeter_ack),
+    .dmem1_addr_o(sf_addr),
+    .dmem1_data_o(sf_data_w),
+    .dmem1_data_i(sf_data_r),
+    .dmem1_sel_o(sf_sel),
+    .dmem1_we_o(sf_we),
+    .dmem1_stb_o(sf_stb),
+    .dmem1_cyc_o(sf_cyc),
+    .dmem1_cti_o(sf_cti),
+    .dmem1_stall_i(sf_stall),
+    .dmem1_ack_i(sf_ack),
 	  
     // Data Memory 2 (0x12000000 - 0x12FFFFFF)
     .dmem2_addr_o(soc_addr),
@@ -243,8 +245,8 @@ u_cpu
     .dmem2_ack_i(soc_ack)
 );
 
-// Freq meter
-freqmeters
+// FREQMETER and ETHERNET
+soc_fast
 #(
     .INPUTS_COUNT(`F_INPUTS_COUNT),
     .MASER_FREQ_COUNTER_LEN(`MASER_FREQ_COUNTER_LEN),
@@ -252,19 +254,37 @@ freqmeters
 ) fm (
     .clk_i(clk),
     .rst_i(reset),
-    .cyc_i(freqmeter_cyc),
-    .stb_i(freqmeter_stb),
-    .adr_i(freqmeter_addr[8:0]),
-    .we_i(freqmeter_we),
-    .dat_i(freqmeter_data_w),
-    .dat_o(freqmeter_data_r),
-    .ack_o(freqmeter_ack),
-    .inta_o(freqmeter_inta),
+
+    .cyc_i(sf_cyc),
+    .stb_i(sf_stb),
+    .adr_i(sf_addr),
+    .we_i(sf_we),
+    .dat_i(sf_data_w),
+    .dat_o(sf_data_r),
+    .ack_o(sf_ack),
+    .stall_o(sf_stall),
+    .sel_i(sf_sel),
+    .cti_i(sf_cti),
 
     .F_master(clk_ref),
     .F_in(Fin_inv_pars),
+    .devided_clocks(clock_devider16),
 
-    .devided_clocks(devided_clocks)
+    /* TODO */
+    .phy_tx_clk_i(),
+    .phy_tx_data_o(),
+    .phy_tx_en_o(),
+    .phy_tx_er_o(),
+    .phy_rx_clk_i(),
+    .phy_rx_data_i(),
+    .phy_dv_i(),
+    .phy_rx_er_i(),
+    .phy_col_i(),
+    .phy_crs_i(),
+    .phy_mii_clk_o(),
+    .phy_mii_data_io(),
+
+    .interrupts_o(ext_intr)
 );
 
 // CPU SOC
