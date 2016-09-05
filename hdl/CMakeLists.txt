@@ -98,7 +98,8 @@ add_custom_target(top_hdl_src
 configure_file(${config_v_file_name_in} ${config_v_file_name} @ONLY)
 
 build_prj(ALTOR32_CORE_PRJ  "verilog altor32	%f\n"	"${ALTOR32_HDL_V}")
-build_prj(SOC_PRJ	    "verilog soc	%f\n"	"${SOC_HDL_V}")
+build_prj(SOC_V_PRJ	    "verilog soc	%f\n"	"${SOC_HDL_V}")
+build_prj(SOC_VHDL_PRJ	    "vhdl    soc        %f\n"	"${SOC_HDL_VHDL}")
 build_prj(MEMORY_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_V}")
 build_prj(MINMAC_PRJ	    "verilog minmac	%f\n"	"${MINMAC_HDL_V}")
 build_prj(UTILS_PRJ	    "verilog utils	%f\n"	"${UTILS_HDL_V}")
@@ -107,7 +108,8 @@ build_prj(CONFIG_PRJ        "verilog config     %f\n"   "${config_v_file_name}")
 set(PRJ_TEXT
     ${CONFIG_PRJ}
     ${ALTOR32_CORE_PRJ}
-    ${SOC_PRJ}
+    ${SOC_V_PRJ}
+    ${SOC_VHDL_PRJ}
     ${MEMORY_PRJ}
     ${MINMAC_PRJ}
     ${UTILS_PRJ}

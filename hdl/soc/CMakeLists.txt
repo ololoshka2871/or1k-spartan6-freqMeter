@@ -41,10 +41,17 @@ file(GLOB_RECURSE
     "*.v"
     )
 
+file(GLOB_RECURSE
+    SOC_HDL_VHDL
+    FOLLOW_SYMLINKS
+    "*.vhdl"
+    )
+
 # Fake target: add sources to project tree (Qt Creator)
 add_custom_target(soc_sources
     SOURCES
-	${SOC_HDL_V}
+        ${SOC_HDL_V} ${SOC_HDL_VHDL}
     )
 
 set(SOC_HDL_V		    ${SOC_HDL_V}		PARENT_SCOPE)
+set(SOC_HDL_VHDL            ${SOC_HDL_VHDL}             PARENT SCOPE)

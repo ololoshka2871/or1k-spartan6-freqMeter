@@ -46,21 +46,31 @@
 module top
 (
     // 48MHz clock
-    input           clk_i,
+    input               clk_i,
 
     // UART
-    input           rx0,
-    output          tx0,
+    input               rx0,
+    output              tx0,
 
-    output          tx1,
+    output              tx1,
 
     // reset CPU key
-    input wire	    rst_i,
+    input wire          rst_i,
 
-    inout  wire     flash_CS,      // spi flash CS wire
-    output wire     sck_o,         // serial clock output
-    output wire     mosi_o,        // MasterOut SlaveIN
-    input  wire     miso_i         // MasterIn SlaveOut
+    inout  wire         flash_CS,      // spi flash CS wire
+    output wire         sck_o,         // serial clock output
+    output wire         mosi_o,        // MasterOut SlaveIN
+    input  wire         miso_i,        // MasterIn SlaveOut
+
+    // Ethernet PHY RMII
+    input  wire [1:0]   phy_rmii_rxdata,
+    input  wire         phy_rmii_crs_rxdv,
+    output wire [1:0]   phy_rmii_txdata,
+    output wire         phy_rmii_txen,
+    input  wire         phy_rmii_clk,  // to any GCLK pin
+    input  wire         phy_crs_i,
+    output wire         phy_mii_clk_o,
+    inout  wire         phy_mii_data_io
 
 `ifdef USE_PHISICAL_INPUTS
     ,
@@ -138,6 +148,13 @@ wire[`F_INPUTS_COUNT-1:0] Fin;
 `endif
 
 wire[`F_INPUTS_COUNT-1:0] Fin_inv_pars;
+
+// ethernet MII
+wire [3:0]          mii_rxdata;
+wire [3:0]          mii_txdata;
+wire                mii_rxdv;
+wire                mii_txen;
+wire                mii_clk;
 
 
 //-----------------------------------------------------------------
@@ -245,6 +262,22 @@ u_cpu
     .dmem2_ack_i(soc_ack)
 );
 
+// MII to RMII bridge
+rmii_port rmii_bridge
+(
+    .rmii_rxdata(),
+    .rmii_crs_rxdv(),
+    .rmii_txdata(),
+    .rmii_txen(),
+    .rmii_clk(),
+
+    .mii_rxdata(mii_rxdata),
+    .mii_rxdv(mii_rxdv),
+    .mii_txdata(mii_txdata),
+    .mii_txen(mii_txen),
+    .mii_clk(mii_clk),
+);
+
 // FREQMETER and ETHERNET
 soc_fast
 #(
@@ -271,18 +304,18 @@ soc_fast
     .devided_clocks(clock_devider16),
 
     /* TODO */
-    .phy_tx_clk_i(),
-    .phy_tx_data_o(),
-    .phy_tx_en_o(),
-    .phy_tx_er_o(),
-    .phy_rx_clk_i(),
-    .phy_rx_data_i(),
-    .phy_dv_i(),
-    .phy_rx_er_i(),
-    .phy_col_i(),
-    .phy_crs_i(),
-    .phy_mii_clk_o(),
-    .phy_mii_data_io(),
+    .phy_tx_clk_i(mii_clk),
+    .phy_tx_data_o(mii_txdata),
+    .phy_tx_en_o(mii_txen),
+    .phy_tx_er_o(/* OPEN */), // N/C
+    .phy_rx_clk_i(mii_clk),
+    .phy_rx_data_i(mii_rxdata),
+    .phy_dv_i(mii_rxdv),
+    .phy_rx_er_i(1'b0), // N/C
+    .phy_col_i(1'b0), // N/C
+    .phy_crs_i(), // from PHY
+    .phy_mii_clk_o(), // to PHY
+    .phy_mii_data_io(), // to PHY
 
     .interrupts_o(ext_intr)
 );
