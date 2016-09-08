@@ -236,7 +236,7 @@ u_dmux
     // 0x13000000 - 0x13FFFFFF
     .out3_addr_o(/*open*/),
     .out3_data_o(/*open*/),
-    .out3_data_i(4'h00000000),
+    .out3_data_i(32'h00000000),
     .out3_sel_o(/*open*/),
     .out3_we_o(/*open*/),
     .out3_stb_o(/*open*/),

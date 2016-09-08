@@ -50,7 +50,7 @@ module soc_fast
     output wire [31:0]                  dat_o,         // data output
     output wire				ack_o,         // normal bus termination
     output wire                         stall_o,       // stall
-    input  wire                         sel_i,         //
+    input  wire [3:0]                   sel_i,         // byte sellect
     input  wire [2:0]                   cti_i,
 
     // Freqmeters
@@ -74,6 +74,18 @@ module soc_fast
 
     output wire [2:0]                   interrupts_o
 );
+
+//------------------------------------------------------------------------------
+
+// ethernet frame size <= 1526 bytes
+// need place to 4 frames
+parameter ETHERNET_FRAME_SIZE = 1526;
+parameter MEMORY_BLOCK_SIZE = 18 * 1024 / 8;
+parameter MEMORY_SIZE_BLOCKS = $rtoi($ceil(ETHERNET_FRAME_SIZE * $itor(4) / MEMORY_BLOCK_SIZE));
+parameter MEMORY_SIZE_BYTES = MEMORY_SIZE_BLOCKS * MEMORY_BLOCK_SIZE;
+parameter MEMORY_ADDR_WIDTH = $clog2(MEMORY_SIZE_BYTES);
+
+//------------------------------------------------------------------------------
 
 // Data Memory 0 (0x11000000 - 0x110FFFFF)
 wire [31:0]         freqmeter_addr;
@@ -108,17 +120,31 @@ wire [2:0]          ethernet_txbuf_cti;
 wire                ethernet_txbuf_ack;
 wire                ethernet_txbuf_stall;
 
-// Data Memory 2 (0x11300000 - 0x113FFFFF)
-wire [31:0]         ethernet_rxbuf_addr_o;
+// Data Memory 3 (0x11300000 - 0x113FFFFF)
+wire [31:0]         ethernet_rxbuf_addr;
 wire [31:0]         ethernet_rxbuf_data_r;
 wire [31:0]         ethernet_rxbuf_data_w;
-wire [3:0]          ethernet_rxbuf_sel_o;
-wire                ethernet_rxbuf_we_o;
-wire                ethernet_rxbuf_stb_o;
-wire                ethernet_rxbuf_cyc_o;
-wire [2:0]          ethernet_rxbuf_cti_o;
-wire                ethernet_rxbuf_ack_i;
-wire                ethernet_rxbuf_stall_i;
+wire [3:0]          ethernet_rxbuf_sel;
+wire                ethernet_rxbuf_we;
+wire                ethernet_rxbuf_stb;
+wire                ethernet_rxbuf_cyc;
+wire [2:0]          ethernet_rxbuf_cti;
+wire                ethernet_rxbuf_ack;
+wire                ethernet_rxbuf_stall;
+
+//------------------------------------------------------------------------------
+
+wire [31:0]         wbrx_adr;
+wire                wbrx_cyc;
+wire                wbrx_stb;
+wire                wbrx_ack;
+wire [31:0]         wbrx_dat;
+
+wire [31:0]         wbtx_adr;
+wire                wbtx_cyc;
+wire                wbtx_stb;
+wire                wbtx_ack;
+wire [31:0]         wbtx_dat;
 
 //------------------------------------------------------------------------------
 
@@ -149,40 +175,40 @@ dmem_mux4
     .out0_stall_i(1'b0),
 
     // 0x11100000 - 0x111FFFFF
-    .out1_addr_o(ethernet_ctl_addr_o),
+    .out1_addr_o(ethernet_ctl_addr),
     .out1_data_o(ethernet_ctl_data_w),
     .out1_data_i(ethernet_ctl_data_r),
-    .out1_sel_o(ethernet_ctl_sel_o),
-    .out1_we_o(ethernet_ctl_we_o),
-    .out1_stb_o(ethernet_ctl_stb_o),
-    .out1_cyc_o(ethernet_ctl_cyc_o),
-    .out1_cti_o(ethernet_ctl_cti_o),
-    .out1_ack_i(ethernet_ctl_ack_i),
-    .out1_stall_i(ethernet_ctl_stall_i),
+    .out1_sel_o(ethernet_ctl_sel),
+    .out1_we_o(ethernet_ctl_we),
+    .out1_stb_o(ethernet_ctl_stb),
+    .out1_cyc_o(ethernet_ctl_cyc),
+    .out1_cti_o(ethernet_ctl_cti),
+    .out1_ack_i(ethernet_ctl_ack),
+    .out1_stall_i(ethernet_ctl_stall),
 
     // 0x11200000 - 0x112FFFFF
-    .out2_addr_o(ethernet_txbuf_addr_o),
+    .out2_addr_o(ethernet_txbuf_addr),
     .out2_data_o(ethernet_txbuf_data_w),
     .out2_data_i(ethernet_txbuf_data_r),
-    .out2_sel_o(ethernet_txbuf_sel_o),
-    .out2_we_o(ethernet_txbuf_we_o),
-    .out2_stb_o(ethernet_txbuf_stb_o),
-    .out2_cyc_o(ethernet_txbuf_cyc_o),
-    .out2_cti_o(ethernet_txbuf_cti_o),
-    .out2_ack_i(ethernet_txbuf_ack_i),
-    .out2_stall_i(ethernet_txbuf_stall_i),
+    .out2_sel_o(ethernet_txbuf_sel),
+    .out2_we_o(ethernet_txbuf_we),
+    .out2_stb_o(ethernet_txbuf_stb),
+    .out2_cyc_o(ethernet_txbuf_cyc),
+    .out2_cti_o(ethernet_txbuf_cti),
+    .out2_ack_i(ethernet_txbuf_ack),
+    .out2_stall_i(ethernet_txbuf_stall),
 
     // 0x11300000 - 0x113FFFFF
-    .out3_addr_o(ethernet_rxbuf_addr_o),
+    .out3_addr_o(ethernet_rxbuf_addr),
     .out3_data_o(ethernet_rxbuf_data_w),
     .out3_data_i(ethernet_rxbuf_data_r),
-    .out3_sel_o(ethernet_rxbuf_sel_o),
-    .out3_we_o(ethernet_rxbuf_we_o),
-    .out3_stb_o(ethernet_rxbuf_stb_o),
-    .out3_cyc_o(ethernet_rxbuf_cyc_o),
-    .out3_cti_o(ethernet_rxbuf_cti_o),
-    .out3_ack_i(ethernet_rxbuf_ack_i),
-    .out3_stall_i(ethernet_rxbuf_stall_i),
+    .out3_sel_o(ethernet_rxbuf_sel),
+    .out3_we_o(ethernet_rxbuf_we),
+    .out3_stb_o(ethernet_rxbuf_stb),
+    .out3_cyc_o(ethernet_rxbuf_cyc),
+    .out3_cti_o(ethernet_rxbuf_cti),
+    .out3_ack_i(ethernet_rxbuf_ack),
+    .out3_stall_i(ethernet_rxbuf_stall),
 
     // Input 0x11000000 - 0x11FFFFFF
     .mem_addr_i(adr_i),
@@ -204,7 +230,7 @@ freqmeters
     .MASER_FREQ_COUNTER_LEN(MASER_FREQ_COUNTER_LEN),
     .INPUT_FREQ_COUNTER_LEN(INPUT_FREQ_COUNTER_LEN)
 ) fm (
-    .clk_i(clk),
+    .clk_i(clk_i),
     .rst_i(reset),
     .cyc_i(freqmeter_cyc),
     .stb_i(freqmeter_stb),
@@ -221,17 +247,17 @@ freqmeters
     .devided_clocks(devided_clocks)
 );
 
-
+`ifdef __u
 // ethernet
 minimac
 #(
     .csr_addr(4'h0)
 ) ethernet (
-    .sys_clk(clk),
+    .sys_clk(clk_i),
     .sys_rst(reset),
 
-    .csr_a(ethernet_ctl_addr_o),
-    .csr_we(ethernet_ctl_we_o),
+    .csr_a(ethernet_ctl_addr),
+    .csr_we(ethernet_ctl_we),
     .csr_di(ethernet_ctl_data_w),
     .csr_do(ethernet_ctl_data_r),
 
@@ -239,20 +265,20 @@ minimac
     .irq_tx(ethernat_tx_int),
 
     // ressive memory port
-    .wbrx_adr_o(),
-    .wbrx_cti_o(),
-    .wbrx_cyc_o(),
-    .wbrx_stb_o(),
-    .wbrx_ack_i(),
-    .wbrx_dat_o(),
+    .wbrx_adr_o(wbrx_adr),
+    .wbrx_cti_o(/*open*/),
+    .wbrx_cyc_o(wbrx_cyc),
+    .wbrx_stb_o(wbrx_stb),
+    .wbrx_ack_i(wbrx_ack),
+    .wbrx_dat_o(wbrx_dat),
 
     // transmitt memory port
-    .wbtx_adr_o(),
-    .wbtx_cti_o(),
-    .wbtx_cyc_o(),
-    .wbtx_stb_o(),
-    .wbtx_ack_i(),
-    .wbtx_dat_i(),
+    .wbtx_adr_o(wbtx_adr),
+    .wbtx_cti_o(/*open*/),
+    .wbtx_cyc_o(wbtx_cyc),
+    .wbtx_stb_o(wbtx_stb),
+    .wbtx_ack_i(wbtx_ack),
+    .wbtx_dat_i(wbtx_dat),
 
     .phy_tx_clk(phy_tx_clk_i),
     .phy_tx_data(phy_tx_data_o),
@@ -267,5 +293,64 @@ minimac
     .phy_mii_clk(phy_mii_clk_o),
     .phy_mii_data(phy_mii_data_io)
 );
+`endif
+
+wb_dp_ram
+#(
+    .NUM_OF_18Kb_TO_USE(MEMORY_SIZE_BLOCKS),
+    .DATA_WIDTH(32),
+    .ADDR_WIDTH(MEMORY_ADDR_WIDTH)
+)
+rx_buffer (
+    // port A - minimac
+    .a_clk(phy_rx_clk_i),
+    .a_adr_i(wbrx_adr[MEMORY_ADDR_WIDTH-1:0]),
+    .a_dat_i(wbrx_dat),
+    .a_dat_o(/* open */),
+    .a_we_i(1'b1),
+    .a_sel_i(4'b1111),
+    .a_stb_i(wbrx_stb),
+    .a_ack_o(wbrx_ack),
+    .a_cyc_i(wbrx_cyc),
+    .a_stall_o(/* open */),
+
+    // port B - system bus
+    .b_clk(clk_i),
+    .b_adr_i(ethernet_rxbuf_addr[MEMORY_ADDR_WIDTH-1:0]),
+    .b_dat_i(ethernet_rxbuf_data_w),
+    .b_dat_o(ethernet_rxbuf_data_r),
+    .b_we_i(ethernet_rxbuf_we),
+    .b_sel_i(ethernet_rxbuf_sel),
+    .b_stb_i(ethernet_rxbuf_stb),
+    .b_ack_o(ethernet_rxbuf_ack),
+    .b_cyc_i(ethernet_rxbuf_cyc),
+    .b_stall_o(ethernet_rxbuf_stall)
+),
+tx_buffer (
+    // port A - minimac
+    .a_clk(phy_tx_clk_i),
+    .a_adr_i(wbtx_adr[MEMORY_ADDR_WIDTH-1:0]),
+    .a_dat_i(32'h00000000),
+    .a_dat_o(wbtx_dat),
+    .a_we_i(1'b0),
+    .a_sel_i(4'b1111),
+    .a_stb_i(wbtx_stb),
+    .a_ack_o(wbtx_ack),
+    .a_cyc_i(wbtx_cyc),
+    .a_stall_o(/* open */),
+
+    // port B - system bus
+    .b_clk(clk_i),
+    .b_adr_i(ethernet_txbuf_addr[MEMORY_ADDR_WIDTH-1:0]),
+    .b_dat_i(ethernet_txbuf_data_w),
+    .b_dat_o(ethernet_txbuf_data_r),
+    .b_we_i(ethernet_txbuf_we),
+    .b_sel_i(ethernet_txbuf_sel),
+    .b_stb_i(ethernet_txbuf_stb),
+    .b_ack_o(ethernet_txbuf_ack),
+    .b_cyc_i(ethernet_txbuf_cyc),
+    .b_stall_o(ethernet_txbuf_stall)
+);
+
 
 endmodule

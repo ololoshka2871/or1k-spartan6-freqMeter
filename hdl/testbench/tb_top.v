@@ -22,6 +22,8 @@
 // 
 ////////////////////////////////////////////////////////////////////////////////
 
+`include "config.v"
+
 module tb_top;
 
 	// Inputs
@@ -81,7 +83,7 @@ module tb_top;
             .phy_mii_clk_o(),
             .phy_mii_data_io(),
 
-            .Fin(Fin)
+            .Fin(Fin[`F_INPUTS_COUNT-1:0])
 	);
 
 	initial begin

@@ -86,7 +86,7 @@ reg  [31:0] START_vals [31:0];
 // (* RAM_STYLE="BLOCK" *)
 reg  [31:0] STOP_vals  [31:0];
 
-wire [6:0] addr_valid = adr_i[8:2]; // 32 bit addr
+wire [6:0] addr_valid      = adr_i[8:2];
 
 wire [4:0] memory_addr     = addr_valid[4:0];
 wire START_selector        = addr_valid[5];
@@ -134,7 +134,7 @@ assign _dat_i = dat_i;
 genvar i;
 
 generate
-    for (i = 0; i < INPUTS_COUNT; i = i + 1) begin
+    for (i = 0; i < INPUTS_COUNT; i = i + 1) begin : gen_freqmeters
         freq_meter_1
         #(
             .INPUT_FREQ_COUNTER_LEN(INPUT_FREQ_COUNTER_LEN)
@@ -191,7 +191,7 @@ decoder
 #(
     .OUTPUTS_COUNT(INPUTS_COUNT)
 ) freq_meter_n_decoder (
-    .inputs(addr_valid),
+    .inputs(addr_valid[$clog2(INPUTS_COUNT) - 1: 0]),
     .outputs(decoded_freqmeter_num)
 );
 

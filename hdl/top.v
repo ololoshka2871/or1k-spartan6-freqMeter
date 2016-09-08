@@ -160,20 +160,21 @@ wire                rmii_clk;
 //-----------------------------------------------------------------
 // Instantiation
 //-----------------------------------------------------------------
-parameter FPGA_RAM_SIZE		= (`NUM_OF_16k_MEM * 16 * 1024) / 8;
+parameter FPGA_RAM_SIZE		= (`NUM_OF_18Kb_MEM * 18 * 1024) / 8;
 parameter RAM_ADDRESS_LEN	= $clog2(FPGA_RAM_SIZE);
 
 //RAM
 wb_dp_ram
 #(
-    .NUM_OF_16k_TO_USE(`NUM_OF_16k_MEM),
+    .LOAD_IMAGE(1),
+    .NUM_OF_18Kb_TO_USE(`NUM_OF_18Kb_MEM),
     .DATA_WIDTH(32),
     .ADDR_WIDTH(RAM_ADDRESS_LEN)
 )
 ram
 (
     .a_clk(clk),
-    .a_adr_i(imem_addr),
+    .a_adr_i(imem_addr[RAM_ADDRESS_LEN-1:0]),
     .a_dat_i(32'b0),
     .a_dat_o(imem_data),
     .a_we_i(1'b0),
@@ -184,7 +185,7 @@ ram
     .a_stall_o(imem_stall),
     
     .b_clk(clk),
-    .b_adr_i(dmem_addr),
+    .b_adr_i(dmem_addr[RAM_ADDRESS_LEN-1:0]),
     .b_dat_i(dmem_data_w),
     .b_dat_o(dmem_data_r),
     .b_we_i(dmem_we),
@@ -284,7 +285,7 @@ soc_fast
     .INPUTS_COUNT(`F_INPUTS_COUNT),
     .MASER_FREQ_COUNTER_LEN(`MASER_FREQ_COUNTER_LEN),
     .INPUT_FREQ_COUNTER_LEN(`INPUT_FREQ_COUNTER_LEN)
-) fm (
+) sf (
     .clk_i(clk),
     .rst_i(reset),
 
@@ -301,7 +302,7 @@ soc_fast
 
     .F_master(clk_ref),
     .F_in(Fin_inv_pars),
-    .devided_clocks(clock_devider16),
+    .devided_clocks(devided_clocks),
 
     .phy_tx_clk_i(mii_clk),
     .phy_tx_data_o(mii_txdata),

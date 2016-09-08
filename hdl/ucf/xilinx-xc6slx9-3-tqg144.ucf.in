@@ -6,7 +6,7 @@ NET "tx0" LOC = P12;
 NET "rx0" LOC = P14;
 
 #UART1
-NET "tx1" LOC = P95;
+NET "tx1"                       LOC = P95 | IOSTANDARD = "LVCMOS33";
 
 #reset CPU
 NET "rst_i" LOC = P16;
@@ -24,9 +24,9 @@ NET "phy_rmii_crs_rxdv"         LOC = P83 | IOSTANDARD = "LVCMOS33" | PULLUP;   
 NET "phy_rmii_txdata[0]"        LOC = P82 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_D
 NET "phy_rmii_txdata[1]"        LOC = P81 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_E
 NET "phy_rmii_txen"             LOC = P78 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_F
-NET "phy_rmii_clk"              LOC = P94 | IOSTANDARD = "LVCMOS33" | USELOWSKEWLINES;# LED2
+NET "phy_rmii_clk"              LOC = P94 | IOSTANDARD = "LVCMOS33" | IOB = True;   # LED2
 NET "phy_mii_clk_o"             LOC = P84 | IOSTANDARD = "LVCMOS33";                # DS_G
-NET "phy_mii_data_i"            LOC = P85 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_dp
+NET "phy_mii_data_io"           LOC = P85 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_dp
 
 # Freqmeter inputs
 NET "Fin[0]"                    LOC = P23 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # PS2_DAT
@@ -58,5 +58,6 @@ TIMESPEC "TS_clk_i" = PERIOD "clk_i_grp" @INPUT_CLOCK_PERIOD_NS_F@ns HIGH;
 
 TIMESPEC "TS_clk_to_clk_ref" = FROM "clk" TO "clk_ref" TIG;
 TIMESPEC "TS_clk_ref_to_clk" = FROM "clk_ref" TO "clk" TIG;
+TIMESPEC "TS_clk_to_clk_rmii"= FROM "clk" TO "rmii_clk" TIG;
 
-NET "mii_clk" CLOCK_DEDICATED_ROUTE = TRUE;
+#NET "mii_clk" CLOCK_DEDICATED_ROUTE = TRUE;

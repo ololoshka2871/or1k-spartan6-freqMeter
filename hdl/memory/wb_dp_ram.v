@@ -33,7 +33,8 @@ Modified by Shilo_XyZ_ for spartan-6  lx9
  */
 module wb_dp_ram #
 (
-    parameter NUM_OF_16k_TO_USE	= 31,
+    parameter LOAD_IMAGE = 0,
+    parameter NUM_OF_18Kb_TO_USE	= 31,
     parameter DATA_WIDTH = 32,                // width of data bus in bits (8, 16, 32, or 64)
     parameter ADDR_WIDTH = 32,                // width of address bus in bits
     parameter SELECT_WIDTH = (DATA_WIDTH/8)   // width of word select bus (1, 2, 4, or 8)
@@ -71,7 +72,7 @@ parameter WORD_WIDTH = SELECT_WIDTH;
 // size of words (8, 16, 32, or 64 bits)
 parameter WORD_SIZE = DATA_WIDTH/WORD_WIDTH;
 
-parameter MEMORY_SIZE_bits = NUM_OF_16k_TO_USE * 18 * 1024;
+parameter MEMORY_SIZE_bits = NUM_OF_18Kb_TO_USE * 18 * 1024;
 parameter MEMORY_CELLS_NUMBER = MEMORY_SIZE_bits / DATA_WIDTH;
 
 reg [DATA_WIDTH-1:0] a_dat_o_reg = {DATA_WIDTH{1'b0}};
@@ -99,7 +100,9 @@ assign a_stall_o = a_incorrect_addr;
 assign b_stall_o = b_incorrect_addr;
 
 initial begin
-    $readmemh("@IMAGE@", mem);
+    if (LOAD_IMAGE != 0) begin
+        $readmemh("@IMAGE@", mem);
+    end
 end
 
 integer i, j;

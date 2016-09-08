@@ -101,6 +101,7 @@ input_synchronizer sync(
 
 srff r_await_start(
     .q(w_await_start),
+    .q1(/*open*/),
     .r(w_input_front_detector | rst_i),
     .s(restart),
     .clk(clk_i)
