@@ -247,7 +247,7 @@ freqmeters
     .devided_clocks(devided_clocks)
 );
 
-`ifdef __u
+
 // ethernet
 minimac
 #(
@@ -293,7 +293,6 @@ minimac
     .phy_mii_clk(phy_mii_clk_o),
     .phy_mii_data(phy_mii_data_io)
 );
-`endif
 
 wb_dp_ram
 #(
