@@ -54,4 +54,4 @@ add_custom_target(soc_sources
     )
 
 set(SOC_HDL_V		    ${SOC_HDL_V}		PARENT_SCOPE)
-set(SOC_HDL_VHDL            ${SOC_HDL_VHDL}             PARENT SCOPE)
+set(SOC_HDL_VHDL            ${SOC_HDL_VHDL}             PARENT_SCOPE)

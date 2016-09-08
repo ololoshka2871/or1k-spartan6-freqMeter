@@ -107,6 +107,12 @@ set(REFERENCE_CLOCK_DEVIDER 1
 set(CPU_CLOCK_DEVIDER       1
     CACHE STRING "CPU clock devider")
 
+set(RMII_MULTIPLYER         25
+    CACHE STRING "Input clock to RMII 50MHz multiplier")
+
+set(RMII_CLOCK_DEVIDER      24
+    CACHE STRING "Input clock to RMII 50MHz devider")
+
 #----------------------------------/config--------------------------------------
 
 #--------------------------------Calculable-------------------------------------
@@ -142,6 +148,15 @@ string(STRIP ${TEST_SIGNAL_DEVIDER} TEST_SIGNAL_DEVIDER)
 math(EXPR TEST_SIGNAL_HZ10 "${REFERENCE_CLOCK_HZ} * 10 / (1 << ${TEST_SIGNAL_DEVIDER})")
 floterise(TEST_SIGNAL_HZ ${TEST_SIGNAL_HZ10} 10)
 message(STATUS "Actual test input signal freq: ${TEST_SIGNAL_HZ}Hz (/ ${TEST_SIGNAL_DEVIDER})")
+
+# check if RMII clock == 50 MHz
+math(EXPR RMII_CLOCK_HZ
+    "${INPUT_CLOCK_HZ} * ${RMII_MULTIPLYER} / ${RMII_CLOCK_DEVIDER}")
+if (${RMII_CLOCK_HZ} EQUAL 50000000)
+    message(STATUS "RMII clock set ok")
+else()
+    message(FATAL_ERROR "RMII clock not equal 50MHz (${RMII_CLOCK_HZ}), select prpper mulyiplier/devider first!")
+endif()
 
 #-------------------------------/Calculable-------------------------------------
 

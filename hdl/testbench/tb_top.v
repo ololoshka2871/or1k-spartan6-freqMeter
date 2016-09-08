@@ -26,10 +26,10 @@ module tb_top;
 
 	// Inputs
 	reg clk;
-	reg rx;
+        reg rx;
 	
 	// Outputs
-	wire tx;
+        wire tx;
 	
 	reg rst = 1'b1;
 
@@ -66,11 +66,20 @@ module tb_top;
             .clk_i(clk),
             .rx0(rx),
             .tx0(tx),
+            .tx1(),
             .rst_i(rst),
             .flash_CS(flash_CS),
             .sck_o(sck_o),
             .mosi_o(mosi_o),
             .miso_i(mosi_o),
+
+            .phy_rmii_rxdata(2'b00),
+            .phy_rmii_crs_rxdv(1'b0),
+            .phy_rmii_txdata(),
+            .phy_rmii_txen(),
+            .phy_rmii_clk(),
+            .phy_mii_clk_o(),
+            .phy_mii_data_io(),
 
             .Fin(Fin)
 	);

@@ -67,8 +67,7 @@ module top
     input  wire         phy_rmii_crs_rxdv,
     output wire [1:0]   phy_rmii_txdata,
     output wire         phy_rmii_txen,
-    input  wire         phy_rmii_clk,  // to any GCLK pin
-    input  wire         phy_crs_i,
+    output wire         phy_rmii_clk,
     output wire         phy_mii_clk_o,
     inout  wire         phy_mii_data_io
 
@@ -156,6 +155,7 @@ wire                mii_rxdv;
 wire                mii_txen;
 wire                mii_clk;
 
+wire                rmii_clk;
 
 //-----------------------------------------------------------------
 // Instantiation
@@ -265,17 +265,17 @@ u_cpu
 // MII to RMII bridge
 rmii_port rmii_bridge
 (
-    .rmii_rxdata(),
-    .rmii_crs_rxdv(),
-    .rmii_txdata(),
-    .rmii_txen(),
-    .rmii_clk(),
+    .rmii_rxdata(phy_rmii_rxdata),
+    .rmii_crs_rxdv(phy_rmii_crs_rxdv),
+    .rmii_txdata(phy_rmii_txdata),
+    .rmii_txen(phy_rmii_txen),
+    .rmii_clk(rmii_clk),
 
     .mii_rxdata(mii_rxdata),
     .mii_rxdv(mii_rxdv),
     .mii_txdata(mii_txdata),
     .mii_txen(mii_txen),
-    .mii_clk(mii_clk),
+    .mii_clk(mii_clk)
 );
 
 // FREQMETER and ETHERNET
@@ -303,19 +303,18 @@ soc_fast
     .F_in(Fin_inv_pars),
     .devided_clocks(clock_devider16),
 
-    /* TODO */
     .phy_tx_clk_i(mii_clk),
     .phy_tx_data_o(mii_txdata),
     .phy_tx_en_o(mii_txen),
-    .phy_tx_er_o(/* OPEN */), // N/C
+    .phy_tx_er_o(/* OPEN */),
     .phy_rx_clk_i(mii_clk),
     .phy_rx_data_i(mii_rxdata),
     .phy_dv_i(mii_rxdv),
-    .phy_rx_er_i(1'b0), // N/C
-    .phy_col_i(1'b0), // N/C
-    .phy_crs_i(), // from PHY
-    .phy_mii_clk_o(), // to PHY
-    .phy_mii_data_io(), // to PHY
+    .phy_rx_er_i(1'b0),
+    .phy_col_i(1'b0),
+    .phy_crs_i(phy_crs_i),
+    .phy_mii_clk_o(phy_mii_clk_o),
+    .phy_mii_data_io(phy_mii_data_io),
 
     .interrupts_o(ext_intr)
 );
@@ -413,6 +412,32 @@ DCM_CLKGEN_f_cpu (
    .RST(1'b0)              // 1-bit input: Reset input pin
 );
 
+// RMII 50MHz clock gen clk = clk_i * `PLL_MULTIPLYER / `CPU_CLOCK_DEVIDER
+DCM_CLKGEN #(
+   .CLKFXDV_DIVIDE(2),       // CLKFXDV divide value (2, 4, 8, 16, 32)
+   .CLKFX_DIVIDE(`RMII_CLOCK_DEVIDER),         // Divide value - D - (1-256)
+   .CLKFX_MD_MAX(`RMII_MULTIPLYER * 2 / `RMII_CLOCK_DEVIDER),       // Specify maximum M/D ratio for timing anlysis
+   .CLKFX_MULTIPLY(`RMII_MULTIPLYER * 2),       // Multiply value - M - (2-256)
+   .CLKIN_PERIOD(`INPUT_CLOCK_PERIOD_NS_F),       // Input clock period specified in nS
+   .SPREAD_SPECTRUM("NONE"), // Spread Spectrum mode "NONE", "CENTER_LOW_SPREAD", "CENTER_HIGH_SPREAD",
+                             // "VIDEO_LINK_M0", "VIDEO_LINK_M1" or "VIDEO_LINK_M2"
+   .STARTUP_WAIT("TRUE")    // Delay config DONE until DCM_CLKGEN LOCKED (TRUE/FALSE)
+)
+DCM_CLKGEN_f_rmii (
+   .CLKFX(/* open */),         // 1-bit output: Generated clock output
+   .CLKFX180(/* open */),   // 1-bit output: Generated clock output 180 degree out of phase from CLKFX.
+   .CLKFXDV(rmii_clk),     // 1-bit output: Divided clock output
+   .LOCKED(/* open */),       // 1-bit output: Locked output
+   .PROGDONE(/* open */),   // 1-bit output: Active high output to indicate the successful re-programming
+   .STATUS(/* open */),       // 2-bit output: DCM_CLKGEN status
+   .CLKIN(clk_i),         // 1-bit input: Input clock
+   .FREEZEDCM(1'b0), // 1-bit input: Prevents frequency adjustments to input clock
+   .PROGCLK(1'b0),     // 1-bit input: Clock input for M/D reconfiguration
+   .PROGDATA(1'b0),   // 1-bit input: Serial data input for M/D reconfiguration
+   .PROGEN(1'b0),       // 1-bit input: Active high program enable
+   .RST(1'b0)              // 1-bit input: Reset input pin
+);
+
 //-----------------------------------------------------------------
 // Implementation
 //-----------------------------------------------------------------
@@ -453,6 +478,8 @@ else
 
 // flash_CS
 assign flash_CS = spi_cs_o[0];
+
+assign phy_rmii_clk = rmii_clk;
 
 //-----------------------------------------------------------------
 // Unused pins

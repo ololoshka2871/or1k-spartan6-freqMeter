@@ -131,7 +131,7 @@ wire                ethernat_tx_int;
 assign interrupts = {ethernat_rx_int, ethernat_tx_int, freqmeter_inta};
 
 // muxer
-dmem_mux3
+dmem_mux4
 #(
     .ADDR_MUX_START()
 ) u_dmux (
@@ -223,7 +223,7 @@ freqmeters
 
 
 // ethernet
-minmac
+minimac
 #(
     .csr_addr(4'h0)
 ) ethernet (
