@@ -77,9 +77,9 @@ module soc_fast
 
 //------------------------------------------------------------------------------
 
-// ethernet frame size <= 1526 bytes
+// ethernet frame size <= 1530 bytes
 // need place to 4 frames
-parameter ETHERNET_FRAME_SIZE = 1526;
+parameter ETHERNET_FRAME_SIZE = 1530;
 parameter MEMORY_BLOCK_SIZE = 18 * 1024 / 8;
 parameter MEMORY_SIZE_BLOCKS = $rtoi($ceil(ETHERNET_FRAME_SIZE * $itor(4) / MEMORY_BLOCK_SIZE));
 parameter MEMORY_SIZE_BYTES = MEMORY_SIZE_BLOCKS * MEMORY_BLOCK_SIZE;

@@ -76,6 +76,7 @@ add_subdirectory(altor32)
 add_subdirectory(soc)
 add_subdirectory(memory)
 add_subdirectory(minmac)
+add_subdirectory(myminimac)
 add_subdirectory(utils)
 add_subdirectory(ucf)
 
@@ -102,6 +103,8 @@ build_prj(SOC_V_PRJ	    "verilog soc	%f\n"	"${SOC_HDL_V}")
 build_prj(SOC_VHDL_PRJ	    "vhdl    soc        %f\n"	"${SOC_HDL_VHDL}")
 build_prj(MEMORY_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_V}")
 build_prj(MINMAC_PRJ	    "verilog minmac	%f\n"	"${MINMAC_HDL_V}")
+build_prj(MYMINMAC_PRJ	    "verilog myminmac	%f\n"	"${MYMINMAC_HDL_V}")
+build_prj(MYMINMAC_VHDL_PRJ "vhdl    myminmac	%f\n"	"${MYMINMAC_HDL_VHDL}")
 build_prj(UTILS_PRJ	    "verilog utils	%f\n"	"${UTILS_HDL_V}")
 build_prj(CONFIG_PRJ        "verilog config     %f\n"   "${config_v_file_name}")
 
@@ -112,6 +115,8 @@ set(PRJ_TEXT
     ${SOC_VHDL_PRJ}
     ${MEMORY_PRJ}
     ${MINMAC_PRJ}
+    ${MYMINMAC_PRJ}
+    ${MYMINMAC_VHDL_PRJ}
     ${UTILS_PRJ}
     ${TOP_PRJ}
     )
