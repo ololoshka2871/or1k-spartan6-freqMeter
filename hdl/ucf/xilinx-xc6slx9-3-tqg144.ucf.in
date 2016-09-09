@@ -24,7 +24,7 @@ NET "phy_rmii_crs_rxdv"         LOC = P83 | IOSTANDARD = "LVCMOS33" | PULLUP;   
 NET "phy_rmii_txdata[0]"        LOC = P82 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_D
 NET "phy_rmii_txdata[1]"        LOC = P81 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_E
 NET "phy_rmii_txen"             LOC = P78 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_F
-NET "phy_rmii_clk"              LOC = P94 | IOSTANDARD = "LVCMOS33" | IOB = True;   # LED2
+NET "phy_rmii_clk"              LOC = P94 | IOSTANDARD = "LVCMOS33" | IOB = True;   # LED2 #TODO
 NET "phy_mii_clk_o"             LOC = P84 | IOSTANDARD = "LVCMOS33";                # DS_G
 NET "phy_mii_data_io"           LOC = P85 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_dp
 
@@ -59,5 +59,6 @@ TIMESPEC "TS_clk_i" = PERIOD "clk_i_grp" @INPUT_CLOCK_PERIOD_NS_F@ns HIGH;
 TIMESPEC "TS_clk_to_clk_ref" = FROM "clk" TO "clk_ref" TIG;
 TIMESPEC "TS_clk_ref_to_clk" = FROM "clk_ref" TO "clk" TIG;
 TIMESPEC "TS_clk_to_clk_rmii"= FROM "clk" TO "rmii_clk" TIG;
+TIMESPEC "TS_rmii_clk_to_clk"= FROM "rmii_clk" TO "clk" TIG;
 
 #NET "mii_clk" CLOCK_DEDICATED_ROUTE = TRUE;
