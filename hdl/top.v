@@ -313,7 +313,7 @@ soc_fast
     .phy_dv_i(mii_rxdv),
     .phy_rx_er_i(1'b0),
     .phy_col_i(1'b0),
-    .phy_crs_i(phy_crs_i),
+    .phy_crs_i(1'b0),
     .phy_mii_clk_o(phy_mii_clk_o),
     .phy_mii_data_io(phy_mii_data_io),
 
