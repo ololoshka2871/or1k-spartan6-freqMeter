@@ -18,45 +18,47 @@
 module myminimac #(
 	parameter csr_addr = 4'h0
 ) (
-	input sys_clk,
-	input sys_rst,
+        input sys_clk,                                  // WISHBONE clock
+        input sys_rst,                                  // GLOBAL RESET
 
-	input [13:0] csr_a,
-	input csr_we,
-	input [31:0] csr_di,
-	output [31:0] csr_do,
+        output irq_rx,                                  // RX interrupt
+        output irq_tx,                                  // TX interrupt
 
-	output irq_rx,
-	output irq_tx,
+        input  wire [31:0]  /*13*/      csr_adr_i,      // control logic addr
+        input  wire                     csr_we_i,       // control logick write enable
+        input  wire [31:0]              csr_dat_i,      // control logick data input
+        output wire [31:0]              csr_dat_o,      // control logick data output
 
-	// WE=1 and SEL=1111 are assumed
-	output [31:0] wbrx_adr_o,
-	output [2:0] wbrx_cti_o,
-	output wbrx_cyc_o,
-	output wbrx_stb_o,
-	input wbrx_ack_i,
-	output [31:0] wbrx_dat_o,
+        // system bus port A (rx memory)
+        input  wire [31:0]              rx_mem_adr_i,    // ADR_I() address
+        input  wire [31:0]              rx_mem_dat_i,    // DAT_I() data in
+        output wire [31:0]              rx_mem_dat_o,    // DAT_O() data out
+        input  wire                     rx_mem_we_i,     // WE_I write enable input
+        input  wire [3:0]               rx_mem_sel_i,    // SEL_I() select input
+        input  wire                     rx_mem_stb_i,    // STB_I strobe input
+        output wire                     rx_mem_ack_o,    // ACK_O acknowledge output
+        input  wire                     rx_mem_cyc_i,    // CYC_I cycle input
+        output wire                     rx_mem_stall_o,  // incorrect address
 
-	// WE=0 is assumed
-	output [31:0] wbtx_adr_o,
-	output [2:0] wbtx_cti_o,
-	output wbtx_cyc_o,
-	output wbtx_stb_o,
-	input wbtx_ack_i,
-	input [31:0] wbtx_dat_i,
+        // system bus port B (tx memory)
+        input  wire [31:0]              tx_mem_adr_i,   // ADR_I() address
+        input  wire [31:0]              tx_mem_dat_i,   // DAT_I() data in
+        output wire [31:0]              tx_mem_dat_o,   // DAT_O() data out
+        input  wire                     tx_mem_we_i,    // WE_I write enable input
+        input  wire [3:0]               tx_mem_sel_i,   // SEL_I() select input
+        input  wire                     tx_mem_stb_i,   // STB_I strobe input
+        output wire                     tx_mem_ack_o,   // ACK_O acknowledge output
+        input  wire                     tx_mem_cyc_i,   // CYC_I cycle input
+        output wire			tx_mem_stall_o, // incorrect address
 
-	input phy_tx_clk,
-	output [3:0] phy_tx_data,
-	output phy_tx_en,
-	output phy_tx_er,
-	input phy_rx_clk,
-	input [3:0] phy_rx_data,
-	input phy_dv,
-	input phy_rx_er,
-	input phy_col,
-	input phy_crs,
-	output phy_mii_clk,
-	inout phy_mii_data
+        // RMII
+        output wire                     phy_mdclk,      // MDCLK
+        inout  wire                     phy_mdio,       // MDIO
+        input  wire                     phy_rmii_clk,   // 50 MHZ input
+        input  wire                     phy_rmii_crs,   // Ressiver ressiving data
+        output wire [2:0]               phy_tx_data,    // transmit data bis
+        input  wire [2:0]               phy_rx_data,    // ressive data bus
+        output wire                     phy_tx_en       // transmitter enable
 );
 
 assign wbrx_cti_o = 3'd0;
@@ -81,17 +83,21 @@ wire tx_next;
 minimac_ctlif #(
 	.csr_addr(csr_addr)
 ) ctlif (
-	.sys_clk(sys_clk),
-	.sys_rst(sys_rst),
+        .sys_clk(sys_clk),                              // ok
+        .sys_rst(sys_rst),                              // ok
 
-	.csr_a(csr_a),
-	.csr_we(csr_we),
-	.csr_di(csr_di),
-	.csr_do(csr_do),
+        .irq_rx(irq_rx),                                // ok
+        .irq_tx(irq_tx),                                // ok
 
-	.irq_rx(irq_rx),
-	.irq_tx(irq_tx),
+        .csr_a(csr_adr_i),                              // ok
+        .csr_we(csr_we_i),                              // ok
+        .csr_di(csr_dat_i),                             // ok
+        .csr_do(csr_dat_o),                             // ok
 
+        .phy_mii_clk(phy_mii_clk),                      // ok
+        .phy_mii_data(phy_mii_data),                    // ok
+
+        //
 	.rx_rst(rx_rst),
 	.tx_rst(tx_rst),
 
@@ -106,10 +112,7 @@ minimac_ctlif #(
 	.tx_valid(tx_valid),
 	.tx_adr(tx_adr),
 	.tx_bytecount(tx_bytecount),
-	.tx_next(tx_next),
-
-	.phy_mii_clk(phy_mii_clk),
-	.phy_mii_data(phy_mii_data)
+        .tx_next(tx_next)
 );
 
 minimac_rx rx(
@@ -157,7 +160,5 @@ minimac_tx tx(
 	.phy_tx_en(phy_tx_en),
 	.phy_tx_data(phy_tx_data)
 );
-
-assign phy_tx_er = 1'b0;
 
 endmodule

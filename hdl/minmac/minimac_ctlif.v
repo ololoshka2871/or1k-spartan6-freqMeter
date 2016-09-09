@@ -19,7 +19,7 @@ module minimac_ctlif #(
 	parameter csr_addr = 4'h0
 ) (
 	input sys_clk,
-	input sys_rst,
+        input sys_rst,
 
 	input [13:0] csr_a,
 	input csr_we,
@@ -42,10 +42,10 @@ module minimac_ctlif #(
 	output tx_valid,
 	output reg [29:0] tx_adr,
 	output reg [1:0] tx_bytecount,
-	input tx_next,
+        input tx_next,
 
-	output reg phy_mii_clk,
-	inout phy_mii_data
+        output reg phy_mii_clk,
+        inout phy_mii_data
 );
 
 reg mii_data_oe;
