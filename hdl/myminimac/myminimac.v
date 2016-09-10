@@ -15,50 +15,49 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-module myminimac #(
-	parameter csr_addr = 4'h0
-) (
-        input sys_clk,                                  // WISHBONE clock
-        input sys_rst,                                  // GLOBAL RESET
+module myminimac
+(
+    input sys_clk,                                  // WISHBONE clock
+    input sys_rst,                                  // GLOBAL RESET
 
-        output irq_rx,                                  // RX interrupt
-        output irq_tx,                                  // TX interrupt
+    output irq_rx,                                  // RX interrupt
+    output irq_tx,                                  // TX interrupt
 
-        input  wire [31:0]  /*13*/      csr_adr_i,      // control logic addr
-        input  wire                     csr_we_i,       // control logick write enable
-        input  wire [31:0]              csr_dat_i,      // control logick data input
-        output wire [31:0]              csr_dat_o,      // control logick data output
+    input  wire [31:0]  /*13*/      csr_adr_i,      // control logic addr
+    input  wire                     csr_we_i,       // control logick write enable
+    input  wire [31:0]              csr_dat_i,      // control logick data input
+    output wire [31:0]              csr_dat_o,      // control logick data output
 
-        // system bus port A (rx memory)
-        input  wire [31:0]              rx_mem_adr_i,    // ADR_I() address
-        input  wire [31:0]              rx_mem_dat_i,    // DAT_I() data in
-        output wire [31:0]              rx_mem_dat_o,    // DAT_O() data out
-        input  wire                     rx_mem_we_i,     // WE_I write enable input
-        input  wire [3:0]               rx_mem_sel_i,    // SEL_I() select input
-        input  wire                     rx_mem_stb_i,    // STB_I strobe input
-        output wire                     rx_mem_ack_o,    // ACK_O acknowledge output
-        input  wire                     rx_mem_cyc_i,    // CYC_I cycle input
-        output wire                     rx_mem_stall_o,  // incorrect address
+    // system bus port A (rx memory)
+    input  wire [31:0]              rx_mem_adr_i,    // ADR_I() address
+    input  wire [31:0]              rx_mem_dat_i,    // DAT_I() data in
+    output wire [31:0]              rx_mem_dat_o,    // DAT_O() data out
+    input  wire                     rx_mem_we_i,     // WE_I write enable input
+    input  wire [3:0]               rx_mem_sel_i,    // SEL_I() select input
+    input  wire                     rx_mem_stb_i,    // STB_I strobe input
+    output wire                     rx_mem_ack_o,    // ACK_O acknowledge output
+    input  wire                     rx_mem_cyc_i,    // CYC_I cycle input
+    output wire                     rx_mem_stall_o,  // incorrect address
 
-        // system bus port B (tx memory)
-        input  wire [31:0]              tx_mem_adr_i,   // ADR_I() address
-        input  wire [31:0]              tx_mem_dat_i,   // DAT_I() data in
-        output wire [31:0]              tx_mem_dat_o,   // DAT_O() data out
-        input  wire                     tx_mem_we_i,    // WE_I write enable input
-        input  wire [3:0]               tx_mem_sel_i,   // SEL_I() select input
-        input  wire                     tx_mem_stb_i,   // STB_I strobe input
-        output wire                     tx_mem_ack_o,   // ACK_O acknowledge output
-        input  wire                     tx_mem_cyc_i,   // CYC_I cycle input
-        output wire			tx_mem_stall_o, // incorrect address
+    // system bus port B (tx memory)
+    input  wire [31:0]              tx_mem_adr_i,   // ADR_I() address
+    input  wire [31:0]              tx_mem_dat_i,   // DAT_I() data in
+    output wire [31:0]              tx_mem_dat_o,   // DAT_O() data out
+    input  wire                     tx_mem_we_i,    // WE_I write enable input
+    input  wire [3:0]               tx_mem_sel_i,   // SEL_I() select input
+    input  wire                     tx_mem_stb_i,   // STB_I strobe input
+    output wire                     tx_mem_ack_o,   // ACK_O acknowledge output
+    input  wire                     tx_mem_cyc_i,   // CYC_I cycle input
+    output wire                     tx_mem_stall_o, // incorrect address
 
-        // RMII
-        output wire                     phy_mdclk,      // MDCLK
-        inout  wire                     phy_mdio,       // MDIO
-        input  wire                     phy_rmii_clk,   // 50 MHZ input
-        input  wire                     phy_rmii_crs,   // Ressiver ressiving data
-        output wire [2:0]               phy_tx_data,    // transmit data bis
-        input  wire [2:0]               phy_rx_data,    // ressive data bus
-        output wire                     phy_tx_en       // transmitter enable
+    // RMII
+    output wire                     phy_mdclk,      // MDCLK
+    inout  wire                     phy_mdio,       // MDIO
+    input  wire                     phy_rmii_clk,   // 50 MHZ input
+    input  wire                     phy_rmii_crs,   // Ressiver ressiving data
+    output wire [2:0]               phy_tx_data,    // transmit data bis
+    input  wire [2:0]               phy_rx_data,    // ressive data bus
+    output wire                     phy_tx_en       // transmitter enable
 );
 
 assign wbrx_cti_o = 3'd0;
@@ -80,7 +79,7 @@ wire [29:0] tx_adr;
 wire [1:0] tx_bytecount;
 wire tx_next;
 
-minimac_ctlif #(
+myminimac_ctlif #(
 	.csr_addr(csr_addr)
 ) ctlif (
         .sys_clk(sys_clk),                              // ok
@@ -97,22 +96,16 @@ minimac_ctlif #(
         .phy_mii_clk(phy_mii_clk),                      // ok
         .phy_mii_data(phy_mii_data),                    // ok
 
-        //
-	.rx_rst(rx_rst),
-	.tx_rst(tx_rst),
+        .rx_valid(),
+        .rx_adr(),
+        .rx_resetcount(),
+        .rx_incrcount(),
+        .rx_endframe(),
+        .fifo_full(),
 
-	.rx_valid(rx_valid),
-	.rx_adr(rx_adr),
-	.rx_resetcount(rx_resetcount),
-	.rx_incrcount(rx_incrcount),
-	.rx_endframe(rx_endframe),
-
-	.fifo_full(fifo_full),
-
-	.tx_valid(tx_valid),
-	.tx_adr(tx_adr),
-	.tx_bytecount(tx_bytecount),
-        .tx_next(tx_next)
+        .tx_valid(),
+        .tx_adr(),
+        .tx_next()
 );
 
 minimac_rx rx(
