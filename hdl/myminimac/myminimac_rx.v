@@ -36,7 +36,7 @@ module myminimac_rx
 #(
     parameter MTU                   = 1530,
     parameter SLOTS_COUNT           = 4,                // memory to alocate
-    parameter MEM_UNITS_TO_ALLOC    = 1,//$rtoi($ceil(MTU * $itor(SLOTS_COUNT) / (`MEMORY_UNIT_SIZE / 8))),
+    parameter MEM_UNITS_TO_ALLOC    = $rtoi($ceil(MTU * $itor(SLOTS_COUNT) / (`MEMORY_UNIT_SIZE / 8))),
     parameter ADDR_LEN              = $clog2(MEM_UNITS_TO_ALLOC * `MEMORY_UNIT_SIZE)
 ) (
     input                           sys_clk,            // System clock

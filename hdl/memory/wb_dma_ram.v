@@ -46,7 +46,7 @@ module wb_dma_ram
     input  wire                         wb_stb_i,   // STB_I strobe input
     output wire                         wb_ack_o,   // ACK_O acknowledge output
     input  wire                         wb_cyc_i,   // CYC_I cycle input
-    output wire                         wb_stall_o, // incorrect address
+    output reg                          wb_stall_o, // incorrect address
 
     // port B (RAW) 8 bit
     input  wire                         rawp_clk,
@@ -54,7 +54,7 @@ module wb_dma_ram
     input  wire [7:0]                   rawp_dat_i,  // data in
     output wire [7:0]                   rawp_dat_o,  // data out
     input  wire                         rawp_we_i,   // write enable input
-    output wire                         rawp_stall_o
+    output reg                          rawp_stall_o
 );
 
 // for interfaces that are more than one word wide, disable address lines
@@ -70,7 +70,7 @@ parameter MEMORY_CELLS_NUMBER = MEMORY_SIZE_bits / 8;
 reg [WB_DATA_WIDTH-1:0] wb_dat_o_reg = {WB_DATA_WIDTH{1'b0}};
 reg wb_ack_o_reg = 1'b0;
 
-reg [7:0] rawp_dat_o_reg = 8'b0;
+reg [WB_DATA_WIDTH-1:0] rawp_dat_o_reg;
 
 // (* RAM_STYLE="BLOCK" *)
 reg [WB_DATA_WIDTH-1:0] mem[MEMORY_CELLS_NUMBER - 1:0];
@@ -81,8 +81,8 @@ wire [(WB_ADDR_WIDTH - WB_VALID_ADDR_WIDTH)-1:0] raw_select_bits =
     rawp_adr_i[(WB_ADDR_WIDTH - WB_VALID_ADDR_WIDTH)-1:0];
 wire [WB_SELECT_WIDTH-1:0] raw_select;
 
-reg wb_incorrect_addr = 1'b0;
-reg rawp_incorrect_addr = 1'b0;
+wire wb_incorrect_addr = wb_adr_i > MEMORY_CELLS_NUMBER;
+wire rawp_incorrect_addr = wb_adr_i > MEMORY_CELLS_NUMBER;
 
 //------------------------------------------------------------------------------
 
@@ -90,9 +90,6 @@ assign wb_dat_o = wb_dat_o_reg;
 assign wb_ack_o = wb_ack_o_reg;
 
 assign rawp_dat_o = rawp_dat_o_reg;
-
-assign wb_stall_o = wb_incorrect_addr;
-assign rawp_stall_o = rawp_incorrect_addr;
 
 //------------------------------------------------------------------------------
 
@@ -111,7 +108,7 @@ integer i, j;
 // port WB
 always @(posedge wb_clk) begin
     wb_ack_o_reg <= 1'b0;
-    wb_incorrect_addr <= wb_adr_i > MEMORY_SIZE_bits / 8;
+    wb_stall_o <= wb_incorrect_addr;
     for (i = 0; i < WORD_WIDTH; i = i + 1) begin
         if (wb_cyc_i & wb_stb_i & ~wb_ack_o & ~wb_incorrect_addr) begin
             if (wb_we_i & wb_sel_i[i]) begin
@@ -123,14 +120,15 @@ always @(posedge wb_clk) begin
     end
 end
 
-always @(posedge wb_clk) begin
-    rawp_incorrect_addr <= wb_adr_i > MEMORY_SIZE_bits / 8;
+// port RAW
+always @(posedge rawp_clk) begin
+    rawp_stall_o <= rawp_incorrect_addr;
     for (j = 0; j < WORD_WIDTH; j = j + 1) begin
-        if (~rawp_incorrect_addr & raw_select[i]) begin
-            if (rawp_we_i) begin
+        if (~rawp_incorrect_addr) begin
+            if (rawp_we_i & raw_select[i]) begin
                 mem[rawp_adr_i_valid][WORD_SIZE*j +: WORD_SIZE] <= rawp_dat_i;
             end
-            rawp_dat_o_reg <= mem[rawp_adr_i_valid][WORD_SIZE*j +: WORD_SIZE];
+            rawp_dat_o_reg[WORD_SIZE*j +: WORD_SIZE] <= mem[rawp_adr_i_valid][WORD_SIZE*j +: WORD_SIZE];
         end
     end
 end
