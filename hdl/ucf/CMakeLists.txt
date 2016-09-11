@@ -73,6 +73,12 @@ else()
     message(STATUS "Using physical inputs: ${F_INPUTS_COUNT}")
 endif()
 
+file(STRINGS ${ucp_filename} MEMORY_UNIT_SIZE
+    REGEX "MEMORY_UNIT_SIZE=.*"
+    )
+string(REGEX REPLACE "MEMORY_UNIT_SIZE=(.*)" "\\1" MEMORY_UNIT_SIZE ${MEMORY_UNIT_SIZE})
+message(STATUS "Defined FPGA dual port unit size: ${MEMORY_UNIT_SIZE} bits")
+
 #-------------------------------------------------------------------------------
 
 add_custom_target(constraints_src
@@ -86,3 +92,4 @@ set(USER_CODE_FLASH_OFFSET  ${USER_CODE_FLASH_OFFSET}   PARENT_SCOPE)
 set(F_INPUTS_COUNT          ${F_INPUTS_COUNT}           PARENT_SCOPE)
 set(LEDS_COUNT              ${LEDS_COUNT}               PARENT_SCOPE)
 set(USE_PHISICAL_INPUTS     ${USE_PHISICAL_INPUTS}      PARENT_SCOPE)
+set(MEMORY_UNIT_SIZE        ${MEMORY_UNIT_SIZE}         PARENT_SCOPE)

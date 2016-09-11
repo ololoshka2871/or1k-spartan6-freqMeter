@@ -13,9 +13,6 @@
 #*    notice, this list of conditions and the following disclaimer in
 #*    the documentation and/or other materials provided with the
 #*    distribution.
-#* 3. Neither the name NuttX nor the names of its contributors may be
-#*    used to endorse or promote products derived from this software
-#*    without specific prior written permission.
 #*
 #* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -34,7 +31,15 @@
 
 cmake_minimum_required(VERSION 3.0.2)
 
+file(GLOB_RECURSE
+    RAM_HDL_V
+    FOLLOW_SYMLINKS
+    "*.v"
+    )
+
 SET(SYSTEM_MEMORY_FILE_NAME	wb_dp_ram.v)
+
+list(REMOVE_ITEM RAM_HDL_V      ${CMAKE_CURRENT_SOURCE_DIR}/${SYSTEM_MEMORY_FILE_NAME})
 
 SET(SYSTEM_MEMORY_MODULE	${CMAKE_CURRENT_BINARY_DIR}/${SYSTEM_MEMORY_FILE_NAME})
 SET(SYSTEM_MEMORY_MODULE_SIM	${CMAKE_CURRENT_BINARY_DIR}/sim_${SYSTEM_MEMORY_FILE_NAME})
@@ -65,13 +70,13 @@ add_custom_target(memory_refresh_sim
 	"Checking sim memory image"
     )
 
+SET(MEMORY_HDL_V	${RAM_HDL_V};${SYSTEM_MEMORY_MODULE})
+SET(MEMORY_HDL_SIM_V	${RAM_HDL_V};${SYSTEM_MEMORY_MODULE_SIM})
+
 add_custom_target(memory_sources
     SOURCES
-	${SYSTEM_MEMORY_MODULE_IN}
+        ${SYSTEM_MEMORY_MODULE_IN} ${RAM_HDL_V}
     )
-
-SET(MEMORY_HDL_V	${SYSTEM_MEMORY_MODULE})
-SET(MEMORY_HDL_SIM_V	${SYSTEM_MEMORY_MODULE_SIM})
 
 set(MEMORY_HDL_V	${MEMORY_HDL_V}		PARENT_SCOPE)
 set(MEMORY_HDL_SIM_V	${MEMORY_HDL_SIM_V}	PARENT_SCOPE)

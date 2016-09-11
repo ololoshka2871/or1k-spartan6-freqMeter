@@ -1,6 +1,7 @@
 /*
 
 Copyright (c) 2015-2016 Alex Forencich
+    Modified by: Shilo_XyZ_
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,24 +21,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-Modified by Shilo_XyZ_ for spartan-6  lx9
-
 */
 
 // Language: Verilog 2001
 
-`timescale 1ns / 1ps
+`include "config.v"
 
-/*
- * Wishbone dual port RAM
- */
-module wb_dp_ram #
-(
+module wb_dp_ram
+#(
     parameter LOAD_IMAGE = 0,
-    parameter NUM_OF_18Kb_TO_USE	= 31,
-    parameter DATA_WIDTH = 32,                // width of data bus in bits (8, 16, 32, or 64)
-    parameter ADDR_WIDTH = 32,                // width of address bus in bits
-    parameter SELECT_WIDTH = (DATA_WIDTH/8)   // width of word select bus (1, 2, 4, or 8)
+    parameter NUM_OF_SYS_MEM_UNITS  = 31,
+    parameter DATA_WIDTH = 32,                                                              // width of data bus in bits (8, 16, 32, or 64)
+    parameter ADDR_WIDTH = $clog2(NUM_OF_SYS_MEM_UNITS * `MEMORY_UNIT_SIZE),                // width of address bus in bits
+    parameter SELECT_WIDTH = (DATA_WIDTH/8)                                                 // width of word select bus (1, 2, 4, or 8)
 )
 (
     // port A
@@ -72,7 +68,7 @@ parameter WORD_WIDTH = SELECT_WIDTH;
 // size of words (8, 16, 32, or 64 bits)
 parameter WORD_SIZE = DATA_WIDTH/WORD_WIDTH;
 
-parameter MEMORY_SIZE_bits = NUM_OF_18Kb_TO_USE * 18 * 1024;
+parameter MEMORY_SIZE_bits = NUM_OF_SYS_MEM_UNITS * `MEMORY_UNIT_SIZE;
 parameter MEMORY_CELLS_NUMBER = MEMORY_SIZE_bits / DATA_WIDTH;
 
 reg [DATA_WIDTH-1:0] a_dat_o_reg = {DATA_WIDTH{1'b0}};

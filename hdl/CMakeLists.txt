@@ -13,9 +13,6 @@
 #*    notice, this list of conditions and the following disclaimer in
 #*    the documentation and/or other materials provided with the
 #*    distribution.
-#* 3. Neither the name NuttX nor the names of its contributors may be
-#*    used to endorse or promote products derived from this software
-#*    without specific prior written permission.
 #*
 #* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -103,8 +100,8 @@ build_prj(SOC_V_PRJ	    "verilog soc	%f\n"	"${SOC_HDL_V}")
 build_prj(SOC_VHDL_PRJ	    "vhdl    soc        %f\n"	"${SOC_HDL_VHDL}")
 build_prj(MEMORY_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_V}")
 build_prj(MINMAC_PRJ	    "verilog minmac	%f\n"	"${MINMAC_HDL_V}")
-build_prj(MYMINMAC_PRJ	    "verilog myminmac	%f\n"	"${MYMINMAC_HDL_V}")
-build_prj(MYMINMAC_VHDL_PRJ "vhdl    myminmac	%f\n"	"${MYMINMAC_HDL_VHDL}")
+build_prj(MYMINMAC_PRJ	    "verilog myminimac	%f\n"	"${MYMINMAC_HDL_V}")
+build_prj(MYMINMAC_VHDL_PRJ "vhdl    myminimac	%f\n"	"${MYMINMAC_HDL_VHDL}")
 build_prj(UTILS_PRJ	    "verilog utils	%f\n"	"${UTILS_HDL_V}")
 build_prj(CONFIG_PRJ        "verilog config     %f\n"   "${config_v_file_name}")
 
@@ -143,7 +140,7 @@ configure_file(${UT_IN_FILE_NAME} ${UT_FILE_NAME} @ONLY)
 #-------------------------------------sym---------------------------------------
 add_subdirectory(testbench)
 
-set(prj_libs altor32 soc memory utils work minmac)
+set(prj_libs altor32 soc memory utils work minmac myminimac)
 set(testlibs_list)
 foreach(l ${prj_libs})
     list(APPEND testlibs_list -lib ${l})

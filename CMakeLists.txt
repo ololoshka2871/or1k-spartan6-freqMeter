@@ -59,7 +59,7 @@ find_package(Xilinx REQUIRED)
 set(PART_NAME               "xc6slx9-3-tqg144"
     CACHE STRING "Xilinx FPGA model to synthesis")
 set(INPUT_CLOCK_HZ          48000000
-    CACHE STRING "FPGA main clock source (MHz)")
+    CACHE STRING "FPGA main clock source (Hz)")
 set(SPI_FLASH_CHIP          "W25Q32BV"
     CACHE STRING "SPI flash memory part name")
 set(FPGA_DP_MEMORY_USE      32
@@ -75,12 +75,12 @@ set(DEBUGER_AT_BOOTLOADER   OFF
 
 #--- peripherial ----
 set(PERIPHERIAL_ENABLE_TIMER ON
-    CACHE BOOL  "Enable UART1 IPCore at 0x12000100")
+    CACHE BOOL  "Enable timer at 0x12000100")
 set(PERIPHERIAL_ENABLE_UART0 ON
-    CACHE BOOL  "Enable UART1 IPCore at 0x12000000")
+    CACHE BOOL  "Enable UART0 IPCore at 0x12000000")
 set(PERIPHERIAL_ENABLE_UART1 OFF
     CACHE BOOL  "Enable UART1 IPCore at 0x12000700")
-set(PERIPHERIAL_ENABLE_ETHERNET OFF
+set(PERIPHERIAL_ENABLE_ETHERNET ON
     CACHE BOOL  "Enable ETHERNET IPCore 0x")
 #--- /peripherial ---
 
@@ -98,20 +98,17 @@ set(INPUT_FREQ_COUNTER_LEN  24
 set(TEST_SIGNAL_EVERY_MS    1000
     CACHE STRING "Test input signal present aproximaly every")
 
-set(PLL_MULTIPLYER          1
-    CACHE STRING "Input clock multiplier")
+set(FREF_PLL_MULTIPLYER     20
+    CACHE STRING "Reference clock multiplier")
 
-set(REFERENCE_CLOCK_DEVIDER 1
-    CACHE STRING "Master clock devider")
+set(FREF_CLOCK_DEVIDER      10
+    CACHE STRING "Reference clock devider")
 
-set(CPU_CLOCK_DEVIDER       1
-    CACHE STRING "CPU clock devider")
+set(CPU_PLL_MULTIPLYER      25
+    CACHE STRING "Input clock to RMII and CPU 50MHz multiplier")
 
-set(RMII_MULTIPLYER         25
-    CACHE STRING "Input clock to RMII 50MHz multiplier")
-
-set(RMII_CLOCK_DEVIDER      24
-    CACHE STRING "Input clock to RMII 50MHz devider")
+set(CPU_CLOCK_DEVIDER       24
+    CACHE STRING "Input clock to RMII and CPU 50MHz devider")
 
 #----------------------------------/config--------------------------------------
 
@@ -151,11 +148,11 @@ message(STATUS "Actual test input signal freq: ${TEST_SIGNAL_HZ}Hz (/ ${TEST_SIG
 
 # check if RMII clock == 50 MHz
 math(EXPR RMII_CLOCK_HZ
-    "${INPUT_CLOCK_HZ} * ${RMII_MULTIPLYER} / ${RMII_CLOCK_DEVIDER}")
+    "${INPUT_CLOCK_HZ} * ${CPU_PLL_MULTIPLYER} / ${CPU_CLOCK_DEVIDER}")
 if (${RMII_CLOCK_HZ} EQUAL 50000000)
     message(STATUS "RMII clock set ok")
 else()
-    message(FATAL_ERROR "RMII clock not equal 50MHz (${RMII_CLOCK_HZ}), select prpper mulyiplier/devider first!")
+    message(FATAL_ERROR "RMII/CPU clock not equal 50MHz (${RMII_CLOCK_HZ}), select prpper multiplier/devider first!")
 endif()
 
 #-------------------------------/Calculable-------------------------------------

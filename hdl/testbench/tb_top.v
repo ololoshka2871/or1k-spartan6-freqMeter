@@ -75,13 +75,13 @@ module tb_top;
             .mosi_o(mosi_o),
             .miso_i(mosi_o),
 
-            .phy_rmii_rxdata(2'b00),
-            .phy_rmii_crs_rxdv(1'b0),
-            .phy_rmii_txdata(),
-            .phy_rmii_txen(),
+            .phy_rmii_rx_data(2'b00),
+            .phy_rmii_crs(1'b0),
+            .phy_rmii_tx_data(),
+            .phy_tx_en(),
             .phy_rmii_clk(),
-            .phy_mii_clk_o(),
-            .phy_mii_data_io(),
+            .phy_mdclk(),
+            .phy_mdio(),
 
             .Fin(Fin[`F_INPUTS_COUNT-1:0])
 	);

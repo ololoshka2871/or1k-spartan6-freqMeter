@@ -62,14 +62,14 @@ module top
     output wire         mosi_o,        // MasterOut SlaveIN
     input  wire         miso_i,        // MasterIn SlaveOut
 
-    // Ethernet PHY RMII
-    input  wire [1:0]   phy_rmii_rxdata,
-    input  wire         phy_rmii_crs_rxdv,
-    output wire [1:0]   phy_rmii_txdata,
-    output wire         phy_rmii_txen,
-    output wire         phy_rmii_clk,
-    output wire         phy_mii_clk_o,
-    inout  wire         phy_mii_data_io
+    // Ethernet RMII interface
+    output wire         phy_mdclk,      // MDCLK
+    inout  wire         phy_mdio,       // MDIO
+    output wire         phy_rmii_clk,   // 50 MHZ input
+    input  wire         phy_rmii_crs,   // Ressiver ressiving data
+    output wire [2:0]   phy_rmii_tx_data,// transmit data bis
+    input  wire [2:0]   phy_rmii_rx_data,// ressive data bus
+    output wire         phy_tx_en       // transmitter enable
 
 `ifdef USE_PHISICAL_INPUTS
     ,
@@ -80,8 +80,7 @@ module top
 //-----------------------------------------------------------------
 // Params
 //-----------------------------------------------------------------
-parameter OSC_KHZ = `INPUT_CLOCK_HZ;
-parameter CLK_KHZ = OSC_KHZ * `PLL_MULTIPLYER / `CPU_CLOCK_DEVIDER / 1000;
+parameter CLK_KHZ = `INPUT_CLOCK_HZ * `CPU_PLL_MULTIPLYER / `CPU_CLOCK_DEVIDER / 1000;
 
 //-----------------------------------------------------------------
 // Ports
@@ -160,16 +159,15 @@ wire                rmii_clk;
 //-----------------------------------------------------------------
 // Instantiation
 //-----------------------------------------------------------------
-parameter FPGA_RAM_SIZE		= (`NUM_OF_18Kb_MEM * 18 * 1024) / 8;
+parameter FPGA_RAM_SIZE		= (`NUM_OF_SYS_MEM_UNITS * `MEMORY_UNIT_SIZE) / 8;
 parameter RAM_ADDRESS_LEN	= $clog2(FPGA_RAM_SIZE);
 
 //RAM
 wb_dp_ram
 #(
     .LOAD_IMAGE(1),
-    .NUM_OF_18Kb_TO_USE(`NUM_OF_18Kb_MEM),
-    .DATA_WIDTH(32),
-    .ADDR_WIDTH(RAM_ADDRESS_LEN)
+    .NUM_OF_SYS_MEM_UNITS(`NUM_OF_SYS_MEM_UNITS),
+    .DATA_WIDTH(32)
 )
 ram
 (
@@ -263,20 +261,13 @@ u_cpu
     .dmem2_ack_i(soc_ack)
 );
 
-// MII to RMII bridge
-rmii_port rmii_bridge
+// clocking provider
+clock_provider clp_prov
 (
-    .rmii_rxdata(phy_rmii_rxdata),
-    .rmii_crs_rxdv(phy_rmii_crs_rxdv),
-    .rmii_txdata(phy_rmii_txdata),
-    .rmii_txen(phy_rmii_txen),
-    .rmii_clk(rmii_clk),
+    .clk_i(clk_i),
 
-    .mii_rxdata(mii_rxdata),
-    .mii_rxdv(mii_rxdv),
-    .mii_txdata(mii_txdata),
-    .mii_txen(mii_txen),
-    .mii_clk(mii_clk)
+    .sys_clk_o(clk),
+    .clk_ref(clk_ref)
 );
 
 // FREQMETER and ETHERNET
@@ -285,7 +276,7 @@ soc_fast
     .INPUTS_COUNT(`F_INPUTS_COUNT),
     .MASER_FREQ_COUNTER_LEN(`MASER_FREQ_COUNTER_LEN),
     .INPUT_FREQ_COUNTER_LEN(`INPUT_FREQ_COUNTER_LEN)
-) sf (
+) sf (   
     .clk_i(clk),
     .rst_i(reset),
 
@@ -304,18 +295,13 @@ soc_fast
     .F_in(Fin_inv_pars),
     .devided_clocks(devided_clocks),
 
-    .phy_tx_clk_i(mii_clk),
-    .phy_tx_data_o(mii_txdata),
-    .phy_tx_en_o(mii_txen),
-    .phy_tx_er_o(/* OPEN */),
-    .phy_rx_clk_i(mii_clk),
-    .phy_rx_data_i(mii_rxdata),
-    .phy_dv_i(mii_rxdv),
-    .phy_rx_er_i(1'b0),
-    .phy_col_i(1'b0),
-    .phy_crs_i(1'b0),
-    .phy_mii_clk_o(phy_mii_clk_o),
-    .phy_mii_data_io(phy_mii_data_io),
+    .phy_mdclk(phy_mdclk),
+    .phy_mdio(phy_mdio),
+    .phy_rmii_clk(phy_rmii_clk),
+    .phy_rmii_crs(phy_rmii_crs),
+    .phy_rmii_tx_data(phy_rmii_tx_data),
+    .phy_rmii_rx_data(phy_rmii_rx_data),
+    .phy_tx_en(phy_tx_en),
 
     .interrupts_o(ext_intr)
 );
@@ -359,84 +345,6 @@ u_soc
     .mosi_o(mosi_o),
     .miso_i(miso_i),
     .spi_cs_o(spi_cs_o)
-);
-
-// reference clock gen clk_ref = clk_i * `PLL_MULTIPLYER / `REFERENCE_CLOCK_DEVIDER
-DCM_CLKGEN #(
-   .CLKFXDV_DIVIDE(2),       // CLKFXDV divide value (2, 4, 8, 16, 32)
-   .CLKFX_DIVIDE(`REFERENCE_CLOCK_DEVIDER),         // Divide value - D - (1-256)
-   .CLKFX_MD_MAX(`PLL_MULTIPLYER * 2 / `REFERENCE_CLOCK_DEVIDER),       // Specify maximum M/D ratio for timing anlysis
-   .CLKFX_MULTIPLY(`PLL_MULTIPLYER * 2),       // Multiply value - M - (2-256)
-   .CLKIN_PERIOD(`INPUT_CLOCK_PERIOD_NS_F),       // Input clock period specified in nS
-   .SPREAD_SPECTRUM("NONE"), // Spread Spectrum mode "NONE", "CENTER_LOW_SPREAD", "CENTER_HIGH_SPREAD",
-                             // "VIDEO_LINK_M0", "VIDEO_LINK_M1" or "VIDEO_LINK_M2"
-   .STARTUP_WAIT("TRUE")    // Delay config DONE until DCM_CLKGEN LOCKED (TRUE/FALSE)
-)
-DCM_CLKGEN_f_ref (
-   .CLKFX(/* open */),         // 1-bit output: Generated clock output
-   .CLKFX180(/* open */),   // 1-bit output: Generated clock output 180 degree out of phase from CLKFX.
-   .CLKFXDV(clk_ref),     // 1-bit output: Divided clock output
-   .LOCKED(/* open */),       // 1-bit output: Locked output
-   .PROGDONE(/* open */),   // 1-bit output: Active high output to indicate the successful re-programming
-   .STATUS(/* open */),       // 2-bit output: DCM_CLKGEN status
-   .CLKIN(clk_i),         // 1-bit input: Input clock
-   .FREEZEDCM(1'b0), // 1-bit input: Prevents frequency adjustments to input clock
-   .PROGCLK(1'b0),     // 1-bit input: Clock input for M/D reconfiguration
-   .PROGDATA(1'b0),   // 1-bit input: Serial data input for M/D reconfiguration
-   .PROGEN(1'b0),       // 1-bit input: Active high program enable
-   .RST(1'b0)              // 1-bit input: Reset input pin
-);
-
-// CPU clock gen clk = clk_i * `PLL_MULTIPLYER / `CPU_CLOCK_DEVIDER
-DCM_CLKGEN #(
-   .CLKFXDV_DIVIDE(2),       // CLKFXDV divide value (2, 4, 8, 16, 32)
-   .CLKFX_DIVIDE(`CPU_CLOCK_DEVIDER),         // Divide value - D - (1-256)
-   .CLKFX_MD_MAX(`PLL_MULTIPLYER * 2 / `CPU_CLOCK_DEVIDER),       // Specify maximum M/D ratio for timing anlysis
-   .CLKFX_MULTIPLY(`PLL_MULTIPLYER * 2),       // Multiply value - M - (2-256)
-   .CLKIN_PERIOD(`INPUT_CLOCK_PERIOD_NS_F),       // Input clock period specified in nS
-   .SPREAD_SPECTRUM("NONE"), // Spread Spectrum mode "NONE", "CENTER_LOW_SPREAD", "CENTER_HIGH_SPREAD",
-                             // "VIDEO_LINK_M0", "VIDEO_LINK_M1" or "VIDEO_LINK_M2"
-   .STARTUP_WAIT("TRUE")    // Delay config DONE until DCM_CLKGEN LOCKED (TRUE/FALSE)
-)
-DCM_CLKGEN_f_cpu (
-   .CLKFX(/* open */),         // 1-bit output: Generated clock output
-   .CLKFX180(/* open */),   // 1-bit output: Generated clock output 180 degree out of phase from CLKFX.
-   .CLKFXDV(clk),     // 1-bit output: Divided clock output
-   .LOCKED(/* open */),       // 1-bit output: Locked output
-   .PROGDONE(/* open */),   // 1-bit output: Active high output to indicate the successful re-programming
-   .STATUS(/* open */),       // 2-bit output: DCM_CLKGEN status
-   .CLKIN(clk_i),         // 1-bit input: Input clock
-   .FREEZEDCM(1'b0), // 1-bit input: Prevents frequency adjustments to input clock
-   .PROGCLK(1'b0),     // 1-bit input: Clock input for M/D reconfiguration
-   .PROGDATA(1'b0),   // 1-bit input: Serial data input for M/D reconfiguration
-   .PROGEN(1'b0),       // 1-bit input: Active high program enable
-   .RST(1'b0)              // 1-bit input: Reset input pin
-);
-
-// RMII 50MHz clock gen clk = clk_i * `PLL_MULTIPLYER / `CPU_CLOCK_DEVIDER
-DCM_CLKGEN #(
-   .CLKFXDV_DIVIDE(2),       // CLKFXDV divide value (2, 4, 8, 16, 32)
-   .CLKFX_DIVIDE(`RMII_CLOCK_DEVIDER),         // Divide value - D - (1-256)
-   .CLKFX_MD_MAX(`RMII_MULTIPLYER * 2 / `RMII_CLOCK_DEVIDER),       // Specify maximum M/D ratio for timing anlysis
-   .CLKFX_MULTIPLY(`RMII_MULTIPLYER * 2),       // Multiply value - M - (2-256)
-   .CLKIN_PERIOD(`INPUT_CLOCK_PERIOD_NS_F),       // Input clock period specified in nS
-   .SPREAD_SPECTRUM("NONE"), // Spread Spectrum mode "NONE", "CENTER_LOW_SPREAD", "CENTER_HIGH_SPREAD",
-                             // "VIDEO_LINK_M0", "VIDEO_LINK_M1" or "VIDEO_LINK_M2"
-   .STARTUP_WAIT("TRUE")    // Delay config DONE until DCM_CLKGEN LOCKED (TRUE/FALSE)
-)
-DCM_CLKGEN_f_rmii (
-   .CLKFX(/* open */),         // 1-bit output: Generated clock output
-   .CLKFX180(/* open */),   // 1-bit output: Generated clock output 180 degree out of phase from CLKFX.
-   .CLKFXDV(rmii_clk),     // 1-bit output: Divided clock output
-   .LOCKED(/* open */),       // 1-bit output: Locked output
-   .PROGDONE(/* open */),   // 1-bit output: Active high output to indicate the successful re-programming
-   .STATUS(/* open */),       // 2-bit output: DCM_CLKGEN status
-   .CLKIN(clk_i),         // 1-bit input: Input clock
-   .FREEZEDCM(1'b0), // 1-bit input: Prevents frequency adjustments to input clock
-   .PROGCLK(1'b0),     // 1-bit input: Clock input for M/D reconfiguration
-   .PROGDATA(1'b0),   // 1-bit input: Serial data input for M/D reconfiguration
-   .PROGEN(1'b0),       // 1-bit input: Active high program enable
-   .RST(1'b0)              // 1-bit input: Reset input pin
 );
 
 //-----------------------------------------------------------------

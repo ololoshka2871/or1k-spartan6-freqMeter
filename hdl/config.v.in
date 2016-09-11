@@ -13,9 +13,6 @@
 //*    notice, this list of conditions and the following disclaimer in
 //*    the documentation and/or other materials provided with the
 //*    distribution.
-//* 3. Neither the name NuttX nor the names of its contributors may be
-//*    used to endorse or promote products derived from this software
-//*    without specific prior written permission.
 //*
 //* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 //* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -32,20 +29,22 @@
 //*
 //****************************************************************************/
 
+`define     MEMORY_UNIT_SIZE        @MEMORY_UNIT_SIZE@
+`define	    NUM_OF_SYS_MEM_UNITS    @FPGA_DP_MEMORY_USE@
+
 `define     INPUT_CLOCK_HZ          @INPUT_CLOCK_HZ@
 `define     INPUT_CLOCK_PERIOD_NS_F @INPUT_CLOCK_PERIOD_NS_F@
-`define	    NUM_OF_18Kb_MEM	    @FPGA_DP_MEMORY_USE@
 
 `define     MASER_FREQ_COUNTER_LEN  @MASER_FREQ_COUNTER_LEN@
 `define     INPUT_FREQ_COUNTER_LEN  @INPUT_FREQ_COUNTER_LEN@
 `define     TEST_SIGNAL_DEVIDER     @TEST_SIGNAL_DEVIDER@
 
 // Clock
-`define     PLL_MULTIPLYER          @PLL_MULTIPLYER@
-`define     REFERENCE_CLOCK_DEVIDER @REFERENCE_CLOCK_DEVIDER@
+`define     FREF_PLL_MULTIPLYER     @FREF_PLL_MULTIPLYER@
+`define     FREF_CLOCK_DEVIDER      @FREF_CLOCK_DEVIDER@
+
+`define     CPU_PLL_MULTIPLYER      @CPU_PLL_MULTIPLYER@
 `define     CPU_CLOCK_DEVIDER       @CPU_CLOCK_DEVIDER@
-`define     RMII_MULTIPLYER         @RMII_MULTIPLYER@
-`define     RMII_CLOCK_DEVIDER      @RMII_CLOCK_DEVIDER@
 
 // peripherial
 @UART0_ENABLED_STR@

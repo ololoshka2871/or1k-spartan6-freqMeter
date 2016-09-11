@@ -1,22 +1,40 @@
-/*
- * Milkymist VJ SoC
- * Copyright (C) 2007, 2008, 2009, 2010 Sebastien Bourdeauducq
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+//****************************************************************************
+//*
+//*   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
+//*   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
+//*   Based on: Milkymist VJ SoC 2007, 2008, 2009, 2010 Sebastien Bourdeauducq
+//*
+//* Redistribution and use in source and binary forms, with or without
+//* modification, are permitted provided that the following conditions
+//* are met:
+//*
+//* 1. Redistributions of source code must retain the above copyright
+//*    notice, this list of conditions and the following disclaimer.
+//* 2. Redistributions in binary form must reproduce the above copyright
+//*    notice, this list of conditions and the following disclaimer in
+//*    the documentation and/or other materials provided with the
+//*    distribution.
+//*
+//* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+//* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+//* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+//* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+//* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+//* BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+//* OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+//* AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//* LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+//* ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+//* POSSIBILITY OF SUCH DAMAGE.
+//*
+//****************************************************************************/
 
 module myminimac
-(
+#(
+    parameter RX_MEMORY_BASE      = 32'h00000000,
+    parameter TX_MEMORY_BASE      = 32'h10000000
+) (
     input sys_clk,                                  // WISHBONE clock
     input sys_rst,                                  // GLOBAL RESET
 
@@ -55,84 +73,99 @@ module myminimac
     inout  wire                     phy_mdio,       // MDIO
     input  wire                     phy_rmii_clk,   // 50 MHZ input
     input  wire                     phy_rmii_crs,   // Ressiver ressiving data
-    output wire [2:0]               phy_tx_data,    // transmit data bis
-    input  wire [2:0]               phy_rx_data,    // ressive data bus
+    output wire [2:0]               phy_rmii_tx_data,// transmit data bis
+    input  wire [2:0]               phy_rmii_rx_data,// ressive data bus
     output wire                     phy_tx_en       // transmitter enable
 );
 
-assign wbrx_cti_o = 3'd0;
-assign wbtx_cti_o = 3'd0;
+parameter RX_SLOTS = 4;
+parameter TX_SLOTS = 1;
+parameter MTU = 1530;
+parameter RX_ADDR_WIDTH = $clog2(RX_SLOTS * MTU);
+parameter TX_ADDR_WIDTH = $clog2(TX_SLOTS * MTU);
 
 wire rx_rst;
 wire tx_rst;
 
 wire rx_valid;
-wire [29:0] rx_adr;
+wire [RX_ADDR_WIDTH - 1:0] rx_adr;
 wire rx_resetcount;
 wire rx_incrcount;
 wire rx_endframe;
+wire rx_error;
 
-wire fifo_full;
-
+/*
 wire tx_valid;
 wire [29:0] tx_adr;
 wire [1:0] tx_bytecount;
-wire tx_next;
+wire tx_next;*/
 
-myminimac_ctlif #(
-	.csr_addr(csr_addr)
+myminimac_ctlif
+#(
+    .RX_MEMORY_BASE(RX_MEMORY_BASE),
+    .TX_MEMORY_BASE(TX_MEMORY_BASE),
+    .MTU(MTU)
 ) ctlif (
-        .sys_clk(sys_clk),                              // ok
-        .sys_rst(sys_rst),                              // ok
+    .sys_clk(sys_clk),
+    .sys_rst(sys_rst),
 
-        .irq_rx(irq_rx),                                // ok
-        .irq_tx(irq_tx),                                // ok
+    .irq_rx(irq_rx),
+    .irq_tx(irq_tx),
 
-        .csr_a(csr_adr_i),                              // ok
-        .csr_we(csr_we_i),                              // ok
-        .csr_di(csr_dat_i),                             // ok
-        .csr_do(csr_dat_o),                             // ok
+    .csr_a(csr_adr_i),
+    .csr_we(csr_we_i),
+    .csr_di(csr_dat_i),
+    .csr_do(csr_dat_o),
 
-        .phy_mii_clk(phy_mii_clk),                      // ok
-        .phy_mii_data(phy_mii_data),                    // ok
+    .phy_mii_clk(phy_mii_clk),
+    .phy_mii_data(phy_mii_data),
 
-        .rx_valid(),
-        .rx_adr(),
-        .rx_resetcount(),
-        .rx_incrcount(),
-        .rx_endframe(),
-        .fifo_full(),
-
-        .tx_valid(),
-        .tx_adr(),
-        .tx_next()
+    .rx_rst(rx_rst),
+    .rx_valid(rx_valid),
+    .rx_adr(rx_adr),
+    .rx_resetcount(rx_resetcount),
+    .rx_incrcount(rx_incrcount),
+    .rx_endframe(rx_endframe),
+    .rx_error(rx_error)
+/*
+,
+    .tx_valid(),
+    .tx_adr(),
+    .tx_next()
+*/
 );
 
-minimac_rx rx(
-	.sys_clk(sys_clk),
-	.sys_rst(sys_rst),
-	.rx_rst(rx_rst),
+myminimac_rx
+#(
+    .MTU(MTU),
+    .SLOTS_COUNT(RX_SLOTS)
+) rx(
+    .sys_clk(sys_clk),
+    .sys_rst(sys_rst),
 
-	.wbm_adr_o(wbrx_adr_o),
-	.wbm_cyc_o(wbrx_cyc_o),
-	.wbm_stb_o(wbrx_stb_o),
-	.wbm_ack_i(wbrx_ack_i),
-	.wbm_dat_o(wbrx_dat_o),
+    .rx_mem_adr_i(rx_mem_adr_i),
+    .rx_mem_dat_i(rx_mem_dat_i),
+    .rx_mem_dat_o(rx_mem_dat_o),
+    .rx_mem_we_i(rx_mem_we_i),
+    .rx_mem_sel_i(rx_mem_sel_i),
+    .rx_mem_stb_i(rx_mem_stb_i),
+    .rx_mem_ack_o(rx_mem_ack_o),
+    .rx_mem_cyc_i(rx_mem_cyc_i),
+    .rx_mem_stall_o(rx_mem_stall_o),
 
-	.rx_valid(rx_valid),
-	.rx_adr(rx_adr),
-	.rx_resetcount(rx_resetcount),
-	.rx_incrcount(rx_incrcount),
-	.rx_endframe(rx_endframe),
+    .rx_rst(rx_rst),
+    .rx_valid(rx_valid),
+    .rx_adr(rx_adr),
+    .rx_resetcount(rx_resetcount),
+    .rx_incrcount(rx_incrcount),
+    .rx_endframe(rx_endframe),
+    .rx_error(rx_error),
 
-	.fifo_full(fifo_full),
-
-	.phy_rx_clk(phy_rx_clk),
-	.phy_rx_data(phy_rx_data),
-	.phy_dv(phy_dv),
-	.phy_rx_er(phy_rx_er)
+    .phy_rmii_clk(phy_rmii_clk),
+    .phy_rmii_rx_data(phy_rmii_tx_data),
+    .phy_rmii_crs(phy_rmii_crs)
 );
-
+/*
 minimac_tx tx(
 	.sys_clk(sys_clk),
 	.sys_rst(sys_rst),
@@ -152,6 +185,6 @@ minimac_tx tx(
 	.phy_tx_clk(phy_tx_clk),
 	.phy_tx_en(phy_tx_en),
 	.phy_tx_data(phy_tx_data)
-);
+);*/
 
 endmodule

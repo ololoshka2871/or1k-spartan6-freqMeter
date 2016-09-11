@@ -18,15 +18,15 @@ NET "mosi_o" LOC = P64;
 NET "miso_i" LOC = P65;
 
 # RMII
-NET "phy_rmii_rxdata[0]"        LOC = P80 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_A
-NET "phy_rmii_rxdata[1]"        LOC = P79 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_B
-NET "phy_rmii_crs_rxdv"         LOC = P83 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_C
-NET "phy_rmii_txdata[0]"        LOC = P82 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_D
-NET "phy_rmii_txdata[1]"        LOC = P81 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_E
-NET "phy_rmii_txen"             LOC = P78 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_F
+NET "phy_rmii_rx_data[0]"       LOC = P80 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_A
+NET "phy_rmii_rx_data[1]"       LOC = P79 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_B
+NET "phy_rmii_crs"              LOC = P83 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_C
+NET "phy_rmii_tx_data[0]"       LOC = P82 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_D
+NET "phy_rmii_tx_data[1]"       LOC = P81 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_E
+NET "phy_tx_en"                 LOC = P78 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_F
 NET "phy_rmii_clk"              LOC = P94 | IOSTANDARD = "LVCMOS33" | IOB = True;   # LED2 #TODO
-NET "phy_mii_clk_o"             LOC = P84 | IOSTANDARD = "LVCMOS33";                # DS_G
-NET "phy_mii_data_io"           LOC = P85 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_dp
+NET "phy_mdclk"                 LOC = P84 | IOSTANDARD = "LVCMOS33";                # DS_G
+NET "phy_mdio"                  LOC = P85 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_dp
 
 # Freqmeter inputs
 NET "Fin[0]"                    LOC = P23 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # PS2_DAT
