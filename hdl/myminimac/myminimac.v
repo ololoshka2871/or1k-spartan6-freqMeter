@@ -73,8 +73,8 @@ module myminimac
     inout  wire                     phy_mdio,       // MDIO
     input  wire                     phy_rmii_clk,   // 50 MHZ input
     input  wire                     phy_rmii_crs,   // Ressiver ressiving data
-    output wire [2:0]               phy_rmii_tx_data,// transmit data bis
-    input  wire [2:0]               phy_rmii_rx_data,// ressive data bus
+    output wire [1:0]               phy_rmii_tx_data,// transmit data bis
+    input  wire [1:0]               phy_rmii_rx_data,// ressive data bus
     output wire                     phy_tx_en       // transmitter enable
 );
 
@@ -117,8 +117,8 @@ myminimac_ctlif
     .csr_di(csr_dat_i),
     .csr_do(csr_dat_o),
 
-    .phy_mii_clk(phy_mii_clk),
-    .phy_mii_data(phy_mii_data),
+    .phy_mii_clk(phy_mdclk),
+    .phy_mii_data(phy_mdio),
 
     .rx_rst(rx_rst),
     .rx_valid(rx_valid),

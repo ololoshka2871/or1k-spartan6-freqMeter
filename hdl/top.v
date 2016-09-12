@@ -67,8 +67,8 @@ module top
     inout  wire         phy_mdio,       // MDIO
     output wire         phy_rmii_clk,   // 50 MHZ input
     input  wire         phy_rmii_crs,   // Ressiver ressiving data
-    output wire [2:0]   phy_rmii_tx_data,// transmit data bis
-    input  wire [2:0]   phy_rmii_rx_data,// ressive data bus
+    output wire [1:0]   phy_rmii_tx_data,// transmit data bis
+    input  wire [1:0]   phy_rmii_rx_data,// ressive data bus
     output wire         phy_tx_en       // transmitter enable
 
 `ifdef USE_PHISICAL_INPUTS

@@ -82,7 +82,7 @@ IOBUF #(
    .O(phy_mii_data_i),  // Buffer output
    .IO(phy_mii_data),   // Buffer inout port (connect directly to top-level port)
    .I(mii_data_do),     // Buffer input
-   .T(mii_data_oe)      // 3-state enable input, high=input, low=output
+   .T(~mii_data_oe)     // 3-state enable input, high=input, low=output
 );
 
 /* Be paranoid about metastability */

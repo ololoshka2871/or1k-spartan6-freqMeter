@@ -65,25 +65,25 @@ module myminimac_rx
     input                           phy_rmii_crs        // RMII ressiving data
 );
 
+parameter MEMORY_DATA_WIDTH = 32;
 parameter RMII_BUS_WIDTH = 2;
-parameter COUNTER_WIDTH = $clog2(8 / RMII_BUS_WIDTH);
+parameter COUNTER_WIDTH = $clog2(MEMORY_DATA_WIDTH / RMII_BUS_WIDTH);
 
-reg [5:0] input_data;  // shift register to ressive
+reg [MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0] input_data;  // shift register to ressive
 reg [COUNTER_WIDTH-1:0] ressive_counter;
 reg ressiving_frame;
 reg rx_byte_error;
 reg wr_request;
 
-reg [7:0] data_to_write_memory;
+reg [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory;
 
-wire shifting_in_progress = (ressive_counter != (8 / RMII_BUS_WIDTH));
+wire shifting_in_progress = (ressive_counter[1:0] != 2'b00);
+wire ressived30bytes = (ressive_counter == ((MEMORY_DATA_WIDTH / 2) - 1));
 wire memory_error;
 
 wb_dma_ram
 #(
-    .NUM_OF_MEM_UNITS_TO_USE(MEM_UNITS_TO_ALLOC),
-
-    .WB_DATA_WIDTH(32)
+    .NUM_OF_MEM_UNITS_TO_USE(MEM_UNITS_TO_ALLOC)
 ) rx_ram (
     .wb_clk(sys_clk),
     .wb_adr_i(rx_mem_adr_i),
@@ -117,16 +117,16 @@ always @(posedge phy_rmii_clk) begin
         rx_byte_error <= 1'b0;
         wr_request <= 1'b0;
         data_to_write_memory <= {input_data, phy_rmii_rx_data};
-        input_data <= {input_data[5:2], phy_rmii_rx_data};
+        input_data <= {input_data[31 - RMII_BUS_WIDTH:2], phy_rmii_rx_data};
         rx_resetcount <= 1'b0;
 
         if (phy_rmii_crs) begin
             // start or continue ressiving
             if (ressiving_frame) begin
                 ressive_counter <= ressive_counter + 1;
-                if (~shifting_in_progress) begin
+                if (ressived30bytes) begin
                     wr_request <= rx_valid; // write request if control says "ok"
-                    ressive_counter <= 1;
+                    ressive_counter <= 0;
                 end
             end else
                 // wait preamble 01 to start
@@ -134,7 +134,7 @@ always @(posedge phy_rmii_clk) begin
                 if (phy_rmii_rx_data != 2'b00) begin
                     // start ressiving
                     ressiving_frame <= 1'b1;
-                    ressive_counter <= 0;
+                    ressive_counter <= 1;
                 end
         end else
             if (ressiving_frame) begin
@@ -142,6 +142,9 @@ always @(posedge phy_rmii_clk) begin
                 ressiving_frame <= 1'b0;
                 rx_endframe   <= ~shifting_in_progress;
                 rx_byte_error <=  shifting_in_progress;
+                if (~shifting_in_progress) begin
+                    rx_resetcount <= 1'b1;  // 8, 16 or 24 bytes are valid, so write it!
+                end
             end
     end
 end
