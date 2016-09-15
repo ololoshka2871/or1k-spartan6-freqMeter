@@ -41,6 +41,11 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
+# avoid CMAKE to test compiler
+SET(CMAKE_CROSSCOMPILING TRUE)
+SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+SET(CMAKE_C_COMPILER_WORKS TRUE)
+
 find_package(PythonInterp 3 REQUIRED)
 
 add_subdirectory(tools)
