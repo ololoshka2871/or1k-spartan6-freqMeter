@@ -53,17 +53,17 @@ list(LENGTH LEDS_COUNT LEDS_COUNT)
 
 #-------------------------------------ucp---------------------------------------
 
-set(ucp_filename    "${CMAKE_CURRENT_SOURCE_DIR}/xilinx-${PART_NAME}.ucp")
+set(ucp_filename    ${UCF_FILE_NAME_IN})
 file(STRINGS ${ucp_filename} USER_CODE_FLASH_OFFSET
     REGEX "USER_CODE_FLASH_OFFSET=.*"
     )
-string(REGEX REPLACE "USER_CODE_FLASH_OFFSET=(.*)" "\\1" USER_CODE_FLASH_OFFSET ${USER_CODE_FLASH_OFFSET})
+string(REGEX REPLACE ".*USER_CODE_FLASH_OFFSET=(.*)" "\\1" USER_CODE_FLASH_OFFSET ${USER_CODE_FLASH_OFFSET})
 message(STATUS "User code will be at ${USER_CODE_FLASH_OFFSET} in flash")
 
 file(STRINGS ${ucp_filename} USE_PHISICAL_INPUTS
     REGEX "USE_PHISICAL_INPUTS=.*"
     )
-string(REGEX REPLACE "USE_PHISICAL_INPUTS=(.*)" "\\1" USE_PHISICAL_INPUTS ${USE_PHISICAL_INPUTS})
+string(REGEX REPLACE ".*USE_PHISICAL_INPUTS=(.*)" "\\1" USE_PHISICAL_INPUTS ${USE_PHISICAL_INPUTS})
 if (USE_PHISICAL_INPUTS EQUAL 0)
     set(F_INPUTS_COUNT  24)
     set(USE_PHISICAL_INPUTS "// Macro USE_PHISICAL_INPUTS is not defined")
@@ -76,7 +76,7 @@ endif()
 file(STRINGS ${ucp_filename} MEMORY_UNIT_SIZE
     REGEX "MEMORY_UNIT_SIZE=.*"
     )
-string(REGEX REPLACE "MEMORY_UNIT_SIZE=(.*)" "\\1" MEMORY_UNIT_SIZE ${MEMORY_UNIT_SIZE})
+string(REGEX REPLACE ".*MEMORY_UNIT_SIZE=(.*)" "\\1" MEMORY_UNIT_SIZE ${MEMORY_UNIT_SIZE})
 message(STATUS "Defined FPGA dual port unit size: ${MEMORY_UNIT_SIZE} bits")
 
 #-------------------------------------------------------------------------------
