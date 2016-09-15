@@ -45,7 +45,7 @@ module wb_dma_ram
     input  wire                         wb_cyc_i,   // CYC_I cycle input
     output reg                          wb_stall_o, // incorrect address
 
-    // port B (RAW) 8 bit
+    // port B (RAW)
     input  wire                         rawp_clk,
     input  wire [WB_ADDR_WIDTH-1:0]     rawp_adr_i,  // address
     input  wire [31:0]                  rawp_dat_i,  // data in
@@ -56,6 +56,8 @@ module wb_dma_ram
 
 parameter MEMORY_SIZE_bits = NUM_OF_MEM_UNITS_TO_USE * `MEMORY_UNIT_SIZE;
 parameter MEMORY_CELLS_NUMBER = MEMORY_SIZE_bits / 8;
+parameter WORD_SIZE = 8;
+parameter WORD_WIDTH = 32 / WORD_SIZE;
 
 reg [31:0] wb_dat_o_reg = 32'b0;
 reg wb_ack_o_reg = 1'b0;
@@ -80,19 +82,21 @@ assign rawp_dat_o = rawp_dat_o_reg;
 
 //------------------------------------------------------------------------------
 
-integer i, j;
+integer i;
 
 // port WB
 always @(posedge wb_clk) begin
     wb_ack_o_reg <= 1'b0;
-    wb_stall_o <= wb_incorrect_addr;
-    if (wb_cyc_i & wb_stb_i & ~wb_ack_o & ~wb_incorrect_addr) begin
-        if (wb_we_i & wb_sel_i[i]) begin
-            mem[wb_adr_i_valid] <= wb_dat_i;
+    wb_stall_o <= wb_incorrect_addr;/*
+    for (i = 0; i < WORD_WIDTH; i = i + 1) begin
+        if (wb_cyc_i & wb_stb_i & ~wb_ack_o & ~wb_incorrect_addr) begin
+            if (wb_we_i & wb_sel_i[i]) begin
+                mem[wb_adr_i_valid][WORD_SIZE*i +: WORD_SIZE] <= wb_dat_i[WORD_SIZE*i +: WORD_SIZE];
+            end
+            wb_dat_o_reg[WORD_SIZE*i +: WORD_SIZE] <= mem[wb_adr_i_valid][WORD_SIZE*i +: WORD_SIZE];
+            wb_ack_o_reg <= 1'b1;
         end
-        wb_dat_o_reg <= mem[wb_adr_i_valid];
-        wb_ack_o_reg <= 1'b1;
-    end
+    end*/
 end
 
 // port RAW
