@@ -267,6 +267,8 @@ clock_provider clp_prov
     .clk_i(clk_i),
 
     .sys_clk_o(clk),
+    .rmii_clk_to_PHY_o(phy_rmii_clk),
+    .rmii_logick_clk_o(rmii_clk),
     .clk_ref(clk_ref)
 );
 
@@ -297,7 +299,7 @@ soc_fast
 
     .phy_mdclk(phy_mdclk),
     .phy_mdio(phy_mdio),
-    .phy_rmii_clk(phy_rmii_clk),
+    .phy_rmii_clk(rmii_clk),
     .phy_rmii_crs(phy_rmii_crs),
     .phy_rmii_tx_data(phy_rmii_tx_data),
     .phy_rmii_rx_data(phy_rmii_rx_data),
@@ -387,8 +389,6 @@ else
 
 // flash_CS
 assign flash_CS = spi_cs_o[0];
-
-assign phy_rmii_clk = rmii_clk;
 
 //-----------------------------------------------------------------
 // Unused pins

@@ -145,7 +145,7 @@ assign interrupts = {ethernat_rx_int, ethernat_tx_int, freqmeter_inta};
 // muxer
 dmem_mux4
 #(
-    .ADDR_MUX_START()
+    .ADDR_MUX_START(20)
 ) u_dmux (
     // Outputs
     // 0x11000000 - 0x110FFFFF
