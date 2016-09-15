@@ -114,14 +114,14 @@ set(CPU_CLOCK_DEVIDER       24
 
 #--------------------------------Calculable-------------------------------------
 
-math(EXPR PLL_CLOCK_HZ
-    "${INPUT_CLOCK_HZ} * ${PLL_MULTIPLYER}")
+math(EXPR RES_PLL_CLOCK_HZ
+    "${INPUT_CLOCK_HZ} * ${FREF_PLL_MULTIPLYER}")
 
 math(EXPR REFERENCE_CLOCK_HZ
-    "${PLL_CLOCK_HZ} / ${REFERENCE_CLOCK_DEVIDER}")
+    "${RES_PLL_CLOCK_HZ} / ${FREF_CLOCK_DEVIDER}")
 
 math(EXPR CPU_CLOCK_HZ
-    "${PLL_CLOCK_HZ} / ${CPU_CLOCK_DEVIDER}")
+    "${INPUT_CLOCK_HZ} * ${CPU_PLL_MULTIPLYER} / ${CPU_CLOCK_DEVIDER}")
 
 math(EXPR INPUT_CLOCK_PERIOD_NS_F_m100
     "1000000000 / (${INPUT_CLOCK_HZ} / 100)")
