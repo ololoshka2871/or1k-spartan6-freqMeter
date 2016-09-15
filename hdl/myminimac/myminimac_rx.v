@@ -117,7 +117,7 @@ always @(posedge phy_rmii_clk) begin
         rx_byte_error <= 1'b0;
         wr_request <= 1'b0;
         data_to_write_memory <= {input_data, phy_rmii_rx_data};
-        input_data <= {input_data[31 - RMII_BUS_WIDTH:2], phy_rmii_rx_data};
+        input_data <= {input_data[MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:2], phy_rmii_rx_data};
         rx_resetcount <= 1'b0;
 
         if (phy_rmii_crs) begin

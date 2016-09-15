@@ -30,6 +30,8 @@
 //*
 //****************************************************************************/
 
+`include "config.v"
+
 module myminimac
 #(
     parameter RX_MEMORY_BASE      = 32'h00000000,
@@ -81,8 +83,8 @@ module myminimac
 parameter RX_SLOTS = 4;
 parameter TX_SLOTS = 1;
 parameter MTU = 1530;
-parameter RX_ADDR_WIDTH = $clog2(RX_SLOTS * MTU);
-parameter TX_ADDR_WIDTH = $clog2(TX_SLOTS * MTU);
+parameter RX_ADDR_WIDTH = $clog2($rtoi($ceil(MTU * $itor(RX_SLOTS) / (`MEMORY_UNIT_SIZE / 8))) * `MEMORY_UNIT_SIZE);
+parameter TX_ADDR_WIDTH = $clog2($rtoi($ceil(MTU * $itor(TX_SLOTS) / (`MEMORY_UNIT_SIZE / 8))) * `MEMORY_UNIT_SIZE);
 
 wire rx_rst;
 wire tx_rst;
@@ -104,7 +106,9 @@ myminimac_ctlif
 #(
     .RX_MEMORY_BASE(RX_MEMORY_BASE),
     .TX_MEMORY_BASE(TX_MEMORY_BASE),
-    .MTU(MTU)
+    .MTU(MTU),
+    .RX_ADDR_WIDTH(RX_ADDR_WIDTH),
+    .TX_ADDR_WIDTH(TX_ADDR_WIDTH)
 ) ctlif (
     .sys_clk(sys_clk),
     .sys_rst(sys_rst),
@@ -162,7 +166,7 @@ myminimac_rx
     .rx_error(rx_error),
 
     .phy_rmii_clk(phy_rmii_clk),
-    .phy_rmii_rx_data(phy_rmii_tx_data),
+    .phy_rmii_rx_data(phy_rmii_rx_data),
     .phy_rmii_crs(phy_rmii_crs)
 );
 /*

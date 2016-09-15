@@ -44,7 +44,7 @@ module myminimac_ctlif
     output reg                      irq_rx,             // RX interrupt
     output reg                      irq_tx,             // TX interrupt
 
-    input       [3:0]               csr_a,              // control logic addr
+    input       [5:0]               csr_a,              // control logic addr
     input                           csr_we,             // control logick write enable
     input       [31:0]              csr_di,             // control logick data input
     output reg  [31:0]              csr_do,             // control logick data output
@@ -125,14 +125,14 @@ wire select3 = slot3_state[0] & ~slot2_state[0] & ~slot1_state[0] & ~slot0_state
 // rx_valid == 1 if any of rx slots are ready
 assign rx_valid = slot0_state[0] | slot1_state[0] | slot2_state[0] | slot3_state[0];
 
-// address of ready slot
-assign rx_adr =  {RX_ADDR_WIDTH{select0}} & slot0_adr
-                |{RX_ADDR_WIDTH{select1}} & slot1_adr
-                |{RX_ADDR_WIDTH{select2}} & slot2_adr
-                |{RX_ADDR_WIDTH{select3}} & slot3_adr;
+// address of ready slot      
+assign rx_adr =  select0 ? slot0_adr :
+                 select1 ? slot1_adr :
+                 select2 ? slot2_adr :
+                 slot3_adr;
 
 // TX
-reg [RX_ADDR_WIDTH - 1:0] tx_remaining;
+reg [TX_ADDR_WIDTH - 1:0] tx_remaining;
 assign tx_valid = |tx_remaining;
 
 always @(posedge sys_clk) begin
@@ -165,7 +165,7 @@ always @(posedge sys_clk) begin
     end else begin
         csr_do <= 32'd0;
         if(csr_we) begin
-            case(csr_a[3:0])
+            case(csr_a[5:2])
                 4'd0 : begin
                     tx_rst <= csr_di[1];
                     rx_rst <= csr_di[0];
