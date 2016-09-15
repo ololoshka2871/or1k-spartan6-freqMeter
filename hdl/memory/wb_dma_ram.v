@@ -87,7 +87,7 @@ integer i;
 // port WB
 always @(posedge wb_clk) begin
     wb_ack_o_reg <= 1'b0;
-    wb_stall_o <= wb_incorrect_addr;/*
+    wb_stall_o <= wb_incorrect_addr;
     for (i = 0; i < WORD_WIDTH; i = i + 1) begin
         if (wb_cyc_i & wb_stb_i & ~wb_ack_o & ~wb_incorrect_addr) begin
             if (wb_we_i & wb_sel_i[i]) begin
@@ -96,7 +96,7 @@ always @(posedge wb_clk) begin
             wb_dat_o_reg[WORD_SIZE*i +: WORD_SIZE] <= mem[wb_adr_i_valid][WORD_SIZE*i +: WORD_SIZE];
             wb_ack_o_reg <= 1'b1;
         end
-    end*/
+    end
 end
 
 // port RAW
