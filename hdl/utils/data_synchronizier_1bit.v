@@ -30,18 +30,16 @@
 //*
 //****************************************************************************/
 
-module decoder
-#(
-    parameter OUTPUTS_COUNT = 32,
-    parameter INPUTS_COUNT = $clog2(OUTPUTS_COUNT)
-) (
-    input wire  [INPUTS_COUNT - 1:0] inputs,
-    output reg [OUTPUTS_COUNT - 1:0] outputs
+module data_synchronizier_1bit
+(
+    input wire          clk_i,
+    input wire          rst_i,
+
+    input wire          D
+    input wire          D_i,
+    input wire          E_i
 );
 
-always @(inputs) begin
-    outputs = 0;
-    outputs[inputs] = 1'b1;
-end
+
 
 endmodule
