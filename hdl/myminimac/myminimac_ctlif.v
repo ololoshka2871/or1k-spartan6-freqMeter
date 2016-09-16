@@ -53,6 +53,8 @@ module myminimac_ctlif
     output reg                      phy_mii_clk,        // MDCLK
     inout                           phy_mii_data,       // MDIO
 
+    input                           rmii_clk_i,         // 50 MHz
+
     output reg                      rx_rst,             // reset rx request
     output                          rx_valid,           // rx memory ready to write
     output      [RX_ADDR_WIDTH-1:0] rx_adr,             // base address to write ressived bytes
@@ -134,6 +136,46 @@ assign rx_adr =  select0 ? slot0_adr :
 // TX
 reg [TX_ADDR_WIDTH - 1:0] tx_remaining;
 assign tx_valid = |tx_remaining;
+
+// INCORRECT!!!
+always @(posedge rmii_clk_i) begin
+    if (rx_error) begin
+        rx_rst <= 1'b1;
+    end
+
+    if(rx_resetcount) begin
+        case(1'b1)
+            select0: slot0_count <= 0;
+            select1: slot1_count <= 0;
+            select2: slot2_count <= 0;
+            select3: slot3_count <= 0;
+        endcase
+    end
+
+    if(rx_incrcount) begin
+        case(1'b1)
+            select0: slot0_count <= slot0_count + 1;
+            select1: slot1_count <= slot1_count + 1;
+            select2: slot2_count <= slot2_count + 1;
+            select3: slot3_count <= slot3_count + 1;
+        endcase
+    end
+/* 2 source of data for slotx_state and tx_adr and tx_remaining
+    if(rx_endframe) begin
+        case(1'b1)
+            select0: slot0_state <= 2'b10;
+            select1: slot1_state <= 2'b10;
+            select2: slot2_state <= 2'b10;
+            select3: slot3_state <= 2'b10;
+        endcase
+    end
+
+    if(tx_next) begin
+        tx_remaining <= tx_remaining - 1;
+        tx_adr <= tx_adr + 1;
+    end
+    */
+end
 
 always @(posedge sys_clk) begin
     if(sys_rst) begin
@@ -237,42 +279,6 @@ always @(posedge sys_clk) begin
             default:
                    csr_do <= 32'd0;
         endcase
-
-        if (rx_error) begin
-            rx_rst <= 1'b1;
-        end
-
-        if(rx_resetcount) begin
-            case(1'b1)
-                select0: slot0_count <= 0;
-                select1: slot1_count <= 0;
-                select2: slot2_count <= 0;
-                select3: slot3_count <= 0;
-            endcase
-        end
-
-        if(rx_incrcount) begin
-            case(1'b1)
-                select0: slot0_count <= slot0_count + 1;
-                select1: slot1_count <= slot1_count + 1;
-                select2: slot2_count <= slot2_count + 1;
-                select3: slot3_count <= slot3_count + 1;
-            endcase
-        end
-
-        if(rx_endframe) begin
-            case(1'b1)
-                select0: slot0_state <= 2'b10;
-                select1: slot1_state <= 2'b10;
-                select2: slot2_state <= 2'b10;
-                select3: slot3_state <= 2'b10;
-            endcase
-        end
-
-        if(tx_next) begin
-            tx_remaining <= tx_remaining - 1;
-            tx_adr <= tx_adr + 1;
-        end
     end
 end
 

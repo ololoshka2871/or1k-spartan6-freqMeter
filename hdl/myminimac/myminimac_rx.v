@@ -71,11 +71,12 @@ parameter COUNTER_WIDTH = $clog2(MEMORY_DATA_WIDTH / RMII_BUS_WIDTH);
 
 reg [MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0] input_data;  // shift register to ressive
 reg [COUNTER_WIDTH-1:0] ressive_counter;
+reg [ADDR_LEN-1:0] write_adr;
 reg ressiving_frame;
 reg rx_byte_error;
 reg wr_request;
 
-reg [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory;
+wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory = {input_data, phy_rmii_rx_data};
 
 wire shifting_in_progress = (ressive_counter[1:0] != 2'b00);
 wire ressived30bytes = (ressive_counter == ((MEMORY_DATA_WIDTH / 2) - 1));
@@ -97,7 +98,7 @@ wb_dma_ram
     .wb_stall_o(rx_mem_stall_o),
 
     .rawp_clk(phy_rmii_clk),
-    .rawp_adr_i(rx_adr),
+    .rawp_adr_i(write_adr),
     .rawp_dat_i(data_to_write_memory),
     .rawp_dat_o(/* open */),
     .rawp_we_i(wr_request),
@@ -112,12 +113,13 @@ always @(posedge phy_rmii_clk) begin
         ressiving_frame <= 1'b0;
         rx_resetcount <= 1'b0;
         wr_request <= 1'b0;
+        rx_byte_error <= 1'b0;
+        rx_endframe <= 1'b0;
     end else begin
         rx_endframe <= 1'b0;
         rx_byte_error <= 1'b0;
         wr_request <= 1'b0;
-        data_to_write_memory <= {input_data, phy_rmii_rx_data};
-        input_data <= {input_data[MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:2], phy_rmii_rx_data};
+        input_data <= {input_data[MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0], phy_rmii_rx_data};
         rx_resetcount <= 1'b0;
 
         if (phy_rmii_crs) begin
@@ -125,17 +127,22 @@ always @(posedge phy_rmii_clk) begin
             if (ressiving_frame) begin
                 ressive_counter <= ressive_counter + 1;
                 if (ressived30bytes) begin
-                    wr_request <= rx_valid; // write request if control says "ok"
                     ressive_counter <= 0;
+                    if (rx_valid) begin
+                        wr_request <= 1'b1; // write request if control says "ok"
+                        write_adr <= write_adr + 1;
+                    end
                 end
-            end else
+            end else begin
                 // wait preamble 01 to start
                 rx_resetcount <= 1'b1;
                 if (phy_rmii_rx_data != 2'b00) begin
                     // start ressiving
                     ressiving_frame <= 1'b1;
                     ressive_counter <= 1;
+                    write_adr <= rx_adr;
                 end
+            end
         end else
             if (ressiving_frame) begin
                 // make stop

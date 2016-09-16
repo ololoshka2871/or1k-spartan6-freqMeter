@@ -124,6 +124,8 @@ myminimac_ctlif
     .phy_mii_clk(phy_mdclk),
     .phy_mii_data(phy_mdio),
 
+    .rmii_clk_i(phy_rmii_clk),
+
     .rx_rst(rx_rst),
     .rx_valid(rx_valid),
     .rx_adr(rx_adr),
