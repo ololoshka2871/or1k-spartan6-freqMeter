@@ -13,9 +13,6 @@
 //*    notice, this list of conditions and the following disclaimer in
 //*    the documentation and/or other materials provided with the
 //*    distribution.
-//* 3. Neither the name NuttX nor the names of its contributors may be
-//*    used to endorse or promote products derived from this software
-//*    without specific prior written permission.
 //*
 //* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 //* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -33,29 +30,63 @@
 //*
 //****************************************************************************/
 
-// synopsys translate_off
-`include "timescale.v"
-// synopsys translate_on
+module clk_domain_cros_register
+#(
+    parameter DATA_WIDTH = 8,
+    parameter INITIAL_VALUE = 0
+) (
+    input   wire                        reset_i,
+    input   wire                        clk_sys_i,
+    input   wire                        clk_ctl_i,
 
-module input_synchronizer (
-    input clk,
-    input reset,
-    input din,
-    output reg dout,
-    output reg pdout
+    // system bus side
+    input   wire    [DATA_WIDTH-1:0]    sys_data_i,
+    input   wire                        sys_write_act_i,
+    output  reg     [DATA_WIDTH-1:0]    sys_data_o,
+
+    // controlable side
+    input   wire    [DATA_WIDTH-1:0]    D_i,
+    output  wire    [DATA_WIDTH-1:0]    D_o,
+    input   wire                        we_i
 );
 
-    reg d;
+reg [DATA_WIDTH-1:0] sys_data_r = {DATA_WIDTH{1'b0}};
 
-    always @(posedge clk, posedge reset) begin
-        if (reset) begin
-            d <= 1'b0;
-            dout <= 1'b0;
-            pdout <= 1'b0;
-        end else begin
-            d <= din;
-            pdout <= d;
-            dout <= pdout;
-        end
-    end
+// read loop (control -> system)
+always @(posedge clk_sys_i) begin
+    sys_data_r <= D_o;
+    sys_data_o <= sys_data_r;
+end
+
+// write
+wire accept_write_act;
+wire write_done;
+
+srff res_sync_ff
+(
+    .clk(clk_sys_i),
+    .s(sys_write_act_i),
+    .r(write_done),
+    .q(accept_write_act)
+);
+
+data_synchronizier
+#(
+    .DATA_WIDTH(DATA_WIDTH),
+    .INITIAL_VALUE(INITIAL_VALUE)
+) W_sync (
+    .clk_i(clk_ctl_i),
+    .rst_i(reset_i),
+
+    .Q(D_o),
+
+    .D_hip_i(D_i),
+    .D_lop_i(sys_data_i),
+    .WR_hip_i(we_i),
+    .WR_lop_i(accept_write_act),
+
+    .data_changed_o(write_done),
+    .change_accepted_i(~accept_write_act)
+);
+
 endmodule

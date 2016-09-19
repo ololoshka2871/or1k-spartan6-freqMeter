@@ -13,9 +13,6 @@
 //*    notice, this list of conditions and the following disclaimer in
 //*    the documentation and/or other materials provided with the
 //*    distribution.
-//* 3. Neither the name NuttX nor the names of its contributors may be
-//*    used to endorse or promote products derived from this software
-//*    without specific prior written permission.
 //*
 //* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 //* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -33,29 +30,97 @@
 //*
 //****************************************************************************/
 
-// synopsys translate_off
-`include "timescale.v"
-// synopsys translate_on
+module tb_data_synchronizier_1bit
+(
+    // data output
+    output wire          Q,
 
-module input_synchronizer (
-    input clk,
-    input reset,
-    input din,
-    output reg dout,
-    output reg pdout
+    // transaction control
+    output wire         data_changed_o
 );
 
-    reg d;
+reg          clk_i;
+reg          rst_i;
 
-    always @(posedge clk, posedge reset) begin
-        if (reset) begin
-            d <= 1'b0;
-            dout <= 1'b0;
-            pdout <= 1'b0;
-        end else begin
-            d <= din;
-            pdout <= d;
-            dout <= pdout;
-        end
-    end
+reg          D_hip_i;
+reg          D_lop_i;
+reg          WR_hip_i;
+reg          WR_lop_i;
+reg          change_accepted_i;
+
+data_synchronizier_1bit
+#(
+    .INITIAL_VALUE(1'b0)
+) ds (
+    .clk_i(clk_i),
+    .rst_i(rst_i),
+    .Q(Q),
+    .D_hip_i(D_hip_i),
+    .D_lop_i(D_lop_i),
+    .WR_hip_i(WR_hip_i),
+    .WR_lop_i(WR_lop_i),
+    .data_changed_o(data_changed_o),
+    .change_accepted_i(change_accepted_i)
+);
+
+task waitclock;
+begin
+    @(posedge clk_i);
+    #1;
+end
+endtask
+
+task accept_transaction;
+begin
+    waitclock;
+    change_accepted_i <= 1'b1;
+    waitclock;
+    change_accepted_i <= 1'b0;
+    waitclock;
+end
+endtask
+
+initial begin
+    change_accepted_i = 0;
+    clk_i = 0;
+    rst_i = 1;
+
+    D_hip_i = 0;
+    D_lop_i = 0;
+    WR_hip_i = 0;
+    WR_lop_i = 0;
+
+    waitclock;
+    rst_i = 0;
+
+    #20;
+    D_hip_i = 1;
+    D_lop_i = 0;
+
+    #5;
+    WR_hip_i = 1;
+    accept_transaction;
+    WR_hip_i = 0;
+
+    #5;
+    WR_lop_i = 1;
+    accept_transaction;
+    WR_lop_i = 0;
+
+    #2;
+    D_lop_i = 0;
+
+    #5;
+    WR_hip_i = 1;
+    WR_lop_i = 0;
+    accept_transaction;
+    WR_hip_i = 0;
+    WR_lop_i = 0;
+
+    #20;
+    $finish;
+end
+
+always #2 clk_i = ~clk_i;
+
 endmodule

@@ -102,7 +102,7 @@ wire [29:0] tx_adr;
 wire [1:0] tx_bytecount;
 wire tx_next;*/
 
-myminimac_ctlif
+myminimac_ctlif_cd
 #(
     .RX_MEMORY_BASE(RX_MEMORY_BASE),
     .TX_MEMORY_BASE(TX_MEMORY_BASE),

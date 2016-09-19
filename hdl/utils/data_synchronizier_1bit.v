@@ -31,15 +31,46 @@
 //****************************************************************************/
 
 module data_synchronizier_1bit
-(
+#(
+    parameter INITIAL_VALUE = 0
+) (
     input wire          clk_i,
     input wire          rst_i,
 
-    input wire          D
-    input wire          D_i,
-    input wire          E_i
+    // data output
+    output reg          Q,
+
+    // data inputs
+    input wire          D_hip_i,
+    input wire          D_lop_i,
+    input wire          WR_hip_i,
+    input wire          WR_lop_i,
+
+    // transaction control
+    output reg          data_changed_o,
+    input wire          change_accepted_i
 );
 
+reg Qs;
 
+always @(posedge clk_i) begin
+    if (rst_i) begin
+        Qs <= INITIAL_VALUE;
+        Q <= INITIAL_VALUE;
+        data_changed_o <= 1'b0;
+    end else begin
+        Q <= Qs;
+        if (WR_hip_i) begin
+            Qs <= D_hip_i;
+            data_changed_o <= 1'b1;
+        end else if (WR_lop_i) begin
+                Qs <= D_lop_i;
+                data_changed_o <= 1'b1;
+            end
+        if (change_accepted_i) begin
+            data_changed_o <= 1'b0;
+        end
+    end
+end
 
 endmodule

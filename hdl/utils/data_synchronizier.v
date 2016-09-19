@@ -13,9 +13,6 @@
 //*    notice, this list of conditions and the following disclaimer in
 //*    the documentation and/or other materials provided with the
 //*    distribution.
-//* 3. Neither the name NuttX nor the names of its contributors may be
-//*    used to endorse or promote products derived from this software
-//*    without specific prior written permission.
 //*
 //* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 //* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -33,29 +30,48 @@
 //*
 //****************************************************************************/
 
-// synopsys translate_off
-`include "timescale.v"
-// synopsys translate_on
+module data_synchronizier
+#(
+    parameter DATA_WIDTH = 1,
+    parameter INITIAL_VALUE = 0
+) (
+    input wire                              clk_i,
+    input wire                              rst_i,
 
-module input_synchronizer (
-    input clk,
-    input reset,
-    input din,
-    output reg dout,
-    output reg pdout
+    // data output
+    output reg  [DATA_WIDTH - 1:0]          Q,
+
+    // data inputs
+    input wire  [DATA_WIDTH - 1:0]          D_hip_i,
+    input wire  [DATA_WIDTH - 1:0]          D_lop_i,
+    input wire                              WR_hip_i,
+    input wire                              WR_lop_i,
+
+    // transaction control
+    output reg                              data_changed_o,
+    input wire                              change_accepted_i
 );
 
-    reg d;
+reg [DATA_WIDTH - 1:0] Qs;
 
-    always @(posedge clk, posedge reset) begin
-        if (reset) begin
-            d <= 1'b0;
-            dout <= 1'b0;
-            pdout <= 1'b0;
-        end else begin
-            d <= din;
-            pdout <= d;
-            dout <= pdout;
+always @(posedge clk_i) begin
+    if (rst_i) begin
+        Qs <= INITIAL_VALUE;
+        Q <= INITIAL_VALUE;
+        data_changed_o <= 1'b0;
+    end else begin
+        Q <= Qs;
+        if (WR_hip_i) begin
+            Qs <= D_hip_i;
+            data_changed_o <= 1'b1;
+        end else if (WR_lop_i) begin
+                Qs <= D_lop_i;
+                data_changed_o <= 1'b1;
+            end
+        if (change_accepted_i) begin
+            data_changed_o <= 1'b0;
         end
     end
+end
+
 endmodule
