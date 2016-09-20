@@ -54,7 +54,7 @@ module myminimac_rx
 
     input                           rx_rst,             // reset rx request
     input                           rx_valid,           // rx memory ready to write
-    input       [ADDR_LEN-1:0]      rx_adr,             // address to write
+    input       [ADDR_LEN-1:2]      rx_adr,             // address to write
     output reg                      rx_resetcount,      // address reset request
     output                          rx_incrcount,       // address increment request
     output reg                      rx_endframe,        // ressive end request
@@ -71,7 +71,7 @@ parameter COUNTER_WIDTH = $clog2(MEMORY_DATA_WIDTH / RMII_BUS_WIDTH);
 
 reg [MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0] input_data;  // shift register to ressive
 reg [COUNTER_WIDTH-1:0] ressive_counter;
-reg [ADDR_LEN-1:0] write_adr;
+reg [ADDR_LEN-1:2] write_adr;
 reg ressiving_frame;
 reg rx_byte_error;
 reg wr_request;
@@ -87,7 +87,7 @@ wb_dma_ram
     .NUM_OF_MEM_UNITS_TO_USE(MEM_UNITS_TO_ALLOC)
 ) rx_ram (
     .wb_clk(sys_clk),
-    .wb_adr_i(rx_mem_adr_i),
+    .wb_adr_i(rx_mem_adr_i[ADDR_LEN-1:0]),
     .wb_dat_i(rx_mem_dat_i),
     .wb_dat_o(rx_mem_dat_o),
     .wb_we_i(rx_mem_we_i),
@@ -98,7 +98,7 @@ wb_dma_ram
     .wb_stall_o(rx_mem_stall_o),
 
     .rawp_clk(phy_rmii_clk),
-    .rawp_adr_i(write_adr),
+    .rawp_adr_i({write_adr, 2'b0}),
     .rawp_dat_i(data_to_write_memory),
     .rawp_dat_o(/* open */),
     .rawp_we_i(wr_request),

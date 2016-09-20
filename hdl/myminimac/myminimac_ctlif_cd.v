@@ -55,17 +55,17 @@ module myminimac_ctlif_cd
 
     input                           rmii_clk_i,         // 50 MHz
 
-    output reg                      rx_rst,             // reset rx request
+    output                          rx_rst,             // reset rx request
     output                          rx_valid,           // rx memory ready to write
-    output      [RX_ADDR_WIDTH-1:0] rx_adr,             // base address to write ressived bytes
+    output      [RX_ADDR_WIDTH-1:2] rx_adr,             // base address to write ressived bytes
     input                           rx_resetcount,      // reset rx address
     input                           rx_incrcount,       // if 1 we are increment curent rx slot ressived counter
     input                           rx_endframe,        // if 1 we are set state "10 -> slot has received a packet" for current slot
     input                           rx_error,           // error ocures during reset
 
-    output reg                      tx_rst,             // reset Tx request
+    output                          tx_rst,             // reset Tx request
     output                          tx_valid,           // 1 - enable transmission
-    output      [TX_ADDR_WIDTH-1:0] tx_adr,             // address of next byte to send
+    output      [TX_ADDR_WIDTH-1:2] tx_adr,             // address of next byte to send
     input                           tx_next             // request to update tx_adr
 );
 
@@ -98,7 +98,7 @@ end
 /********************************* RX *****************************************/
 
 /* RX state registers: Wishbone RW, ctl RW */
-wire slot_state_write = csr_di[1:0];
+wire [1:0] slot_state_write = csr_di[1:0];
 
 wire [1:0] slot_state_sys_o [3:0];
 reg  [3:0] slot_state_sys_act;
@@ -148,7 +148,7 @@ generate
             .clk_sys_i(sys_clk),
             .clk_ctl_i(rmii_clk_i),
 
-            .sys_data_i(0),
+            .sys_data_i({TRANSFER_COUNTER_LEN{1'b0}}),
             .sys_write_act_i(slot_count_sys_act[i]),
             .sys_data_o(slot_count_sys_o[i]),
 
@@ -160,7 +160,7 @@ generate
 endgenerate
 
 /* RX Address registers: Wishbone RW, ctl RO */
-reg [RX_ADDR_WIDTH - 1:0]           slot_adr [3:0];
+reg [RX_ADDR_WIDTH - 1:2]           slot_adr [3:0];
 
 // detect ready-to-RX slot
 // selectX = 1 if addr is set and prevs slots not ready
@@ -191,21 +191,21 @@ data_synchronizier
 );
 
 // address of ready slot
-wire rx_adr_sys =    select0 ? slot_adr[0] :
-                     select1 ? slot_adr[1] :
-                     select2 ? slot_adr[2] :
-                     slot_adr[3];
+wire [RX_ADDR_WIDTH - 1:2] rx_adr_sys = select0 ? slot_adr[0] :
+                                        select1 ? slot_adr[1] :
+                                        select2 ? slot_adr[2] :
+                                        slot_adr[3];
 
 // syncronysing to rmii_clk
 data_synchronizier
 #(
-    .DATA_WIDTH(RX_ADDR_WIDTH)
+    .DATA_WIDTH(RX_ADDR_WIDTH - 2)
 ) rx_addr_sync (
     .clk_i(rmii_clk_i),
     .rst_i(sys_rst),
     .Q(rx_adr),
-    .D_hip_i(D_hip_i),
-    .D_lop_i(1'b0),
+    .D_hip_i(rx_adr_sys),
+    .D_lop_i({(RX_ADDR_WIDTH - 2){1'b0}}),
     .WR_hip_i(1'b1),
     .WR_lop_i(1'b0),
     .data_changed_o(/* open */),
@@ -215,23 +215,23 @@ data_synchronizier
 /******************************** TX ******************************************/
 
 /* tx addr register: Wishbone RW, ctl RO */
-reg [RX_ADDR_WIDTH - 1:0] tx_addr_sys;
+reg [TX_ADDR_WIDTH - 1:2] tx_addr_sys;
 data_synchronizier
 #(
-    .DATA_WIDTH(TX_ADDR_WIDTH)
+    .DATA_WIDTH(TX_ADDR_WIDTH - 2)
 ) tx_addr_sync (
     .clk_i(rmii_clk_i),
     .rst_i(sys_rst),
     .Q(tx_adr),
     .D_hip_i(tx_addr_sys),
-    .D_lop_i(1'b0),
+    .D_lop_i({(TX_ADDR_WIDTH - 2){1'b0}}),
     .WR_hip_i(1'b1),
     .WR_lop_i(1'b0),
     .data_changed_o(/* open */),
     .change_accepted_i(1'b1)
 );
 
-/* tx temaning register; Wishbone RW, ctl: RW*/
+/* tx temaning register; Wishbone RW, ctl: RW */
 wire [TRANSFER_COUNTER_LEN-1:0] tx_remaining_sys_i = csr_di[TRANSFER_COUNTER_LEN-1:0];
 reg tx_remaning_sys_wr;
 wire [TRANSFER_COUNTER_LEN-1:0] tx_remaining_sys_o;
@@ -401,8 +401,8 @@ always @(posedge sys_clk) begin
             slot_adr[k] <= 0;
         end
 
-        slot_state_sys_act = 4'b0;
-        slot_count_sys_act = 4'b0;
+        slot_state_sys_act <= 4'b0;
+        slot_count_sys_act <= 4'b0;
 
         tx_remaning_sys_wr <= 1'b0;
 
@@ -433,29 +433,29 @@ always @(posedge sys_clk) begin
                     slot_state_sys_act[0] <= 1'b1;
                     slot_count_sys_act[0] <= 1'b1;
                 end
-                4'd3 : slot_adr[0] <= csr_di[RX_ADDR_WIDTH-1:0];
+                4'd3 : slot_adr[0] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot0_count is read-only
                 4'd5 : begin
                     slot_state_sys_act[1] <= 1'b1;
                     slot_count_sys_act[1] <= 1'b1;
                 end
-                4'd6 : slot_adr[1] <= csr_di[RX_ADDR_WIDTH-1:0];
+                4'd6 : slot_adr[1] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot1_count is read-only
                 4'd8 : begin
                     slot_state_sys_act[2] <= 1'b1;
                     slot_count_sys_act[2] <= 1'b1;
                 end
-                4'd9 : slot_adr[2] <= csr_di[RX_ADDR_WIDTH-1:0];
+                4'd9 : slot_adr[2] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot2_count is read-only
                 4'd11: begin
                     slot_state_sys_act[3] <= 1'b1;
                     slot_count_sys_act[3] <= 1'b1;
                 end
-                4'd12: slot_adr[3] <= csr_di[RX_ADDR_WIDTH-1:0];
+                4'd12: slot_adr[3] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot3_count is read-only
 
                 // TX slot
-                4'd14: tx_addr_sys <= csr_di[TX_ADDR_WIDTH-1:0];
+                4'd14: tx_addr_sys <= csr_di[TX_ADDR_WIDTH-1:2];
                 4'd15: begin
                     tx_remaning_sys_wr <= 1'b1;
                 end
@@ -471,20 +471,20 @@ always @(posedge sys_clk) begin
 
             // RX slots
             4'd2 : csr_do <= slot_state_sys_o[0];
-            4'd3 : csr_do <= {RX_MEMORY_BASE[31:RX_ADDR_WIDTH], slot_adr[0]};
+            4'd3 : csr_do <= {RX_MEMORY_BASE[31:RX_ADDR_WIDTH], slot_adr[0], 2'b0};
             4'd4 : csr_do <= slot_count_sys_o[0];
             4'd5 : csr_do <= slot_state_sys_o[1];
-            4'd6 : csr_do <= {RX_MEMORY_BASE[31:RX_ADDR_WIDTH], slot_adr[1]};
+            4'd6 : csr_do <= {RX_MEMORY_BASE[31:RX_ADDR_WIDTH], slot_adr[1], 2'b0};
             4'd7 : csr_do <= slot_count_sys_o[1];
             4'd8 : csr_do <= slot_state_sys_o[2];
-            4'd9 : csr_do <= {RX_MEMORY_BASE[31:RX_ADDR_WIDTH], slot_adr[2]};
+            4'd9 : csr_do <= {RX_MEMORY_BASE[31:RX_ADDR_WIDTH], slot_adr[2], 2'b0};
             4'd10: csr_do <= slot_count_sys_o[2];
             4'd11: csr_do <= slot_state_sys_o[3];
-            4'd12: csr_do <= {RX_MEMORY_BASE[31:RX_ADDR_WIDTH], slot_adr[3]};
+            4'd12: csr_do <= {RX_MEMORY_BASE[31:RX_ADDR_WIDTH], slot_adr[3], 2'b0};
             4'd13: csr_do <= slot_count_sys_o[3];
 
             // TX slots
-            4'd14: csr_do <= {RX_MEMORY_BASE[31:TX_ADDR_WIDTH], tx_addr_sys};
+            4'd14: csr_do <= {RX_MEMORY_BASE[31:TX_ADDR_WIDTH], tx_addr_sys, 2'b0};
             4'd15: csr_do <= tx_remaining_sys_o;
 
             default:
@@ -503,8 +503,8 @@ always @(posedge sys_clk) begin
     end else begin
         // rx interrupt if any slot are ressived data
 
-        irq_rx <= slot_state_ctl_o[0][1] | slot_state_ctl_o[1][0] |
-                    slot_state_ctl_o[2][0] | slot_state_ctl_o[3][0] | rx_rst;
+        irq_rx <= slot_state_ctl_o[0][1] | slot_state_ctl_o[1][1] |
+                    slot_state_ctl_o[2][1] | slot_state_ctl_o[3][1] | rx_rst;
         tx_valid_r <= tx_valid;
         irq_tx <= tx_valid_r & ~tx_valid; // tx interrupt if tx_valid 1 -> 0
     end

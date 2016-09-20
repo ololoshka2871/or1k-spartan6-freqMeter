@@ -90,7 +90,7 @@ wire rx_rst;
 wire tx_rst;
 
 wire rx_valid;
-wire [RX_ADDR_WIDTH - 1:0] rx_adr;
+wire [RX_ADDR_WIDTH - 1:2] rx_adr;
 wire rx_resetcount;
 wire rx_incrcount;
 wire rx_endframe;

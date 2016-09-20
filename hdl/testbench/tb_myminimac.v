@@ -63,7 +63,7 @@ myminimac
     .rx_mem_dat_i(32'b0),
     .rx_mem_dat_o(),
     .rx_mem_we_i(1'b0),
-    .rx_mem_sel_i(1'b0),
+    .rx_mem_sel_i(4'b0),
     .rx_mem_stb_i(1'b0),
     .rx_mem_ack_o(),
     .rx_mem_cyc_i(1'b0),
@@ -73,7 +73,7 @@ myminimac
     .tx_mem_dat_i(32'b0),
     .tx_mem_dat_o(),
     .tx_mem_we_i(1'b0),
-    .tx_mem_sel_i(1'b0),
+    .tx_mem_sel_i(4'b0),
     .tx_mem_stb_i(1'b0),
     .tx_mem_ack_o(),
     .tx_mem_cyc_i(1'b0),
@@ -174,10 +174,23 @@ initial begin
 
     waitclock;
 
-    csrwrite(32'h00, 0); // enable bodule
-    csrwrite(32'h0C, 32'h10000000); // set address for rx slot 3
+    csrwrite(32'h00, 0); // enable module
+    csrwrite(32'h0C, 32'h10000014); // set address for rx slot 3
     csrwrite(32'h09, 32'h00000008); // set address for rx slot 2
     csrwrite(32'h08, 1); // set slot 2 state = ready
+
+    // wait rx irq
+    @(posedge irq_rx);
+    waitclock;
+    waitclock;
+    waitclock;
+    waitclock;
+
+    csrwrite(32'h00, 0); // enable module
+
+    // wait rx irq
+    @(posedge irq_rx);
+    csrwrite(32'h00, 0); // enable module
 
     #3000;
     csrread(32'h00);
