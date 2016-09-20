@@ -72,7 +72,6 @@ Verilog_GenControlMacro(ETHERNET_ENABLED_STR "ETHERNET_ENABLED" ${PERIPHERIAL_EN
 add_subdirectory(altor32)
 add_subdirectory(soc)
 add_subdirectory(memory)
-add_subdirectory(minmac)
 add_subdirectory(myminimac)
 add_subdirectory(utils)
 add_subdirectory(ucf)
@@ -140,7 +139,7 @@ configure_file(${UT_IN_FILE_NAME} ${UT_FILE_NAME} @ONLY)
 #-------------------------------------sym---------------------------------------
 add_subdirectory(testbench)
 
-set(prj_libs altor32 soc memory utils work minmac myminimac)
+set(prj_libs altor32 soc memory utils work myminimac)
 set(testlibs_list)
 foreach(l ${prj_libs})
     list(APPEND testlibs_list -lib ${l})

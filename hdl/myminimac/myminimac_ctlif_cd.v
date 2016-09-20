@@ -65,6 +65,7 @@ module myminimac_ctlif_cd
 
     output                          tx_rst,             // reset Tx request
     output                          tx_valid,           // 1 - enable transmission
+    output                          tx_last_byte,       // last bate remaining
     output      [TX_ADDR_WIDTH-1:2] tx_adr,             // address of next byte to send
     input                           tx_next             // request to update tx_adr
 );
@@ -98,7 +99,7 @@ end
 /********************************* RX *****************************************/
 
 /* RX state registers: Wishbone RW, ctl RW */
-wire [1:0] slot_state_write = csr_di[1:0];
+reg  [1:0] slot_state_write [3:0];
 
 wire [1:0] slot_state_sys_o [3:0];
 reg  [3:0] slot_state_sys_act;
@@ -119,7 +120,7 @@ generate
             .clk_sys_i(sys_clk),
             .clk_ctl_i(rmii_clk_i),
 
-            .sys_data_i(slot_state_write),
+            .sys_data_i(slot_state_write[i]),
             .sys_write_act_i(slot_state_sys_act[i]),
             .sys_data_o(slot_state_sys_o[i]),
 
@@ -232,13 +233,13 @@ data_synchronizier
 );
 
 /* tx temaning register; Wishbone RW, ctl: RW */
-wire [TRANSFER_COUNTER_LEN-1:0] tx_remaining_sys_i = csr_di[TRANSFER_COUNTER_LEN-1:0];
-reg tx_remaning_sys_wr;
+reg [TRANSFER_COUNTER_LEN-1:0] tx_remaining_sys_i;
+reg tx_remaining_sys_wr;
 wire [TRANSFER_COUNTER_LEN-1:0] tx_remaining_sys_o;
 
 reg [TRANSFER_COUNTER_LEN-1:0] tx_remaining_ctl_i;
 wire [TRANSFER_COUNTER_LEN-1:0] tx_remaining_ctl_o;
-reg tx_remaning_ctl_wr;
+reg tx_remaining_ctl_wr;
 clk_domain_cros_register
 #(
     .DATA_WIDTH(TRANSFER_COUNTER_LEN)
@@ -248,18 +249,19 @@ clk_domain_cros_register
     .clk_ctl_i(rmii_clk_i),
 
     .sys_data_i(tx_remaining_sys_i),
-    .sys_write_act_i(tx_remaning_sys_wr),
+    .sys_write_act_i(tx_remaining_sys_wr),
     .sys_data_o(tx_remaining_sys_o),
 
     .D_i(tx_remaining_ctl_i),
     .D_o(tx_remaining_ctl_o),
-    .we_i(tx_remaning_ctl_wr)
+    .we_i(tx_remaining_ctl_wr)
 );
 
+assign tx_last_byte = (tx_remaining_ctl_o == 1);
 assign tx_valid = |tx_remaining_ctl_o;
 
 /* RX/TX Reset: Wishbone RW, ctl RW */
-wire [1:0] rst_ctl_sys_i = csr_di[1:0];
+reg [1:0] rst_ctl_sys_i;
 reg rst_ctl_sys_wr;
 wire [1:0] rst_ctl_sys_o;
 
@@ -299,7 +301,7 @@ always @(posedge rmii_clk_i) begin
         end
         slot_count_ctl_act <= 0;
         tx_remaining_ctl_i <= 0;
-        tx_remaning_ctl_wr <= 0;
+        tx_remaining_ctl_wr <= 0;
         rst_ctl_ctl_i <= 2'b0;
         rst_ctl_ctl_wr <= 1'b0;
     end else begin
@@ -308,11 +310,11 @@ always @(posedge rmii_clk_i) begin
             slot_count_ctl_i[j] <= 0;
         end
         slot_count_ctl_act <= 0;
-        tx_remaning_ctl_wr <= 1'b0;
+        tx_remaining_ctl_wr <= 1'b0;
         rst_ctl_ctl_wr <= 1'b0;
 
         if (rx_error) begin
-            rst_ctl_ctl_i[0] <= 1'b1;
+            rst_ctl_ctl_i <= rst_ctl_ctl_o | 2'b01;
             rst_ctl_ctl_wr <= 1'b1;
         end
 
@@ -382,7 +384,7 @@ always @(posedge rmii_clk_i) begin
 
         if(tx_next) begin
             tx_remaining_ctl_i <= tx_remaining_ctl_o - 1;
-            tx_remaning_ctl_wr <= 1'b1;
+            tx_remaining_ctl_wr <= 1'b1;
         end
     end
 end
@@ -404,7 +406,7 @@ always @(posedge sys_clk) begin
         slot_state_sys_act <= 4'b0;
         slot_count_sys_act <= 4'b0;
 
-        tx_remaning_sys_wr <= 1'b0;
+        tx_remaining_sys_wr <= 1'b0;
 
         rst_ctl_sys_wr <= 1'b0;
     end else begin
@@ -413,12 +415,13 @@ always @(posedge sys_clk) begin
         rst_ctl_sys_wr <= 1'b0;
         slot_state_sys_act <= 4'b0;
         slot_count_sys_act <= 4'b0;
-        tx_remaning_sys_wr <= 1'b0;
+        tx_remaining_sys_wr <= 1'b0;
 
         if(csr_we) begin
             // Write
             case(csr_a[5:2])
                 4'd0 : begin // reset
+                    rst_ctl_sys_i <= csr_di[1:0];
                     rst_ctl_sys_wr <= 1'b1;
                 end
 
@@ -430,24 +433,28 @@ always @(posedge sys_clk) begin
 
                 // RX slots
                 4'd2 : begin
+                    slot_state_write[0] <= csr_di[1:0];
                     slot_state_sys_act[0] <= 1'b1;
                     slot_count_sys_act[0] <= 1'b1;
                 end
                 4'd3 : slot_adr[0] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot0_count is read-only
                 4'd5 : begin
+                    slot_state_write[1] <= csr_di[1:0];
                     slot_state_sys_act[1] <= 1'b1;
                     slot_count_sys_act[1] <= 1'b1;
                 end
                 4'd6 : slot_adr[1] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot1_count is read-only
                 4'd8 : begin
+                    slot_state_write[2] <= csr_di[1:0];
                     slot_state_sys_act[2] <= 1'b1;
                     slot_count_sys_act[2] <= 1'b1;
                 end
                 4'd9 : slot_adr[2] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot2_count is read-only
                 4'd11: begin
+                    slot_state_write[3] <= csr_di[1:0];
                     slot_state_sys_act[3] <= 1'b1;
                     slot_count_sys_act[3] <= 1'b1;
                 end
@@ -457,7 +464,8 @@ always @(posedge sys_clk) begin
                 // TX slot
                 4'd14: tx_addr_sys <= csr_di[TX_ADDR_WIDTH-1:2];
                 4'd15: begin
-                    tx_remaning_sys_wr <= 1'b1;
+                    tx_remaining_sys_i <= csr_di[TRANSFER_COUNTER_LEN-1:0];
+                    tx_remaining_sys_wr <= 1'b1;
                 end
             endcase
         end

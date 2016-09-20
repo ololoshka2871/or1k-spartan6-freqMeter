@@ -50,13 +50,22 @@ configure_file(${SYSTEM_MEMORY_MODULE_IN} ${SYSTEM_MEMORY_MODULE}.tmp @ONLY)
 set(IMAGE   ${BOOTLOADER_SIM_IMAGE})
 configure_file(${SYSTEM_MEMORY_MODULE_IN} ${SYSTEM_MEMORY_MODULE_SIM}.tmp @ONLY)
 
+set(TEST_IMAGE_FOR_DMA_MEMORY_NAME  ${CMAKE_CURRENT_BINARY_DIR}/test_image.hex)
+#generate test image for memory
+add_custom_command(
+    OUTPUT  ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
+    DEPENDS ${SYSTEM_MEMORY_FILE_NAME}
+    COMMAND
+        xxd -ps -c 4 ${SYSTEM_MEMORY_FILE_NAME} > ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
+    )
+
 #force rebuild, if bootloader changed
 add_custom_target(memory_refresh
     COMMAND
 	${SCRIPTS_DIR}/checkmemory.sh ${SYSTEM_MEMORY_MODULE}.tmp
 	    ${SYSTEM_MEMORY_MODULE} ${BOOTLOADER_IMAGE}
     DEPENDS
-	bootloader ${SYSTEM_MEMORY_MODULE}.tmp
+        bootloader ${SYSTEM_MEMORY_MODULE}.tmp test_image.hex
     COMMENT
 	"Checking main memory image"
     )
@@ -65,10 +74,11 @@ add_custom_target(memory_refresh_sim
 	${SCRIPTS_DIR}/checkmemory.sh ${SYSTEM_MEMORY_MODULE_SIM}.tmp
 	    ${SYSTEM_MEMORY_MODULE_SIM} ${BOOTLOADER_SIM_IMAGE}
     DEPENDS
-	bootloader ${SYSTEM_MEMORY_MODULE_SIM}.tmp
+        bootloader ${SYSTEM_MEMORY_MODULE_SIM}.tmp test_image.hex
     COMMENT
 	"Checking sim memory image"
     )
+
 
 SET(MEMORY_HDL_V	${RAM_HDL_V};${SYSTEM_MEMORY_MODULE})
 SET(MEMORY_HDL_SIM_V	${RAM_HDL_V};${SYSTEM_MEMORY_MODULE_SIM})
@@ -80,3 +90,4 @@ add_custom_target(memory_sources
 
 set(MEMORY_HDL_V	${MEMORY_HDL_V}		PARENT_SCOPE)
 set(MEMORY_HDL_SIM_V	${MEMORY_HDL_SIM_V}	PARENT_SCOPE)
+set(TEST_IMAGE_FOR_DMA_MEMORY_NAME ${TEST_IMAGE_FOR_DMA_MEMORY_NAME} PARENT_SCOPE)

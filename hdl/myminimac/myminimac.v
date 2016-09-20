@@ -43,7 +43,7 @@ module myminimac
     output irq_rx,                                  // RX interrupt
     output irq_tx,                                  // TX interrupt
 
-    input  wire [31:0]  /*13*/      csr_adr_i,      // control logic addr
+    input  wire [31:0]  		      csr_adr_i,      // control logic addr
     input  wire                     csr_we_i,       // control logick write enable
     input  wire [31:0]              csr_dat_i,      // control logick data input
     output wire [31:0]              csr_dat_o,      // control logick data output
@@ -96,11 +96,10 @@ wire rx_incrcount;
 wire rx_endframe;
 wire rx_error;
 
-/*
 wire tx_valid;
-wire [29:0] tx_adr;
-wire [1:0] tx_bytecount;
-wire tx_next;*/
+wire tx_last_byte;
+wire [TX_ADDR_WIDTH-1:2] tx_adr;
+wire tx_next;
 
 myminimac_ctlif_cd
 #(
@@ -132,13 +131,13 @@ myminimac_ctlif_cd
     .rx_resetcount(rx_resetcount),
     .rx_incrcount(rx_incrcount),
     .rx_endframe(rx_endframe),
-    .rx_error(rx_error)
-/*
-,
-    .tx_valid(),
-    .tx_adr(),
-    .tx_next()
-*/
+    .rx_error(rx_error),
+
+    .tx_rst(tx_rst),
+    .tx_valid(tx_valid),
+    .tx_last_byte(tx_last_byte),
+    .tx_adr(tx_adr),
+    .tx_next(tx_next)
 );
 
 myminimac_rx
@@ -171,26 +170,34 @@ myminimac_rx
     .phy_rmii_rx_data(phy_rmii_rx_data),
     .phy_rmii_crs(phy_rmii_crs)
 );
-/*
-minimac_tx tx(
-	.sys_clk(sys_clk),
-	.sys_rst(sys_rst),
-	.tx_rst(tx_rst),
 
-	.tx_valid(tx_valid),
-	.tx_adr(tx_adr),
-	.tx_bytecount(tx_bytecount),
-	.tx_next(tx_next),
+myminimac_tx
+#(
+    .MTU(MTU),
+    .SLOTS_COUNT(TX_SLOTS)
+) tx (
+    .sys_clk(sys_clk),
+    .sys_rst(sys_rst),
 
-	.wbtx_adr_o(wbtx_adr_o),
-	.wbtx_cyc_o(wbtx_cyc_o),
-	.wbtx_stb_o(wbtx_stb_o),
-	.wbtx_ack_i(wbtx_ack_i),
-	.wbtx_dat_i(wbtx_dat_i),
+    .tx_mem_adr_i(tx_mem_adr_i[TX_ADDR_WIDTH-1:0]),
+    .tx_mem_dat_i(tx_mem_dat_i),
+    .tx_mem_dat_o(tx_mem_dat_o),
+    .tx_mem_we_i(tx_mem_we_i),
+    .tx_mem_sel_i(tx_mem_sel_i),
+    .tx_mem_stb_i(tx_mem_stb_i),
+    .tx_mem_ack_o(tx_mem_ack_o),
+    .tx_mem_cyc_i(tx_mem_cyc_i),
+    .tx_mem_stall_o(tx_mem_stall_o),
 
-	.phy_tx_clk(phy_tx_clk),
-	.phy_tx_en(phy_tx_en),
-	.phy_tx_data(phy_tx_data)
-);*/
+    .tx_rst(tx_rst),
+    .tx_valid(tx_valid),
+    .tx_last_byte_i(tx_last_byte),
+    .tx_adr(tx_adr),
+    .tx_next(tx_next),
+
+    .phy_rmii_clk(phy_rmii_clk),
+    .phy_tx_en(phy_tx_en),
+    .phy_rmii_tx_data(phy_rmii_tx_data)
+);
 
 endmodule

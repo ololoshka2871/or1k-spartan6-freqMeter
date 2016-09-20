@@ -32,7 +32,7 @@
 
 `include "config.v"
 
-module minimac_tx
+module myminimac_tx
 #(
     parameter MTU                   = 1530,
     parameter SLOTS_COUNT           = 1,                // memory to alocate
@@ -42,7 +42,7 @@ module minimac_tx
     input                           sys_clk,            // System clock
     input                           sys_rst,            // System reset
 
-    input  wire [31:0]              tx_mem_adr_i,       // ADR_I() address
+    input  wire [ADDR_LEN-1:0]      tx_mem_adr_i,       // ADR_I() address
     input  wire [31:0]              tx_mem_dat_i,       // DAT_I() data in
     output wire [31:0]              tx_mem_dat_o,       // DAT_O() data out
     input  wire                     tx_mem_we_i,        // WE_I write enable input
@@ -54,27 +54,35 @@ module minimac_tx
 
     input                           tx_rst,             // reset Tx request
     input                           tx_valid,           // address is valid
-    input       [ADDR_LEN-1:0]      tx_adr,             // addres to read from
-    output reg                      tx_next,            // request to increment address
+    input                           tx_last_byte_i,     // last byte remaining
+    input       [ADDR_LEN-1:2]      tx_adr,             // addres to read from
+    output                          tx_next,            // request to increment address
 
     input                           phy_rmii_clk,       // 50 MHz
-    output reg                      phy_tx_en,          // transmit enable
-    output reg  [1:0]               phy_rmii_tx_data    // data to transmit
+    output                          phy_tx_en,          // transmit enable
+    output      [1:0]               phy_rmii_tx_data    // data to transmit
 );
 
 parameter MEMORY_DATA_WIDTH = 32;
 parameter RMII_BUS_WIDTH = 2;
 parameter COUNTER_WIDTH = $clog2(MEMORY_DATA_WIDTH / RMII_BUS_WIDTH);
 
-reg [MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0] transmitt_data;  // shift register to transmitt
+reg tx_en;
+reg byte_count_stop;
+reg [ADDR_LEN - 1:2] mem_tx_addr;
+reg [MEMORY_DATA_WIDTH - 1:0] transmitt_data;  // shift register to transmitt
 reg [COUNTER_WIDTH-1:0] transmitt_counter;
 
 wire [31:0] data_from_memory;
-wire memory_error;
+
+wire read_from_memory = transmitt_counter == 0;
+wire transmitted28bits = (transmitt_counter == (MEMORY_DATA_WIDTH / 2) - 2);
+wire byte_transferted = ~|transmitt_counter[1:0];
 
 wb_dma_ram
 #(
-    .NUM_OF_MEM_UNITS_TO_USE(MEM_UNITS_TO_ALLOC)
+    .NUM_OF_MEM_UNITS_TO_USE(MEM_UNITS_TO_ALLOC),
+    .INIT_FILE_NAME(`TEST_IMAGE_FOR_DMA_MEMORY_NAME)
 ) tx_ram (
     .wb_clk(sys_clk),
     .wb_adr_i(tx_mem_adr_i),
@@ -88,196 +96,49 @@ wb_dma_ram
     .wb_stall_o(tx_mem_stall_o),
 
     .rawp_clk(phy_rmii_clk),
-    .rawp_adr_i(tx_adr),
+    .rawp_adr_i({mem_tx_addr, 2'b0}),
     .rawp_dat_i(32'd0),
     .rawp_dat_o(data_from_memory),
     .rawp_we_i(1'b0),
-    .rawp_stall_o(memory_error)
+    .rawp_stall_o(/* open */)
 );
 
 always @(posedge phy_rmii_clk) begin
     if (sys_rst | tx_rst) begin
         transmitt_counter <= 0;
-        phy_tx_en <= 0;
+        tx_en <= 0;
+        mem_tx_addr <= 0;
+        transmitt_data <= 0;
+        byte_count_stop <= 1'b0;
     end else begin
-        //{phy_rmii_tx_data} <= data_from_memory;
+        tx_en <= tx_valid;
+
+        if (tx_valid) begin
+            if (read_from_memory) begin
+                transmitt_data <= data_from_memory;
+                transmitt_counter <= 1;
+            end else begin
+                transmitt_data <= {transmitt_data[MEMORY_DATA_WIDTH-1-2 : 0], 2'd0};
+                transmitt_counter <= transmitt_counter + 1;
+                if (transmitted28bits) begin
+                    mem_tx_addr <= mem_tx_addr + 1;
+                end
+            end
+
+            if (tx_next & tx_last_byte_i) begin
+                byte_count_stop <= 1'b1;
+            end
+        end else begin
+            byte_count_stop <= 1'b0;
+            mem_tx_addr <= tx_adr;
+            transmitt_counter <= 0;
+        end
     end
 end
 
-`ifdef __UNUSED
-
-reg bus_stb;
-assign wbtx_cyc_o = bus_stb;
-assign wbtx_stb_o = bus_stb;
-
-assign wbtx_adr_o = {tx_adr, 2'd0};
-
-reg stb;
-reg [7:0] data;
-wire full;
-reg can_tx;
-wire empty;
-
-minimac_txfifo txfifo(
-	.sys_clk(sys_clk),
-	.tx_rst(tx_rst),
-
-	.stb(stb),
-	.data(data),
-	.full(full),
-	.can_tx(can_tx),
-	.empty(empty),
-
-	.phy_tx_clk(phy_tx_clk),
-	.phy_tx_en(phy_tx_en),
-	.phy_tx_data(phy_tx_data)
-);
-
-reg load_input;
-reg [31:0] input_reg;
-
-always @(posedge sys_clk)
-	if(load_input)
-		input_reg <= wbtx_dat_i;
-
-always @(*) begin
-	case(tx_bytecount)
-		2'd0: data = input_reg[31:24];
-		2'd1: data = input_reg[23:16];
-		2'd2: data = input_reg[16: 8];
-		2'd3: data = input_reg[ 7: 0];
-	endcase
-end
-
-wire firstbyte = tx_bytecount == 2'd0;
-
-reg purge;
-
-/* fetch FSM */
-
-reg [1:0] state;
-reg [1:0] next_state;
-
-parameter IDLE  = 2'd0;
-parameter FETCH = 2'd1;
-parameter WRITE1 = 2'd2;
-
-always @(posedge sys_clk) begin
-	if(sys_rst)
-		state <= IDLE;
-	else
-		state <= next_state;
-end
-
-always @(*) begin
-	next_state = state;
-	
-	load_input = 1'b0;
-	tx_next = 1'b0;
-
-	stb = 1'b0;
-
-	bus_stb = 1'b0;
-
-	case(state)
-		IDLE: begin
-			if(tx_valid & ~full & ~purge) begin
-				if(firstbyte)
-					next_state = FETCH;
-				else begin
-					stb = 1'b1;
-					tx_next = 1'b1;
-				end
-			end
-		end
-		FETCH: begin
-			bus_stb = 1'b1;
-			load_input = 1'b1;
-			if(wbtx_ack_i)
-				next_state = WRITE1;
-		end
-		WRITE1: begin
-			stb = 1'b1;
-			tx_next = 1'b1;
-			next_state = IDLE;
-		end
-	endcase
-end
-
-/* Byte counter */
-reg reset_byte_counter;
-reg [6:0] byte_counter;
-
-always @(posedge sys_clk) begin
-	if(sys_rst)
-		byte_counter <= 7'd0;
-	else begin
-		if(reset_byte_counter)
-			byte_counter <= 7'd0;
-		else if(stb)
-			byte_counter <= byte_counter + 7'd1;
-	end
-end
-
-wire tx_level_reached = byte_counter[6];
-
-/* FIFO control FSM */
-
-reg [1:0] fstate;
-reg [1:0] next_fstate;
-
-parameter FIDLE		= 2'd0;
-parameter FWAITFULL	= 2'd1;
-parameter FTX		= 2'd2;
-parameter FPURGE	= 2'd3;
-
-always @(posedge sys_clk) begin
-	if(sys_rst)
-		fstate <= FIDLE;
-	else
-		fstate <= next_fstate;
-end
-
-always @(*) begin
-	next_fstate = fstate;
-
-	can_tx = 1'b0;
-	purge = 1'b0;
-	reset_byte_counter = 1'b1;
-	
-	case(fstate)
-		FIDLE: begin
-			if(tx_valid)
-				next_fstate = FWAITFULL;
-		end
-		/* Wait for the FIFO to fill to 64 bytes (< ethernet minimum of 72)
-		 * before starting transmission. */
-		FWAITFULL: begin
-			reset_byte_counter = 1'b0;
-			if(tx_level_reached)
-				next_fstate = FTX;
-		end
-		FTX: begin
-			can_tx = 1'b1;
-			if(~tx_valid) begin
-				purge = 1'b1;
-				next_fstate = FPURGE;
-			end
-		end
-		FPURGE: begin
-			can_tx = 1'b1;
-			purge = 1'b1;
-			if(empty)
-				next_fstate = FIDLE;
-			/* NB! there is a potential bug because of the latency
-			 * introducted by the synchronizer on can_tx in txfifo.
-			 * However, the interframe gap prevents it to happen
-			 * unless f(sys_clk) >> f(phy_tx_clk).
-			 */
-		end
-	endcase
-end
-`endif
+assign phy_tx_en = tx_en & ~byte_count_stop;
+assign tx_next = tx_en & byte_transferted;
+assign phy_rmii_tx_data = transmitt_data[MEMORY_DATA_WIDTH - 1 -: 2];
 
 endmodule
 

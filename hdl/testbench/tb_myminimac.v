@@ -38,7 +38,7 @@ wire [31:0] csr_do;
 reg phy_rmii_crs;
 wire [1:0] phy_rmii_tx_data;
 reg [1:0] phy_rmii_rx_data;
-reg phy_tx_en;
+wire phy_tx_en;
 
 wire irq_rx;
 wire irq_tx;
@@ -174,7 +174,7 @@ initial begin
 
     waitclock;
 
-    csrwrite(32'h00, 0); // enable module
+    csrwrite(32'h00, 2'b10); // enable rx
     csrwrite(32'h0C, 32'h10000014); // set address for rx slot 3
     csrwrite(32'h09, 32'h00000008); // set address for rx slot 2
     csrwrite(32'h08, 1); // set slot 2 state = ready
@@ -186,13 +186,15 @@ initial begin
     waitclock;
     waitclock;
 
-    csrwrite(32'h00, 0); // enable module
+    csrwrite(32'h00, 2'b10); // enable rx
 
     // wait rx irq
     @(posedge irq_rx);
-    csrwrite(32'h00, 0); // enable module
+    csrwrite(32'h00, 2'b10); // enable rx
 
-    #3000;
+    // wait rx irq
+    @(posedge irq_rx);
+
     csrread(32'h00);
 
     csrread(32'h14);
@@ -205,14 +207,19 @@ initial begin
     waitclock;
     waitclock;
 
-    csrwrite(32'h00, 1);
-    csrwrite(32'h3C, 72);
-
-    csrread(32'h3C);
+    // test tx
+    // disable rx enable tx
+    csrwrite(32'h00, 2'b01);
+    waitclock;
+    waitclock;
+    csrwrite(32'd14, 14);
+    waitclock;
+    waitclock;
+    csrwrite(32'd15, 10); // transmit 10 bytes
 
     @(posedge irq_tx);
 
-    #30000;
+    #30;
 
     $finish;
 end

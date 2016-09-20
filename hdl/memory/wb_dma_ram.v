@@ -30,7 +30,8 @@ THE SOFTWARE.
 module wb_dma_ram
 #(
     parameter NUM_OF_MEM_UNITS_TO_USE = 1,
-    parameter WB_ADDR_WIDTH = $clog2(NUM_OF_MEM_UNITS_TO_USE * `MEMORY_UNIT_SIZE)  // width of address bus in bits
+    parameter WB_ADDR_WIDTH = $clog2(NUM_OF_MEM_UNITS_TO_USE * `MEMORY_UNIT_SIZE),  // width of address bus in bits
+    parameter INIT_FILE_NAME = "NONE"
 )
 (
     // port A (WB)
@@ -49,13 +50,13 @@ module wb_dma_ram
     input  wire                         rawp_clk,
     input  wire [WB_ADDR_WIDTH-1:0]     rawp_adr_i,  // address
     input  wire [31:0]                  rawp_dat_i,  // data in
-    output wire [31:0]                  rawp_dat_o,  // data out
+    output reg  [31:0]                  rawp_dat_o,  // data out
     input  wire                         rawp_we_i,   // write enable input
     output reg                          rawp_stall_o
 );
 
 parameter MEMORY_SIZE_bits = NUM_OF_MEM_UNITS_TO_USE * `MEMORY_UNIT_SIZE;
-parameter MEMORY_CELLS_NUMBER = MEMORY_SIZE_bits / 8;
+parameter MEMORY_CELLS_NUMBER = MEMORY_SIZE_bits / 32;
 parameter WORD_SIZE = 8;
 parameter WORD_WIDTH = 32 / WORD_SIZE;
 
@@ -71,14 +72,20 @@ wire [WB_ADDR_WIDTH-3:0] wb_adr_i_valid = wb_adr_i[WB_ADDR_WIDTH-1:2];
 wire [WB_ADDR_WIDTH-3:0] rawp_adr_i_valid = rawp_adr_i[WB_ADDR_WIDTH-1:2];
 
 wire wb_incorrect_addr = wb_adr_i > MEMORY_CELLS_NUMBER;
-wire rawp_incorrect_addr = wb_adr_i > MEMORY_CELLS_NUMBER;
+wire rawp_incorrect_addr = rawp_adr_i > MEMORY_CELLS_NUMBER;
 
 //------------------------------------------------------------------------------
 
 assign wb_dat_o = wb_dat_o_reg;
 assign wb_ack_o = wb_ack_o_reg;
 
-assign rawp_dat_o = rawp_dat_o_reg;
+//------------------------------------------------------------------------------
+
+initial begin
+    if (INIT_FILE_NAME != "NONE") begin
+        $readmemh(INIT_FILE_NAME, mem);
+    end
+end
 
 //------------------------------------------------------------------------------
 
@@ -106,7 +113,7 @@ always @(posedge rawp_clk) begin
         if (rawp_we_i) begin
             mem[rawp_adr_i_valid] <= rawp_dat_i;
         end
-        rawp_dat_o_reg <= mem[rawp_adr_i_valid];
+        rawp_dat_o <= mem[rawp_adr_i_valid];
     end
 end
 
