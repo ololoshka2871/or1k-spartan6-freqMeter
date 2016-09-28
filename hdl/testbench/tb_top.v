@@ -93,6 +93,7 @@ module tb_top;
             devided_clocks = 0;
             // Wait 100 ns for global reset to finish
             #100;
+            rst = 0'b0;
 
             // Add stimulus here
 

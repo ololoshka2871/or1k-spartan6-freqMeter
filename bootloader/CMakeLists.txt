@@ -57,12 +57,17 @@ add_definitions(-DBOOTLOADER)
 
 # TESTS
 include_directories(gdb_stub)
-set(TEST_SRC    freqmeters.c)
+set(TEST_SRC
+    freqmeters.c
+    minmac.c
+    )
 add_definitions(
     #-DSTART_FREQMETER
-    -DTEST_MULTIPLICATION
+    #-DTEST_MULTIPLICATION
+    -DTEST_MINMAC
     -DFREQMETERS_COUNT=24
-    -DF_REF=${REFERENCE_CLOCK_HZ})
+    -DF_REF=${REFERENCE_CLOCK_HZ}
+    )
 #
 
 add_executable(${PROJECT_NAME}.elf

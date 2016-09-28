@@ -1,5 +1,4 @@
 /****************************************************************************
- * seg7_disp.c
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -30,24 +29,46 @@
  *
  ****************************************************************************/
 
+#include <stdint.h>
+
 #include "minmac.h"
 
+static enum enMinmacRxSlots findSlotWithState(enum enMinmacSlotStates state) {
+    for (enum enMinmacRxSlots slot = 0; slot < MINMAC_RX_SLOT_COUNT; ++slot) {
+        enum enMinmacSlotStates slot_state = MINMAC_SLOT_STATE(slot);
+        if (slot_state == state)
+            return slot;
+    }
+    return MINMAC_RX_SLOT_INVALID;
+}
+
 void minmac_control(bool rx_enable, bool tx_enable) {
-    MINMAC_RST_CTL = rx_enable | (tx_enable << 1);
+    MINMAC_RST_CTL = (uint32_t)rx_enable | (((uint32_t)tx_enable) << 1);
 }
 
 
-enum enMinmacErrorCodes minmac_rx_static_slot_alocate() {
-    return MINMAC_E_NOMEM;
+enum enMinmacRxSlots minmac_rx_static_slot_alocate() {
+    // find unused slot
+    enum enMinmacRxSlots slot = findSlotWithState(MINMAC_SLOT_STATE_DISABLED);
+    if (slot == MINMAC_RX_SLOT_INVALID)
+        return slot;
+
+    static const uint32_t static_rx_alocation_table[] = {
+        MAC_RX_MEM_BASE + 0,
+        MAC_RX_MEM_BASE + MTU * 1,
+        MAC_RX_MEM_BASE + MTU * 2,
+        MAC_RX_MEM_BASE + MTU * 3
+    };
+    MINMAC_SLOT_ADDR(slot) = static_rx_alocation_table[slot];
+    MINMAC_SLOT_STATE(slot) = MINMAC_SLOT_STATE_READY;
+    return slot;
 }
 
 
 // interrupt handlers
 void minmac_rx_isr(unsigned int * registers) {
-    return registers;
 }
 
 
 void minmac_tx_isr(unsigned int * registers) {
-    return registers;
 }

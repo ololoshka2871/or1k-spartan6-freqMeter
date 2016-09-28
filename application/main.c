@@ -33,6 +33,7 @@
 #include "irq.h"
 #include "freqmeters.h"
 #include "serial.h"
+#include "minmac.h"
 
 static uint32_t irqCountes[FREQMETERS_COUNT];
 
@@ -72,6 +73,11 @@ void main(void)
         fm_setChanelReloadValue(i, 100, false);
         fm_enableChanel(i, true);
     }
+
+    for (uint8_t i = 0; i < 4; ++i) {
+        minmac_rx_static_slot_alocate();
+    }
+    minmac_control(true, false);
 
     uint8_t v = 1;
     uint16_t count = 0;

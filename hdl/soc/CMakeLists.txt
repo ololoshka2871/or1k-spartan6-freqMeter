@@ -52,3 +52,9 @@ add_custom_target(soc_sources
 
 set(SOC_HDL_V		    ${SOC_HDL_V}		PARENT_SCOPE)
 set(SOC_HDL_VHDL            ${SOC_HDL_VHDL}             PARENT_SCOPE)
+
+set(FREQMETERS_BASE         0x11000000                  PARENT_SCOPE)
+set(MAC_TX_MEM_BASE         0x11200000                  PARENT_SCOPE)
+set(MAC_RX_MEM_BASE         0x11300000                  PARENT_SCOPE)
+set(MAC_CTL_BASE            0x11100000                  PARENT_SCOPE)
+
