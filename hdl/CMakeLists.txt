@@ -193,6 +193,8 @@ endforeach()
 
 #------------------------------------/sym---------------------------------------
 
+math(EXPR _MEMORY_UNIT_SIZE "${MEMORY_UNIT_SIZE}")
+
 set(PRJ_FILE_NAME           ${PRJ_FILE_NAME}            PARENT_SCOPE)
 set(TOP_MODULE_NAME         ${TOP_MODULE_NAME}          PARENT_SCOPE)
 set(PRJ_TEXT                ${PRJ_TEXT}                 PARENT_SCOPE)
@@ -202,3 +204,11 @@ set(UCF_FILE_NAME           ${UCF_FILE_NAME}            PARENT_SCOPE)
 set(F_INPUTS_COUNT          ${F_INPUTS_COUNT}           PARENT_SCOPE)
 
 set(USER_CODE_FLASH_OFFSET  ${USER_CODE_FLASH_OFFSET}   PARENT_SCOPE)
+
+set(MYMINMAC_RX_SLOTS       ${MYMINMAC_RX_SLOTS}        PARENT_SCOPE)
+set(MYMINMAC_TX_SLOTS       ${MYMINMAC_TX_SLOTS}        PARENT_SCOPE)
+set(MAC_TX_MEM_BASE         ${MAC_TX_MEM_BASE}          PARENT_SCOPE)
+set(MAC_RX_MEM_BASE         ${MAC_RX_MEM_BASE}          PARENT_SCOPE)
+set(MAC_CTL_BASE            ${MAC_CTL_BASE}             PARENT_SCOPE)
+set(MTU                     ${MTU}                      PARENT_SCOPE)
+set(MEMORY_UNIT_SIZE        ${_MEMORY_UNIT_SIZE}        PARENT_SCOPE)

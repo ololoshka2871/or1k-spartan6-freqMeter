@@ -1,5 +1,4 @@
 #****************************************************************************
-#* CMakeLists.txt
 #*
 #*   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
 #*   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -14,9 +13,6 @@
 #*    notice, this list of conditions and the following disclaimer in
 #*    the documentation and/or other materials provided with the
 #*    distribution.
-#* 3. Neither the name NuttX nor the names of its contributors may be
-#*    used to endorse or promote products derived from this software
-#*    without specific prior written permission.
 #*
 #* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -43,7 +39,6 @@ INCLUDE("or1k_toolchain")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
 
-
 set(MK_APP_LD_SCRIPT   "${CMAKE_CURRENT_SOURCE_DIR}/scripts/mkldscript.sh")
 set(LD_SCRIPT_FILE_IN  "${CMAKE_CURRENT_SOURCE_DIR}/link.app.ld.in")
 set(LD_SCRIPT_FILE     "${CMAKE_CURRENT_BINARY_DIR}/link.app.ld")
@@ -63,6 +58,12 @@ add_custom_command(
             ${HEADER_W1}
             ${HEADER_W2}
             ${USER_CODE_FLASH_OFFSET}
+            ${MAC_TX_MEM_BASE}
+            ${MAC_RX_MEM_BASE}
+            ${MYMINMAC_RX_SLOTS}
+            ${MYMINMAC_TX_SLOTS}
+            ${MEMORY_UNIT_SIZE}
+            ${MTU}
             ${TOOLCHAIN_PREFIX} > ${LD_SCRIPT_FILE}
     DEPENDS
         ${BOOTLOADER_IMAGE_ELF} ${LD_SCRIPT_FILE_IN}

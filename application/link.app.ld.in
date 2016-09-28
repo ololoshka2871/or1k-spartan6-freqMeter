@@ -2,6 +2,8 @@
 MEMORY 
 {
   sram  (rwx) : ORIGIN = @APP_START@, LENGTH = @APP_SIZE@
+  mactx (rw)  : ORIGIN = @MAC_TX_MEM_BASE@, LENGTH = @MAC_TX_MEM_SIZE@
+  macrx (rw)  : ORIGIN = @MAC_RX_MEM_BASE@, LENGTH = @MAC_RX_MEM_SIZE@
 }
 
 SECTIONS
@@ -67,4 +69,18 @@ SECTIONS
     __heap_end__ = .;
     __HeapLimit = __heap_end__;
   } > sram
+
+  .mac_tx_ram (NOLOAD) :
+  {
+    PROVIDE(mac_tx_ram_start = .);
+    . += @MAC_TX_MEM_SIZE@;
+    PROVIDE(mac_tx_ram_end = .);
+  } > mactx
+
+  .mac_rx_ram (NOLOAD) :
+  {
+    PROVIDE(mac_rx_ram_start = .);
+    . += @MAC_RX_MEM_SIZE@;
+    PROVIDE(mac_rx_ram_end = .);
+  } > macrx
 }

@@ -52,3 +52,9 @@ add_custom_target(myminmac_sources
 
 set(MYMINMAC_HDL_V		    ${MYMINMAC_HDL_V}		PARENT_SCOPE)
 set(MYMINMAC_HDL_VHDL               ${MYMINMAC_HDL_VHDL}        PARENT_SCOPE)
+set(MYMINMAC_RX_SLOTS               4                           PARENT_SCOPE)
+set(MYMINMAC_TX_SLOTS               1                           PARENT_SCOPE)
+set(MAC_TX_MEM_BASE                 0x11200000                  PARENT_SCOPE)
+set(MAC_RX_MEM_BASE                 0x11300000                  PARENT_SCOPE)
+set(MAC_CTL_BASE                    0x11100000                  PARENT_SCOPE)
+set(MTU                             1530                        PARENT_SCOPE)

@@ -37,13 +37,13 @@ module myminimac
     parameter RX_MEMORY_BASE      = 32'h00000000,
     parameter TX_MEMORY_BASE      = 32'h10000000
 ) (
-    input sys_clk,                                  // WISHBONE clock
-    input sys_rst,                                  // GLOBAL RESET
+    input                           sys_clk,        // WISHBONE clock
+    input                           sys_rst,        // GLOBAL RESET
 
-    output irq_rx,                                  // RX interrupt
-    output irq_tx,                                  // TX interrupt
+    output                          irq_rx,         // RX interrupt
+    output                          irq_tx,         // TX interrupt
 
-    input  wire [31:0]  		      csr_adr_i,      // control logic addr
+    input  wire [31:0]              csr_adr_i,      // control logic addr
     input  wire                     csr_we_i,       // control logick write enable
     input  wire [31:0]              csr_dat_i,      // control logick data input
     output wire [31:0]              csr_dat_o,      // control logick data output
