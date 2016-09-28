@@ -309,6 +309,7 @@ always @(posedge rmii_clk_i) begin
             slot_state_ctl_i[j] <= 2'b00;
             slot_count_ctl_i[j] <= 0;
         end
+        slot_write_ctl_act <= 4'd0;
         slot_count_ctl_act <= 0;
         tx_remaining_ctl_wr <= 1'b0;
         rst_ctl_ctl_wr <= 1'b0;
@@ -365,19 +366,19 @@ always @(posedge rmii_clk_i) begin
             case(1'b1)
                 select0: begin
                     slot_state_ctl_i[0] <= 2'b10;
-                    slot_write_ctl_act[0] <= 1'b0;
+                    slot_write_ctl_act[0] <= 1'b1;
                     end
                 select1: begin
                     slot_state_ctl_i[1] <= 2'b10;
-                    slot_write_ctl_act[1] <= 1'b0;
+                    slot_write_ctl_act[1] <= 1'b1;
                     end
                 select2: begin
                     slot_state_ctl_i[2] <= 2'b10;
-                    slot_write_ctl_act[2] <= 1'b0;
+                    slot_write_ctl_act[2] <= 1'b1;
                     end
                 select3: begin
                     slot_state_ctl_i[3] <= 2'b10;
-                    slot_write_ctl_act[3] <= 1'b0;
+                    slot_write_ctl_act[3] <= 1'b1;
                     end
             endcase
         end

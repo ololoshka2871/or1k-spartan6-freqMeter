@@ -74,13 +74,21 @@ reg [COUNTER_WIDTH-1:0] ressive_counter;
 reg [ADDR_LEN-1:2] write_adr;
 reg ressiving_frame;
 reg rx_byte_error;
-reg wr_request;
 
-wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory = {input_data, phy_rmii_rx_data};
+wire [MEMORY_DATA_WIDTH - 1:0] shifted_data = {input_data, phy_rmii_rx_data};
+wire [1:0] shift_selector = ressive_counter[COUNTER_WIDTH-1 -:2];
+wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory =
+    shift_selector == 2'b00 ? {shifted_data[7:0], 24'd0} :
+    shift_selector == 2'b01 ? {shifted_data[15:0], 16'd0}:
+    shift_selector == 2'b10 ? {shifted_data[23:0], 8'd0}:
+    shifted_data;
 
 wire shifting_in_progress = (ressive_counter[1:0] != 2'b00);
 wire ressived30bytes = (ressive_counter == ((MEMORY_DATA_WIDTH / 2) - 1));
+wire write_trigger = (ressive_counter[1:0] == 2'b11);
 wire memory_error;
+
+wire wr_request = write_trigger & rx_valid & ressiving_frame;
 
 wb_dma_ram
 #(
@@ -112,13 +120,11 @@ always @(posedge phy_rmii_clk) begin
         ressive_counter <= 0;
         ressiving_frame <= 1'b0;
         rx_resetcount <= 1'b0;
-        wr_request <= 1'b0;
         rx_byte_error <= 1'b0;
         rx_endframe <= 1'b0;
     end else begin
         rx_endframe <= 1'b0;
         rx_byte_error <= 1'b0;
-        wr_request <= 1'b0;
         input_data <= {input_data[MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0], phy_rmii_rx_data};
         rx_resetcount <= 1'b0;
 
@@ -129,7 +135,6 @@ always @(posedge phy_rmii_clk) begin
                 if (ressived30bytes) begin
                     ressive_counter <= 0;
                     if (rx_valid) begin
-                        wr_request <= 1'b1; // write request if control says "ok"
                         write_adr <= write_adr + 1;
                     end
                 end
