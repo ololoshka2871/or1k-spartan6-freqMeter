@@ -109,7 +109,6 @@ set(PRJ_TEXT
     ${ALTOR32_CORE_PRJ}
     ${SOC_V_PRJ}
     ${SOC_VHDL_PRJ}
-    ${MEMORY_PRJ}
     ${MINMAC_PRJ}
     ${MYMINMAC_PRJ}
     ${MYMINMAC_VHDL_PRJ}
@@ -117,7 +116,9 @@ set(PRJ_TEXT
     ${TOP_PRJ}
     )
 
-file(WRITE ${PRJ_FILE_NAME}.tmp ${PRJ_TEXT})
+set(PRJ_BUILD ${PRJ_TEXT} ${MEMORY_PRJ})
+
+file(WRITE ${PRJ_FILE_NAME}.tmp ${PRJ_BUILD})
 
 add_custom_target(hdl
     COMMAND
@@ -166,6 +167,7 @@ foreach(testfile ${TESTBENCH_HDL_V})
 
     file(WRITE ${test_prj_file}.tmp
         ${PRJ_TEXT}
+        ${MEMORY_HDL_SIM_PRJ}
 	${TB_PRJ}
 	${XILINX_VERILOG_glbl_PRJ}
 	)

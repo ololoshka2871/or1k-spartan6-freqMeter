@@ -30,7 +30,7 @@ THE SOFTWARE.
 module wb_dma_ram
 #(
     parameter NUM_OF_MEM_UNITS_TO_USE = 1,
-    parameter WB_ADDR_WIDTH = $clog2(NUM_OF_MEM_UNITS_TO_USE * `MEMORY_UNIT_SIZE),  // width of address bus in bits
+    parameter WB_ADDR_WIDTH = $clog2(NUM_OF_MEM_UNITS_TO_USE * `MEMORY_UNIT_SIZE / 8),  // width of address bus in bits
     parameter INIT_FILE_NAME = "NONE"
 )
 (

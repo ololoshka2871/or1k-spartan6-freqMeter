@@ -39,6 +39,12 @@ module tb_top;
         wire     sck_o;
         wire     mosi_o;
 
+        wire     phy_tx_en;
+        wire     rmii_clk;
+        wire     mii_mdclk;
+        wire     mii_mdio;
+        wire  [1:0]   rmi_tx_data;
+
         wire [23:0] Fin;
 
         reg [32:0] devided_clocks;
@@ -77,11 +83,11 @@ module tb_top;
 
             .phy_rmii_rx_data(2'b00),
             .phy_rmii_crs(1'b0),
-            .phy_rmii_tx_data(),
-            .phy_tx_en(),
-            .phy_rmii_clk(),
-            .phy_mdclk(),
-            .phy_mdio(),
+            .phy_rmii_tx_data(rmi_tx_data),
+            .phy_tx_en(phy_tx_en),
+            .phy_rmii_clk(rmii_clk),
+            .phy_mdclk(mii_mdclk),
+            .phy_mdio(mii_mdio),
 
             .Fin(Fin[`F_INPUTS_COUNT-1:0])
 	);
@@ -93,7 +99,6 @@ module tb_top;
             devided_clocks = 0;
             // Wait 100 ns for global reset to finish
             #100;
-            rst = 0'b0;
 
             // Add stimulus here
 

@@ -217,7 +217,7 @@ freqmeters
     .INPUT_FREQ_COUNTER_LEN(INPUT_FREQ_COUNTER_LEN)
 ) fm (
     .clk_i(clk_i),
-    .rst_i(reset),
+    .rst_i(rst_i),
     .cyc_i(freqmeter_cyc),
     .stb_i(freqmeter_stb),
     .adr_i(freqmeter_addr),
@@ -241,7 +241,7 @@ myminimac
     .TX_MEMORY_BASE(32'h11200000)
 ) ethernet (
     .sys_clk(clk_i),
-    .sys_rst(reset),
+    .sys_rst(rst_i),
 
     .irq_rx(ethernat_rx_int),
     .irq_tx(ethernat_tx_int),

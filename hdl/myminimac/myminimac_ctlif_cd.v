@@ -92,8 +92,13 @@ IOBUF #(
 reg mii_data_di1;
 reg mii_data_di;
 always @(posedge sys_clk) begin
-    mii_data_di1 <= phy_mii_data_i;
-    mii_data_di <= mii_data_di1;
+    if (sys_rst) begin
+        mii_data_di1 <= 1'b0;
+        mii_data_di <= 1'b0;
+    end else begin
+        mii_data_di1 <= phy_mii_data_i;
+        mii_data_di <= mii_data_di1;
+    end
 end
 
 /********************************* RX *****************************************/

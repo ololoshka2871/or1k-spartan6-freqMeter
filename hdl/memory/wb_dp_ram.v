@@ -30,9 +30,9 @@ THE SOFTWARE.
 module wb_dp_ram
 #(
     parameter LOAD_IMAGE = 0,
-    parameter NUM_OF_SYS_MEM_UNITS  = 31,
+    parameter NUM_OF_MEM_UNITS_TO_USE  = 31,
     parameter DATA_WIDTH = 32,                                                              // width of data bus in bits (8, 16, 32, or 64)
-    parameter ADDR_WIDTH = $clog2(NUM_OF_SYS_MEM_UNITS * `MEMORY_UNIT_SIZE),                // width of address bus in bits
+    parameter ADDR_WIDTH = $clog2(NUM_OF_MEM_UNITS_TO_USE * `MEMORY_UNIT_SIZE / 8),         // width of address bus in bits
     parameter SELECT_WIDTH = (DATA_WIDTH/8)                                                 // width of word select bus (1, 2, 4, or 8)
 )
 (
@@ -68,7 +68,7 @@ parameter WORD_WIDTH = SELECT_WIDTH;
 // size of words (8, 16, 32, or 64 bits)
 parameter WORD_SIZE = DATA_WIDTH/WORD_WIDTH;
 
-parameter MEMORY_SIZE_bits = NUM_OF_SYS_MEM_UNITS * `MEMORY_UNIT_SIZE;
+parameter MEMORY_SIZE_bits = NUM_OF_MEM_UNITS_TO_USE * `MEMORY_UNIT_SIZE;
 parameter MEMORY_CELLS_NUMBER = MEMORY_SIZE_bits / DATA_WIDTH;
 
 reg [DATA_WIDTH-1:0] a_dat_o_reg = {DATA_WIDTH{1'b0}};

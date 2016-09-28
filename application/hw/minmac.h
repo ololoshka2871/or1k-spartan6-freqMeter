@@ -65,8 +65,9 @@
 
 #define MINMAC_MDIO_BB          (*(REG32 (MAC_CTL_BASE + 0x4)))
 #define MINMAC_MDIO_BB_DO       (1 << 0)
-#define MINMAC_MDIO_BB_OE       (1 << 1)
-#define MINMAC_MDIO_BB_CLK      (1 << 2)
+#define MINMAC_MDIO_BB_DI       (1 << 1) //RO
+#define MINMAC_MDIO_BB_OE       (1 << 2)
+#define MINMAC_MDIO_BB_CLK      (1 << 3)
 
 #define MINMAC_SLOT0_STATE      (*(REG32 (MAC_CTL_BASE + 0x8)))
 #define MINMAC_SLOT0_ADDR       (*(REG32 (MAC_CTL_BASE + 0xb)))
