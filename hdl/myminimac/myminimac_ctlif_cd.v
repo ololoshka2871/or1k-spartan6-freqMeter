@@ -523,21 +523,61 @@ always @(posedge sys_clk) begin
     end
 end
 
-reg tx_valid_r; // prev of tx_valid
+//------------------------------------------------------------------------------
+
+wire tx_valid_sys;
+wire irq_rx_sys;
+
+data_synchronizier
+#(
+    .DATA_WIDTH(1)
+) tx_valid_sync (
+    .clk_i(sys_clk),
+    .rst_i(sys_rst),
+    .Q(tx_valid_sys),
+    .D_hip_i(tx_valid),
+    .D_lop_i(1'b0),
+    .WR_hip_i(1'b1),
+    .WR_lop_i(1'b0),
+    .data_changed_o(/* open */),
+    .change_accepted_i(1'b1)
+);
+
+// rx interrupt if any slot are ressived data
+wire irq_rx_ctl = slot_state_ctl_o[0][1] | slot_state_ctl_o[1][1] |
+        slot_state_ctl_o[2][1] | slot_state_ctl_o[3][1] | rx_rst;
+
+data_synchronizier
+#(
+    .DATA_WIDTH(1)
+) irq_rx_sync (
+    .clk_i(sys_clk),
+    .rst_i(sys_rst),
+    .Q(irq_rx_sys),
+    .D_hip_i(irq_rx_ctl),
+    .D_lop_i(1'b0),
+    .WR_hip_i(1'b1),
+    .WR_lop_i(1'b0),
+    .data_changed_o(/* open */),
+    .change_accepted_i(1'b1)
+);
+
+reg tx_valid_r;
+reg irq_rx_r;
 
 always @(posedge sys_clk) begin
     if(sys_rst) begin
+        irq_rx_r <= 1'b0;
         irq_rx <= 1'b0;
         tx_valid_r <= 1'b0;
         irq_tx <= 1'b0;
     end else begin
-        // rx interrupt if any slot are ressived data
-
-        irq_rx <= slot_state_ctl_o[0][1] | slot_state_ctl_o[1][1] |
-                    slot_state_ctl_o[2][1] | slot_state_ctl_o[3][1] | rx_rst;
-        tx_valid_r <= tx_valid;
-        irq_tx <= tx_valid_r & ~tx_valid; // tx interrupt if tx_valid 1 -> 0
+        irq_rx_r <= irq_rx_ctl;
+        irq_rx <= irq_rx_ctl & ~irq_rx_r;
+        tx_valid_r <= tx_valid_sys;
+        irq_tx <= tx_valid_r & ~tx_valid_sys; // tx interrupt if tx_valid 1 -> 0
     end
 end
+
 
 endmodule
