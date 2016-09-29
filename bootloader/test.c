@@ -66,7 +66,7 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
 
     miniMAC_control(true, true);
 
-    for (uint8_t i = 0; i < 5; ++i) { // 4 - simulate drop
+    for (uint8_t i = 0; i < 4; ++i) {
         miniMAC_tx_start(17 * (i + 1));
         while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_TX)));
         IRQ_STATUS = (1 << IRQ_MINIMAC_TX);
