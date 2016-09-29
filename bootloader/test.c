@@ -34,7 +34,7 @@
 #include "freqmeters.h"
 #include "minmac.h"
 
-static void GDB_STUB_SECTION_TEXT start_freqmeter() {
+static void GDB_STUB_SECTION_TEXT test_freqmeter() {
     fm_init();
 
     FM_IF = 0xFFFFFFFF;
@@ -66,7 +66,20 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
 
     miniMAC_control(true, true);
 
-    miniMAC_tx_start(13);
+    for (uint8_t i = 0; i < 4; ++i) {
+        miniMAC_tx_start(17 * (i + 1));
+        while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_TX)));
+        IRQ_STATUS = (1 << IRQ_MINIMAC_TX);
+        while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_RX)));
+        enum enMiniMACRxSlots slot =
+                miniMAC_findSlotWithState(MINIMAC_SLOT_STATE_DATA_RESSIVED);
+
+        uint8_t *ppayload;
+        uint16_t ppl_size;
+        if (MINIMAC_OK != miniMAC_verifyRxData(slot, &ppayload, &ppl_size))
+            miniMAC_reset_rx_slot(slot);
+        IRQ_STATUS = (1 << IRQ_MINIMAC_RX);
+    }
 }
 
 void GDB_STUB_SECTION_TEXT start_tests() {

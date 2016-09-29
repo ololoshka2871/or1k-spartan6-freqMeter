@@ -83,8 +83,8 @@ reg [DATA_WIDTH-1:0] mem[MEMORY_CELLS_NUMBER - 1:0];
 wire [VALID_ADDR_WIDTH-1:0] a_adr_i_valid = a_adr_i >> (ADDR_WIDTH - VALID_ADDR_WIDTH);
 wire [VALID_ADDR_WIDTH-1:0] b_adr_i_valid = b_adr_i >> (ADDR_WIDTH - VALID_ADDR_WIDTH);
 
-wire a_incorrect_addr = a_adr_i > MEMORY_CELLS_NUMBER;
-wire b_incorrect_addr = b_adr_i > MEMORY_CELLS_NUMBER;
+wire a_incorrect_addr = a_adr_i_valid > MEMORY_CELLS_NUMBER;
+wire b_incorrect_addr = b_adr_i_valid > MEMORY_CELLS_NUMBER;
 
 assign a_dat_o = a_dat_o_reg;
 assign a_ack_o = a_ack_o_reg;

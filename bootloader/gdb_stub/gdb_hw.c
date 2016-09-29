@@ -79,9 +79,9 @@ static inline void mtspr(unsigned long spr, unsigned long value)
 //-----------------------------------------------------------------
 void GDB_STUB_SECTION_TEXT gdb_pollrx (void)
 {    
-    if (UART_USR & UART_RX_AVAIL)
+    if (UART0_USR & UART_RX_AVAIL)
     {
-        _rx_buf[_rx_tail] = UART_UDR;
+        _rx_buf[_rx_tail] = UART0_UDR;
 
         if (++_rx_tail == MAX_RX_BUF)
             _rx_tail = 0;
@@ -92,8 +92,8 @@ void GDB_STUB_SECTION_TEXT gdb_pollrx (void)
 //-----------------------------------------------------------------
 void GDB_STUB_SECTION_TEXT gdb_putchar (char c)
 {
-    UART_UDR = c;
-    while (UART_USR & UART_TX_BUSY)
+    UART0_UDR = c;
+    while (UART0_USR & UART_TX_BUSY)
         gdb_pollrx();
 }
 //-------------------------------------------------------------

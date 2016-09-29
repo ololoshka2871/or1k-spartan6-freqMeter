@@ -8,7 +8,7 @@
 
 #ifndef FREQMETERS_BASE
 #warning "FREQMETERS_BASE undefined"
-#define FREQMETERS_BASE         0x11000000
+#define FREQMETERS_BASE         (FIO_BASE + 0x00000000)
 #endif
 
 #ifndef FREQMETERS_COUNT

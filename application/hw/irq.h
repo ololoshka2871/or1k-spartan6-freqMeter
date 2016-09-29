@@ -18,9 +18,13 @@ enum InterruptSources {
     IS_TIMER_HIRES = IRQ_TIMER_HIRES,
     IS_BOOT_SPI = IRQ_BOOT_SPI,
     IS_GPIO = IRQ_GPIO,
-    IS_FREQMETERS = IRQ_FREQMETERS,
 
-    IS_Count = IS_FREQMETERS + 1
+    // ext
+    IS_FREQMETERS = IRQ_FREQMETERS,
+    IS_MINIMAC_TX = IRQ_MINIMAC_TX,
+    IS_MINIMAC_RX = IRQ_MINIMAC_RX,
+
+    IS_Count = IS_MINIMAC_RX + 1
 };
 
 //-----------------------------------------------------------------

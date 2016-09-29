@@ -40,7 +40,7 @@ static uint32_t align32(uint32_t x) {
     return x;
 }
 
-static enum enMiniMACRxSlots findSlotWithState(enum enMiniMACSlotStates state) {
+enum enMiniMACRxSlots miniMAC_findSlotWithState(enum enMiniMACSlotStates state) {
     for (enum enMiniMACRxSlots slot = MINIMAC_RX_SLOT0; slot < MINIMAC_RX_SLOT_COUNT; ++slot) {
         enum enMiniMACSlotStates slot_state = MINIMAC_SLOT_STATE(slot);
         if (slot_state == state)
@@ -57,12 +57,12 @@ void miniMAC_control(bool rx_enable, bool tx_enable) {
 
 enum enMiniMACRxSlots miniMAC_rx_static_slot_allocate() {
     // find unused slot
-    enum enMiniMACRxSlots slot = findSlotWithState(MINIMAC_SLOT_STATE_DISABLED);
+    enum enMiniMACRxSlots slot =
+            miniMAC_findSlotWithState(MINIMAC_SLOT_STATE_DISABLED);
     if (slot == MINIMAC_RX_SLOT_INVALID)
         return slot;
 
-    MINIMAC_SLOT_ADDR(slot) = align32(MAC_RX_MEM_BASE + MTU * (int)slot);
-    MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
+    miniMAC_reset_rx_slot(slot);
     return slot;
 }
 
@@ -93,4 +93,36 @@ void miniMAC_rx_isrr(unsigned int * registers) {
 
 
 void miniMAC_tx_isrr(unsigned int * registers) {
+}
+
+void miniMAC_reset_rx_slot(enum enMiniMACRxSlots slot) {
+    MINIMAC_SLOT_ADDR(slot) = align32(MAC_RX_MEM_BASE + MTU * (int)slot);
+    MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
+}
+
+enum enMiniMACErrorCodes miniMAC_verifyRxData(enum enMiniMACRxSlots slot,
+        uint8_t **ppayload, uint16_t *ppl_size) {
+    enum enMiniMACErrorCodes ret = MINIMAC_OK;
+
+    // block slot
+    MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_DISABLED;
+
+    // verifying
+    // if ()
+    // if ()
+    // ...
+    if (ppayload && ppl_size) {
+        // TODO
+        *ppayload = MINIMAC_SLOT_ADDR(slot);
+        *ppl_size = MINIMAC_SLOT_COUNT(slot);
+    }
+    return ret; // OK
+
+__verify_error:
+    if (ppayload && ppl_size) {
+        // TODO
+        *ppayload = NULL;
+        *ppl_size = 0;
+    }
+    return ret; // error code there
 }

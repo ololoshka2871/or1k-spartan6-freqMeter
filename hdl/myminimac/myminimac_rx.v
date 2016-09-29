@@ -130,6 +130,7 @@ always @(posedge phy_rmii_clk) begin
         rx_resetcount <= 1'b0;
         rx_byte_error <= 1'b0;
         rx_endframe <= 1'b0;
+        write_adr <= 0;
     end else begin
         rx_endframe <= 1'b0;
         rx_byte_error <= 1'b0;
@@ -162,9 +163,6 @@ always @(posedge phy_rmii_clk) begin
                 ressiving_frame <= 1'b0;
                 rx_endframe   <= ~shifting_in_progress;
                 rx_byte_error <=  shifting_in_progress;
-                if (~shifting_in_progress) begin
-                    rx_resetcount <= 1'b1;  // 8, 16 or 24 bytes are valid, so write it!
-                end
             end
     end
 end
