@@ -75,9 +75,9 @@ void main(void)
     }
 
     for (uint8_t i = 0; i < 4; ++i) {
-        minmac_rx_static_slot_alocate();
+        miniMAC_rx_static_slot_alocate();
     }
-    minmac_control(true, false);
+    miniMAC_control(true, false);
 
     uint8_t v = 1;
     uint16_t count = 0;

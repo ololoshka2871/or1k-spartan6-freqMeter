@@ -33,42 +33,43 @@
 
 #include "minmac.h"
 
-static enum enMinmacRxSlots findSlotWithState(enum enMinmacSlotStates state) {
-    for (enum enMinmacRxSlots slot = 0; slot < MINMAC_RX_SLOT_COUNT; ++slot) {
-        enum enMinmacSlotStates slot_state = MINMAC_SLOT_STATE(slot);
+static uint32_t align32(uint32_t x) {
+    if (x & 0b11)
+        return (x & 0xFFFFFFFC) + 0b100;
+    return x;
+}
+
+static enum enMiniMACRxSlots findSlotWithState(enum enMiniMACSlotStates state) {
+    for (enum enMiniMACRxSlots slot = MINIMAC_RX_SLOT0; slot < MINIMAC_RX_SLOT_COUNT; ++slot) {
+        enum enMiniMACSlotStates slot_state = MINIMAC_SLOT_STATE(slot);
         if (slot_state == state)
             return slot;
     }
-    return MINMAC_RX_SLOT_INVALID;
+    return MINIMAC_RX_SLOT_INVALID;
 }
 
-void minmac_control(bool rx_enable, bool tx_enable) {
-    MINMAC_RST_CTL = (uint32_t)rx_enable | (((uint32_t)tx_enable) << 1);
+void miniMAC_control(bool rx_enable, bool tx_enable) {
+    MINIMAC_RST_CTL = (rx_enable ? 0 : MINIMAC_RST_RX) |
+            (tx_enable ? 0 : MINIMAC_RST_TX);
 }
 
 
-enum enMinmacRxSlots minmac_rx_static_slot_alocate() {
+enum enMiniMACRxSlots miniMAC_rx_static_slot_alocate() {
     // find unused slot
-    enum enMinmacRxSlots slot = findSlotWithState(MINMAC_SLOT_STATE_DISABLED);
-    if (slot == MINMAC_RX_SLOT_INVALID)
+    enum enMiniMACRxSlots slot = findSlotWithState(MINIMAC_SLOT_STATE_DISABLED);
+    if (slot == MINIMAC_RX_SLOT_INVALID)
         return slot;
 
-    static const uint32_t static_rx_alocation_table[] = {
-        MAC_RX_MEM_BASE + 0,
-        MAC_RX_MEM_BASE + MTU * 1,
-        MAC_RX_MEM_BASE + MTU * 2,
-        MAC_RX_MEM_BASE + MTU * 3
-    };
-    MINMAC_SLOT_ADDR(slot) = static_rx_alocation_table[slot];
-    MINMAC_SLOT_STATE(slot) = MINMAC_SLOT_STATE_READY;
+    MINIMAC_SLOT_ADDR(slot) = align32(MAC_RX_MEM_BASE + MTU * (int)slot);
+    MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
     return slot;
 }
 
 
 // interrupt handlers
-void minmac_rx_isr(unsigned int * registers) {
+void miniMAC_rx_isrr(unsigned int * registers) {
 }
 
 
-void minmac_tx_isr(unsigned int * registers) {
+void miniMAC_tx_isrr(unsigned int * registers) {
 }

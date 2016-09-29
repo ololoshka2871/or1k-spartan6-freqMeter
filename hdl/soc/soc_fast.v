@@ -120,27 +120,13 @@ wire                ethernet_rxbuf_stall;
 
 //------------------------------------------------------------------------------
 
-wire [31:0]         wbrx_adr;
-wire                wbrx_cyc;
-wire                wbrx_stb;
-wire                wbrx_ack;
-wire [31:0]         wbrx_dat;
-
-wire [31:0]         wbtx_adr;
-wire                wbtx_cyc;
-wire                wbtx_stb;
-wire                wbtx_ack;
-wire [31:0]         wbtx_dat;
-
-//------------------------------------------------------------------------------
-
 wire                freqmeter_inta;
 wire                ethernat_rx_int;
 wire                ethernat_tx_int;
 
 //------------------------------------------------------------------------------
 
-assign interrupts = {ethernat_rx_int, ethernat_tx_int, freqmeter_inta};
+assign interrupts_o = {ethernat_rx_int, ethernat_tx_int, freqmeter_inta};
 
 // muxer
 dmem_mux4

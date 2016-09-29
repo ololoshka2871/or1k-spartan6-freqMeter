@@ -57,23 +57,24 @@ static void GDB_STUB_SECTION_TEXT test_multiplication() {
 
 static void GDB_STUB_SECTION_TEXT test_minmac() {
     for (uint8_t i = 0; i < 4; ++i) {
-        minmac_rx_static_slot_alocate();
+        miniMAC_rx_static_slot_alocate();
     }
 
-    minmac_control(true, false);
+    miniMAC_control(true, false);
+
 
 }
 
 void GDB_STUB_SECTION_TEXT start_tests() {
-#ifdef START_FREQMETER
+#ifdef SIM_TEST_FREQMETER
     start_freqmeter();
 #endif
 
-#ifdef TEST_MULTIPLICATION
+#ifdef SIM_TEST_MULTIPLICATION
     test_multiplication();
 #endif
 
-#ifdef TEXT_MINMAC
+#ifdef SIM_TEST_MINIMAC
     test_minmac();
 #endif
 }

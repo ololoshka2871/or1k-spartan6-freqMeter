@@ -55,20 +55,30 @@ endif()
 
 add_definitions(-DBOOTLOADER)
 
-# TESTS
+################# TESTS #####################
 include_directories(gdb_stub)
 set(TEST_SRC
     freqmeters.c
     minmac.c
     )
+
 add_definitions(
-    #-DSTART_FREQMETER
-    #-DTEST_MULTIPLICATION
-    -DTEST_MINMAC
-    -DFREQMETERS_COUNT=24
     -DF_REF=${REFERENCE_CLOCK_HZ}
+    -DFREQMETERS_COUNT=24
     )
-#
+
+if (SIM_TEST_FREQMETER)
+    add_definitions(-DSIM_TEST_FREQMETER)
+endif()
+
+if (SIM_TEST_MULTIPLICATION)
+    add_definitions(-DSIM_TEST_MULTIPLICATION)
+endif()
+
+if (SIM_TEST_MINIMAC)
+    add_definitions(-DSIM_TEST_MINIMAC)
+endif()
+##############################################
 
 add_executable(${PROJECT_NAME}.elf
     ${BOOT_S}

@@ -112,6 +112,14 @@ set(CPU_PLL_MULTIPLYER      25
 set(CPU_CLOCK_DEVIDER       24
     CACHE STRING "Input clock to RMII and CPU 50MHz devider")
 
+#--- test firmware ---
+set(SIM_TEST_FREQMETER      OFF
+    CACHE BOOL  "Bootloader firmware tests freqmeter IP-core")
+set(SIM_TEST_MULTIPLICATION      OFF
+    CACHE BOOL  "Bootloader firmware tests processor multiplication")
+set(SIM_TEST_MINIMAC        OFF
+    CACHE BOOL  "Bootloader firmware tests myminimac IP-core")
+
 #----------------------------------/config--------------------------------------
 
 #--------------------------------Calculable-------------------------------------

@@ -36,9 +36,9 @@
 // 0x11000004
 #define FM_IF                   (*(REG32(FREQMETERS_BASE + sizeof(uint32_t))))
 
-#define FM_START_VAL_CH(chanel) (*(REG32(FM_START_VALS_BASE + chanel * sizeof(uint32_t))))
-#define FM_STOP_VAL_CH(chanel)  (*(REG32(FM_STOP_VALS_BASE + chanel * sizeof(uint32_t))))
-#define FM_RELOAD_CH(chanel, v) (*(REG32(FM_RELOADINGS_BASE + chanel * sizeof(uint32_t))) = v)
+#define FM_START_VAL_CH(chanel) (*(REG32(FM_START_VALS_BASE + (chanel) * sizeof(uint32_t))))
+#define FM_STOP_VAL_CH(chanel)  (*(REG32(FM_STOP_VALS_BASE + (chanel) * sizeof(uint32_t))))
+#define FM_RELOAD_CH(chanel, v) (*(REG32(FM_RELOADINGS_BASE + (chanel) * sizeof(uint32_t))) = (v))
 
 struct freqmeter_chanel {
     uint32_t newReload_vals[3]; // 0 - new, 1 - in_work, 2 - ready

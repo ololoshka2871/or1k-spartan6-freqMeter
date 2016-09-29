@@ -37,7 +37,7 @@ module myminimac_tx
     parameter MTU                   = 1530,
     parameter SLOTS_COUNT           = 1,                // memory to alocate
     parameter MEM_UNITS_TO_ALLOC    = $rtoi($ceil(MTU * $itor(SLOTS_COUNT) / (`MEMORY_UNIT_SIZE / 8))),
-    parameter ADDR_LEN              = $clog2(MEM_UNITS_TO_ALLOC * `MEMORY_UNIT_SIZE)
+    parameter ADDR_LEN              = $clog2(MEM_UNITS_TO_ALLOC * `MEMORY_UNIT_SIZE / 8)
 ) (
     input                           sys_clk,            // System clock
     input                           sys_rst,            // System reset

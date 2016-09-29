@@ -147,13 +147,6 @@ wire[`F_INPUTS_COUNT-1:0] Fin;
 
 wire[`F_INPUTS_COUNT-1:0] Fin_inv_pars;
 
-// ethernet MII
-wire [3:0]          mii_rxdata;
-wire [3:0]          mii_txdata;
-wire                mii_rxdv;
-wire                mii_txen;
-wire                mii_clk;
-
 wire                rmii_clk;
 
 //-----------------------------------------------------------------
@@ -262,7 +255,7 @@ u_cpu
 );
 
 // clocking provider
-clock_provider clp_prov
+clock_provider clk_prov
 (
     .clk_i(clk_i),
 

@@ -58,61 +58,56 @@
 //------------------------------------------------------------------------------
 
 // Registers
+#define REG_OFFSET(N)           (sizeof(uint32_t) * (N))
 
-#define MINMAC_RST_CTL          (*(REG32 (MAC_CTL_BASE + 0x0)))
-#define MINMAC_RST_RX           (1 << 0)
-#define MINMAC_RST_TX           (1 << 1)
+#define MINIMAC_RST_CTL         (*(REG32 (MAC_CTL_BASE + REG_OFFSET(0))))
+#define MINIMAC_RST_RX          (1 << 0)
+#define MINIMAC_RST_TX          (1 << 1)
 
-#define MINMAC_MDIO_BB          (*(REG32 (MAC_CTL_BASE + 0x4)))
-#define MINMAC_MDIO_BB_DO       (1 << 0)
-#define MINMAC_MDIO_BB_DI       (1 << 1) //RO
-#define MINMAC_MDIO_BB_OE       (1 << 2)
-#define MINMAC_MDIO_BB_CLK      (1 << 3)
+#define MINIMAC_MDIO_BB         (*(REG32 (MAC_CTL_BASE + REG_OFFSET(1))))
+#define MINIMAC_MDIO_BB_DO      (1 << 0)
+#define MINIMAC_MDIO_BB_DI      (1 << 1) //RO
+#define MINIMAC_MDIO_BB_OE      (1 << 2)
+#define MINIMAC_MDIO_BB_CLK     (1 << 3)
 
-#define MINMAC_SLOT0_STATE      (*(REG32 (MAC_CTL_BASE + 0x8)))
-#define MINMAC_SLOT0_ADDR       (*(REG32 (MAC_CTL_BASE + 0xb)))
-#define MINMAC_SLOT1_STATE      (*(REG32 (MAC_CTL_BASE + 0x10)))
-#define MINMAC_SLOT1_ADDR       (*(REG32 (MAC_CTL_BASE + 0x14)))
-#define MINMAC_SLOT2_STATE      (*(REG32 (MAC_CTL_BASE + 0x18)))
-#define MINMAC_SLOT2_ADDR       (*(REG32 (MAC_CTL_BASE + 0x1b)))
-#define MINMAC_SLOT3_STATE      (*(REG32 (MAC_CTL_BASE + 0x20)))
-#define MINMAC_SLOT4_ADDR       (*(REG32 (MAC_CTL_BASE + 0x24)))
-#define MINMAC_TX_ADDR          (*(REG32 (MAC_CTL_BASE + 0x20)))
-#define MINMAC_TX_REMAINING     (*(REG32 (MAC_CTL_BASE + 0x24)))
+#define MINIMAC_SLOT0_STATE     (*(REG32 (MAC_CTL_BASE + REG_OFFSET(2))))
+#define MINIMAC_SLOT0_ADDR      (*(REG32 (MAC_CTL_BASE + REG_OFFSET(3))))
+#define MINIMAC_SLOT0_COUNT     (*(REG32 (MAC_CTL_BASE + REG_OFFSET(4)))) // RO
 
-#define MINMAC_SLOT_STATE(slot) (*(REG32 (MAC_CTL_BASE + 0x10 + (slot) * 8)))
-#define MINMAC_SLOT_ADDR(slot)  (*(REG32 (MAC_CTL_BASE + 0x14 + (slot) * 8)))
+#define MINIMAC_SLOT_STATE(slot) (*(REG32 (MAC_CTL_BASE + REG_OFFSET(2 + (slot) * 3))))
+#define MINIMAC_SLOT_ADDR(slot)  (*(REG32 (MAC_CTL_BASE + REG_OFFSET(3 + (slot) * 3))))
+#define MINIMAC_SLOT_COUNT(slot) (*(REG32 (MAC_CTL_BASE + REG_OFFSET(4 + (slot) * 3))))// RO
 
-enum enMinmacSlotStates {
-    MINMAC_SLOT_STATE_DISABLED = 0b00,
-    MINMAC_SLOT_STATE_READY = 0b01,
-    MINMAC_SLOT_STATE_DATA_RESSIVED = 0b10,
-    MINMAC_SLOT_STATE_INVALID = 0b11,
+enum enMiniMACSlotStates {
+    MINIMAC_SLOT_STATE_DISABLED = 0b00,
+    MINIMAC_SLOT_STATE_READY = 0b01,
+    MINIMAC_SLOT_STATE_DATA_RESSIVED = 0b10,
+    MINIMAC_SLOT_STATE_INVALID = 0b11,
 };
 
-enum enMinmacRxSlots {
-    MINMAC_RX_SLOT0 = 0,
-    MINMAC_RX_SLOT1 = 1,
-    MINMAC_RX_SLOT2 = 2,
-    MINMAC_RX_SLOT3 = 3,
-    MINMAC_RX_SLOT_COUNT = 4,
-    MINMAC_RX_SLOT_INVALID = 0xff
+enum enMiniMACRxSlots {
+    MINIMAC_RX_SLOT0 = 0,
+    MINIMAC_RX_SLOT1 = 1,
+    MINIMAC_RX_SLOT2 = 2,
+    MINIMAC_RX_SLOT3 = 3,
+    MINIMAC_RX_SLOT_COUNT = 4,
+    MINIMAC_RX_SLOT_INVALID = 0xff
 };
 
-enum enMinmacErrorCodes {
-    MINMAC_OK = 0,
-    MINMAC_E_NOMEM = 1,
+enum enMiniMACErrorCodess {
+    MINIMAC_OK = 0,
+    MINIMAC_E_NOMEM = 1,
 };
 
 //------------------------------------------------------------------------------
 
-void minmac_control(bool rx_enable, bool tx_enable);
+void miniMAC_control(bool rx_enable, bool tx_enable);
 
 // interrupt handlers
-void minmac_rx_isr(unsigned int * registers);
-void minmac_tx_isr(unsigned int * registers);
+void miniMAC_rx_isr(unsigned int * registers);
+void miniMAC_tx_isr(unsigned int * registers);
 
-enum enMinmacRxSlots minmac_rx_static_slot_alocate();
+enum enMiniMACRxSlots miniMAC_rx_static_slot_alocate();
 
 
 #endif // MINMAC_H

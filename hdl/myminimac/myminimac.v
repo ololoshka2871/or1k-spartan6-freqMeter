@@ -83,8 +83,10 @@ module myminimac
 parameter RX_SLOTS = 4;
 parameter TX_SLOTS = 1;
 parameter MTU = 1530;
-parameter RX_ADDR_WIDTH = $clog2($rtoi($ceil(MTU * $itor(RX_SLOTS) / (`MEMORY_UNIT_SIZE / 8))) * `MEMORY_UNIT_SIZE);
-parameter TX_ADDR_WIDTH = $clog2($rtoi($ceil(MTU * $itor(TX_SLOTS) / (`MEMORY_UNIT_SIZE / 8))) * `MEMORY_UNIT_SIZE);
+parameter RX_ADDR_WIDTH = $clog2($rtoi($ceil(MTU * $itor(RX_SLOTS) /
+    (`MEMORY_UNIT_SIZE / 8))) * `MEMORY_UNIT_SIZE / 8);
+parameter TX_ADDR_WIDTH = $clog2($rtoi($ceil(MTU * $itor(TX_SLOTS) /
+    (`MEMORY_UNIT_SIZE / 8))) * `MEMORY_UNIT_SIZE / 8);
 
 wire rx_rst;
 wire tx_rst;

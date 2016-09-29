@@ -101,6 +101,21 @@ always @(posedge sys_clk) begin
     end
 end
 
+reg p_sys_we;
+reg [5:2] p_sys_addr;
+wire sys_wr = ((~p_sys_we & csr_we) | (p_sys_addr != csr_a[5:2])) & csr_we;
+always @(posedge sys_clk) begin
+    if (sys_rst) begin
+        p_sys_we <= 1'b0;
+        p_sys_addr <= 4'd0;
+    end else begin
+        p_sys_we <= csr_we;
+        p_sys_addr <= csr_a[5:2];
+    end
+end
+
+wire [5:2] reg_selector = csr_a[5:2];
+
 /********************************* RX *****************************************/
 
 /* RX state registers: Wishbone RW, ctl RW */
@@ -407,6 +422,7 @@ always @(posedge sys_clk) begin
 
         for (k = 0; k < 4; k = k + 1) begin
             slot_adr[k] <= 0;
+            slot_state_write[k] <= 2'b00;
         end
 
         slot_state_sys_act <= 4'b0;
@@ -423,9 +439,9 @@ always @(posedge sys_clk) begin
         slot_count_sys_act <= 4'b0;
         tx_remaining_sys_wr <= 1'b0;
 
-        if(csr_we) begin
+        if(sys_wr) begin
             // Write
-            case(csr_a[5:2])
+            case(reg_selector)
                 4'd0 : begin // reset
                     rst_ctl_sys_i <= csr_di[1:0];
                     rst_ctl_sys_wr <= 1'b1;
@@ -477,7 +493,7 @@ always @(posedge sys_clk) begin
         end
 
         // Read
-        case(csr_a[5:2])
+        case(reg_selector)
             4'd0 : csr_do <= rst_ctl_sys_o;
 
             // bitbang MDIO read
