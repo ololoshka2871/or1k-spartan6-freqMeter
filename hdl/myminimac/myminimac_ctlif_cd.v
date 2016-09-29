@@ -523,18 +523,22 @@ always @(posedge sys_clk) begin
     end
 end
 
+wire irq_rx_status = slot_state_ctl_o[0][1] | slot_state_ctl_o[1][1] |
+                    slot_state_ctl_o[2][1] | slot_state_ctl_o[3][1] | rx_rst;
+
 reg tx_valid_r; // prev of tx_valid
+reg irq_rx_r;
 
 always @(posedge sys_clk) begin
     if(sys_rst) begin
         irq_rx <= 1'b0;
+        irq_rx_r <= 1'b0;
         tx_valid_r <= 1'b0;
         irq_tx <= 1'b0;
     end else begin
         // rx interrupt if any slot are ressived data
-
-        irq_rx <= slot_state_ctl_o[0][1] | slot_state_ctl_o[1][1] |
-                    slot_state_ctl_o[2][1] | slot_state_ctl_o[3][1] | rx_rst;
+        irq_rx_r <= irq_rx_status;
+        irq_rx <= irq_rx_status & ~irq_rx_r;
         tx_valid_r <= tx_valid;
         irq_tx <= tx_valid_r & ~tx_valid; // tx interrupt if tx_valid 1 -> 0
     end
