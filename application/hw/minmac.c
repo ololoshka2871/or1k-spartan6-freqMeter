@@ -30,6 +30,7 @@
  ****************************************************************************/
 
 #include <stdint.h>
+#include <stddef.h>
 
 #include "minmac.h"
 
@@ -54,7 +55,7 @@ void miniMAC_control(bool rx_enable, bool tx_enable) {
 }
 
 
-enum enMiniMACRxSlots miniMAC_rx_static_slot_alocate() {
+enum enMiniMACRxSlots miniMAC_rx_static_slot_allocate() {
     // find unused slot
     enum enMiniMACRxSlots slot = findSlotWithState(MINIMAC_SLOT_STATE_DISABLED);
     if (slot == MINIMAC_RX_SLOT_INVALID)
@@ -63,6 +64,26 @@ enum enMiniMACRxSlots miniMAC_rx_static_slot_alocate() {
     MINIMAC_SLOT_ADDR(slot) = align32(MAC_RX_MEM_BASE + MTU * (int)slot);
     MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
     return slot;
+}
+
+enum enMiniMACErrorCodes miniMAC_tx_slot_allocate(uint8_t ** pslot_addr) {
+    if (MINIMAC_TX_REMAINING != 0) {
+        if (pslot_addr) *pslot_addr = NULL;
+        return MINIMAC_E_NOMEM;
+    }
+
+    uint32_t* tx_slot_addr = MAC_TX_MEM_BASE;
+    MINIMAC_TX_SLOT_ADDR = tx_slot_addr;
+    if (pslot_addr) *pslot_addr = tx_slot_addr;
+    return MINIMAC_OK;
+}
+
+enum enMiniMACErrorCodes miniMAC_tx_start(uint16_t byte_count) {
+    if (byte_count <= MTU) {
+        MINIMAC_TX_REMAINING = byte_count;
+        return MINIMAC_OK;
+    }
+    return MINIMAC_MTU_ERROR;
 }
 
 

@@ -57,12 +57,16 @@ static void GDB_STUB_SECTION_TEXT test_multiplication() {
 
 static void GDB_STUB_SECTION_TEXT test_minmac() {
     for (uint8_t i = 0; i < 4; ++i) {
-        miniMAC_rx_static_slot_alocate();
+        miniMAC_rx_static_slot_allocate();
     }
 
-    miniMAC_control(true, false);
+    uint8_t* ptx_slot;
+    miniMAC_tx_slot_allocate(&ptx_slot);
+    memcpy(ptx_slot, 0, 13);
 
+    miniMAC_control(true, true);
 
+    miniMAC_tx_start(13);
 }
 
 void GDB_STUB_SECTION_TEXT start_tests() {

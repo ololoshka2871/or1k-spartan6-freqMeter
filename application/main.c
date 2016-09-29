@@ -75,7 +75,7 @@ void main(void)
     }
 
     for (uint8_t i = 0; i < 4; ++i) {
-        miniMAC_rx_static_slot_alocate();
+        miniMAC_rx_static_slot_allocate();
     }
     miniMAC_control(true, false);
 

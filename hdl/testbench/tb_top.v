@@ -81,8 +81,8 @@ module tb_top;
             .mosi_o(mosi_o),
             .miso_i(mosi_o),
 
-            .phy_rmii_rx_data(2'b00),
-            .phy_rmii_crs(1'b0),
+            .phy_rmii_rx_data(rmi_tx_data),
+            .phy_rmii_crs(phy_tx_en),
             .phy_rmii_tx_data(rmi_tx_data),
             .phy_tx_en(phy_tx_en),
             .phy_rmii_clk(rmii_clk),

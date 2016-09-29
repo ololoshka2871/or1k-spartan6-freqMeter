@@ -77,18 +77,19 @@ reg rx_byte_error;
 
 wire [MEMORY_DATA_WIDTH - 1:0] shifted_data = {input_data, phy_rmii_rx_data};
 wire [1:0] shift_selector = ressive_counter[COUNTER_WIDTH-1 -:2];
-/*
+
 wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory =
     shift_selector == 2'b00 ? {shifted_data[7:0], 24'd0} :
     shift_selector == 2'b01 ? {shifted_data[15:0], 16'd0}:
     shift_selector == 2'b10 ? {shifted_data[23:0], 8'd0}:
     shifted_data;
-*/
+/*
 wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory =
     shift_selector == 2'b00 ? {24'd0, shifted_data[7:0]} :
     shift_selector == 2'b01 ? {16'd0, shifted_data[15:0]}:
     shift_selector == 2'b10 ? { 8'd0, shifted_data[23:0]}:
     shifted_data;
+*/
 
 wire shifting_in_progress = (ressive_counter[1:0] != 2'b00);
 wire ressived30bytes = (ressive_counter == ((MEMORY_DATA_WIDTH / 2) - 1));

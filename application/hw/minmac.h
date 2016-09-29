@@ -73,10 +73,12 @@
 #define MINIMAC_SLOT0_STATE     (*(REG32 (MAC_CTL_BASE + REG_OFFSET(2))))
 #define MINIMAC_SLOT0_ADDR      (*(REG32 (MAC_CTL_BASE + REG_OFFSET(3))))
 #define MINIMAC_SLOT0_COUNT     (*(REG32 (MAC_CTL_BASE + REG_OFFSET(4)))) // RO
-
 #define MINIMAC_SLOT_STATE(slot) (*(REG32 (MAC_CTL_BASE + REG_OFFSET(2 + (slot) * 3))))
 #define MINIMAC_SLOT_ADDR(slot)  (*(REG32 (MAC_CTL_BASE + REG_OFFSET(3 + (slot) * 3))))
 #define MINIMAC_SLOT_COUNT(slot) (*(REG32 (MAC_CTL_BASE + REG_OFFSET(4 + (slot) * 3))))// RO
+
+#define MINIMAC_TX_SLOT_ADDR    (*(REG32 (MAC_CTL_BASE + REG_OFFSET(14))))
+#define MINIMAC_TX_REMAINING    (*(REG32 (MAC_CTL_BASE + REG_OFFSET(15))))
 
 enum enMiniMACSlotStates {
     MINIMAC_SLOT_STATE_DISABLED = 0b00,
@@ -94,9 +96,10 @@ enum enMiniMACRxSlots {
     MINIMAC_RX_SLOT_INVALID = 0xff
 };
 
-enum enMiniMACErrorCodess {
+enum enMiniMACErrorCodes {
     MINIMAC_OK = 0,
     MINIMAC_E_NOMEM = 1,
+    MINIMAC_MTU_ERROR = 2,
 };
 
 //------------------------------------------------------------------------------
@@ -107,7 +110,8 @@ void miniMAC_control(bool rx_enable, bool tx_enable);
 void miniMAC_rx_isr(unsigned int * registers);
 void miniMAC_tx_isr(unsigned int * registers);
 
-enum enMiniMACRxSlots miniMAC_rx_static_slot_alocate();
-
+enum enMiniMACRxSlots miniMAC_rx_static_slot_allocate();
+enum enMiniMACErrorCodes miniMAC_tx_slot_allocate(uint8_t ** pslot_addr);
+enum enMiniMACErrorCodes miniMAC_tx_start(uint16_t byte_count);
 
 #endif // MINMAC_H
