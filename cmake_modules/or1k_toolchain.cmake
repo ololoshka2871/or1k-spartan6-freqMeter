@@ -31,8 +31,6 @@
 
 cmake_minimum_required(VERSION 3.0.2)
 
-INCLUDE(CMakeForceCompiler)
-
 #MESSAGE(STATUS "Setting toolchain or1k-elf-")
 
 SET(CMAKE_SYSTEM_NAME Generic)
@@ -51,7 +49,7 @@ else()
 endif()
 
 # specify the cross compiler
-CMAKE_FORCE_CXX_COMPILER(${TOOLCHAIN_PREFIX}gcc GNU)
+set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}gcc)
 
 SET(CMAKE_LINKER ${TOOLCHAIN_PREFIX}gcc)
 SET(CMAKE_C_LINK_EXECUTABLE
