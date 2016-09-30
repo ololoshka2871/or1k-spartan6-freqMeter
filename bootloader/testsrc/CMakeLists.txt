@@ -31,18 +31,33 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-SET(GDB_HW_SRC		    gdb_hw.c gdb.c boot_spi.c)
-SET(GDB_NORMAL_SRC	    gdb_main.c)
-SET(GDB_NOTRAP_SRC	    gdb_main_notrap.c)
-SET(GDB_NOTRAP_SIM_SRC	    gdb_main_sim_notrap.c)
+file(GLOB_RECURSE
+    TEST_SRC
+    FOLLOW_SYMLINKS
+    "*.c"
+    )
 
-INCLUDE_DIRECTORIES(.)
+add_definitions(
+    -DBOOTLOADER
+    -DF_REF=${REFERENCE_CLOCK_HZ}
+    -DFREQMETERS_COUNT=24
+    )
 
-add_definitions(-DHEADER_W1=${HEADER_W1} -DHEADER_W2=${HEADER_W2} -DSPI_MODULE_TINY)
+if (SIM_TEST_FREQMETER)
+    add_definitions(-DSIM_TEST_FREQMETER)
+endif()
 
-add_library(gdb_stub STATIC ${GDB_HW_SRC} ${GDB_NORMAL_SRC})
-add_library(gdb_stub_notrap STATIC ${GDB_HW_SRC} ${GDB_NOTRAP_SRC})
-add_library(gdb_stub_sim_notrap STATIC ${GDB_HW_SRC} ${GDB_NOTRAP_SIM_SRC})
+if (SIM_TEST_MULTIPLICATION)
+    add_definitions(-DSIM_TEST_MULTIPLICATION)
+endif()
 
-set(BOOT_S          ${CMAKE_CURRENT_SOURCE_DIR}/boot.S	PARENT_SCOPE)
-set(GDB_STUB_DIR    ${CMAKE_CURRENT_SOURCE_DIR}         PARENT_SCOPE)
+if (SIM_TEST_MINIMAC)
+    add_definitions(-DSIM_TEST_MINIMAC)
+endif()
+
+if (SIM_TEST_MDIO)
+    add_definitions(-DSIM_TEST_MDIO)
+endif()
+
+include_directories(. ${GDB_STUB_DIR})
+add_library(testsrc STATIC ${TEST_SRC})

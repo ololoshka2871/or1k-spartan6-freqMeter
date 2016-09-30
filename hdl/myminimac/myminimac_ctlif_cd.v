@@ -439,12 +439,12 @@ always @(posedge sys_clk) begin
         slot_count_sys_act <= 4'b0;
         tx_remaining_sys_wr <= 1'b0;
 
-        if(sys_wr) begin
+        if(csr_we) begin
             // Write
             case(reg_selector)
                 4'd0 : begin // reset
                     rst_ctl_sys_i <= csr_di[1:0];
-                    rst_ctl_sys_wr <= 1'b1;
+                    rst_ctl_sys_wr <= sys_wr;
                 end
 
                 4'd1 : begin // bitbang MDIO (set)
@@ -456,29 +456,29 @@ always @(posedge sys_clk) begin
                 // RX slots
                 4'd2 : begin
                     slot_state_write[0] <= csr_di[1:0];
-                    slot_state_sys_act[0] <= 1'b1;
-                    slot_count_sys_act[0] <= 1'b1;
+                    slot_state_sys_act[0] <= sys_wr;
+                    slot_count_sys_act[0] <= sys_wr;
                 end
                 4'd3 : slot_adr[0] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot0_count is read-only
                 4'd5 : begin
                     slot_state_write[1] <= csr_di[1:0];
-                    slot_state_sys_act[1] <= 1'b1;
-                    slot_count_sys_act[1] <= 1'b1;
+                    slot_state_sys_act[1] <= sys_wr;
+                    slot_count_sys_act[1] <= sys_wr;
                 end
                 4'd6 : slot_adr[1] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot1_count is read-only
                 4'd8 : begin
                     slot_state_write[2] <= csr_di[1:0];
-                    slot_state_sys_act[2] <= 1'b1;
-                    slot_count_sys_act[2] <= 1'b1;
+                    slot_state_sys_act[2] <= sys_wr;
+                    slot_count_sys_act[2] <= sys_wr;
                 end
                 4'd9 : slot_adr[2] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot2_count is read-only
                 4'd11: begin
                     slot_state_write[3] <= csr_di[1:0];
-                    slot_state_sys_act[3] <= 1'b1;
-                    slot_count_sys_act[3] <= 1'b1;
+                    slot_state_sys_act[3] <= sys_wr;
+                    slot_count_sys_act[3] <= sys_wr;
                 end
                 4'd12: slot_adr[3] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot3_count is read-only
@@ -487,7 +487,7 @@ always @(posedge sys_clk) begin
                 4'd14: tx_addr_sys <= csr_di[TX_ADDR_WIDTH-1:2];
                 4'd15: begin
                     tx_remaining_sys_i <= csr_di[TRANSFER_COUNTER_LEN-1:0];
-                    tx_remaining_sys_wr <= 1'b1;
+                    tx_remaining_sys_wr <= sys_wr;
                 end
             endcase
         end

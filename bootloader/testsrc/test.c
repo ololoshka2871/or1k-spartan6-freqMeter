@@ -33,6 +33,7 @@
 
 #include "freqmeters.h"
 #include "minmac.h"
+#include "ethernet_phy.h"
 
 static void GDB_STUB_SECTION_TEXT test_freqmeter() {
     fm_init();
@@ -53,6 +54,15 @@ static void GDB_STUB_SECTION_TEXT test_multiplication() {
     volatile uint32_t res;
 
     asm volatile("l.mul %0, %1, %2" : "=r" (res) : "r" (a), "r" (b)); // sim to 130us
+}
+
+static void GDB_STUB_SECTION_TEXT test_mdio() {
+    // Test MDIO
+    miniMAC_MDIO_init();
+    miniMAC_MDIO_WriteREG(0, PHY_BMCR, PHY_BMCR_SPEED100MB |
+                          PHY_BMCR_AUTONEG_EN |
+                          PHY_BMCR_RESET_AUTONEG |
+                          PHY_BMCR_FULL_DUPLEX);
 }
 
 static void GDB_STUB_SECTION_TEXT test_minmac() {
@@ -89,6 +99,10 @@ void GDB_STUB_SECTION_TEXT start_tests() {
 
 #ifdef SIM_TEST_MULTIPLICATION
     test_multiplication();
+#endif
+
+#ifdef SIM_TEST_MDIO
+    test_mdio();
 #endif
 
 #ifdef SIM_TEST_MINIMAC
