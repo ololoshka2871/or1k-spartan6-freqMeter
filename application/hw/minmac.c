@@ -34,6 +34,15 @@
 
 #include "minmac.h"
 
+
+#define PHY_ADDR_LEN_BITS        (5)
+#define PHY_REG_ADDR_LEN_BITS    (5)
+
+enum enMDIOOperations {
+    MDIO_READ = 0b01,
+    MDIO_WRITE = 0b10
+};
+
 static uint32_t align32(uint32_t x) {
     if (x & 0b11)
         return (x & 0xFFFFFFFC) + 0b100;
@@ -125,4 +134,97 @@ __verify_error:
         *ppl_size = 0;
     }
     return ret; // error code there
+}
+
+//------------------------------------------------------------------------------
+
+/// MDIO operations at front of mdclk
+/// http://www.ti.com/lit/ds/symlink/dp83848-ep.pdf
+/// MSB first
+
+static void mdio_delay() {
+    asm volatile("l.nop");
+}
+
+static void MDIO_send_bit(bool v) {
+    MINIMAC_MDIO_BB = v ? MINIMAC_MDIO_BB_DO : 0 | MINIMAC_MDIO_BB_OE;
+    mdio_delay();
+    MINIMAC_MDIO_BB = v ? MINIMAC_MDIO_BB_DO : 0 | MINIMAC_MDIO_BB_OE | MINIMAC_MDIO_BB_CLK;
+    mdio_delay();
+}
+
+
+static bool MDIO_read_bit() {
+    MINIMAC_MDIO_BB = 0;
+    mdio_delay();
+    MINIMAC_MDIO_BB = MINIMAC_MDIO_BB_CLK;
+    mdio_delay();
+    return !!(MINIMAC_MDIO_BB & MINIMAC_MDIO_BB_DI);
+}
+
+
+static bool MDIO_write_z() {
+    MINIMAC_MDIO_BB = 0;
+    mdio_delay();
+    MINIMAC_MDIO_BB = MINIMAC_MDIO_BB_CLK;
+    mdio_delay();
+}
+
+
+static void MDIO_send_bits(const uint16_t v, uint8_t size) {
+    while (size--)
+        MDIO_send_bit(v & (1 << size));
+}
+
+
+static void
+MDIO_prepare(const uint8_t phy_addr,
+             const uint8_t reg_addr,
+             const enum enMDIOOperations op) {
+    MDIO_write_z();
+    MDIO_send_bit(0);
+    MDIO_send_bit(1);
+    MDIO_send_bit(op & (1 << 0)); // read/write
+    MDIO_send_bit(op & (1 << 1)); //
+    MDIO_send_bits(phy_addr, PHY_ADDR_LEN_BITS); // phy address
+    MDIO_send_bits(reg_addr, PHY_REG_ADDR_LEN_BITS); // phy register
+}
+
+
+uint16_t miniMAC_MDIO_ReadREG(const uint8_t phy_addr,
+                              const uint8_t reg_addr) {
+    MDIO_prepare(phy_addr, reg_addr, MDIO_READ);
+
+    MDIO_write_z();  //pulse z
+    MDIO_read_bit(); // dumy read
+
+    uint16_t result = 0;
+    uint8_t i = 8 * sizeof(uint16_t);
+    while(i--) {
+        if (MDIO_read_bit())
+            result |= 1 << i;
+    }
+
+    MDIO_write_z();  //pulse z
+}
+
+
+void miniMAC_MDIO_WriteREG(const uint8_t phy_addr,
+                           const uint8_t reg_addr,
+                           const uint16_t val) {
+    MDIO_prepare(phy_addr, reg_addr, MDIO_WRITE);
+
+    MDIO_send_bit(1);    // send 1
+    MDIO_send_bit(1);    // send 0
+
+    MDIO_send_bits(val, 8 * sizeof(uint16_t));
+
+    MDIO_write_z();  //pulse z
+}
+
+void miniMAC_MDIO_init() {
+    // send 32 ones
+    for (uint8_t i = 0; i < 32; ++i)
+        MDIO_send_bit(1);
+    MDIO_write_z();  //pulse z
 }

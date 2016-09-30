@@ -66,9 +66,13 @@
 
 #define MINIMAC_MDIO_BB         (*(REG32 (MAC_CTL_BASE + REG_OFFSET(1))))
 #define MINIMAC_MDIO_BB_DO      (1 << 0)
+#define MINIMAC_MDIO_BB_DO_0    0
 #define MINIMAC_MDIO_BB_DI      (1 << 1) //RO
+#define MINIMAC_MDIO_BB_DI_0    0
 #define MINIMAC_MDIO_BB_OE      (1 << 2)
+#define MINIMAC_MDIO_BB_OE_0    0
 #define MINIMAC_MDIO_BB_CLK     (1 << 3)
+#define MINIMAC_MDIO_BB_CLK_0   0
 
 #define MINIMAC_SLOT0_STATE     (*(REG32 (MAC_CTL_BASE + REG_OFFSET(2))))
 #define MINIMAC_SLOT0_ADDR      (*(REG32 (MAC_CTL_BASE + REG_OFFSET(3))))
@@ -100,6 +104,7 @@ enum enMiniMACErrorCodes {
     MINIMAC_OK = 0,
     MINIMAC_E_NOMEM = 1,
     MINIMAC_MTU_ERROR = 2,
+    MINIMAC_VALUE_ERROR = 3
 };
 
 //------------------------------------------------------------------------------
@@ -118,5 +123,9 @@ enum enMiniMACErrorCodes miniMAC_verifyRxData(
         enum enMiniMACRxSlots slot, uint8_t** ppayload, uint16_t *ppl_size);
 void miniMAC_reset_rx_slot(enum enMiniMACRxSlots slot);
 
+uint16_t miniMAC_MDIO_ReadREG(const uint8_t phy_addr, const uint8_t reg_addr);
+void miniMAC_MDIO_WriteREG(const uint8_t phy_addr, const uint8_t reg_addr,
+                           const uint16_t val);
+void miniMAC_MDIO_init();
 
 #endif // MINMAC_H
