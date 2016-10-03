@@ -66,7 +66,6 @@ SET(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}objcopy)
 SET(COMMON_FLAGS "-msoft-float -std=gnu99 -mno-delay")
 
 SET(CMAKE_C_FLAGS_COMMON "\
-    -Ttext ${MEM_BASE} \
     -Wall \
     -pipe \
     -ffunction-sections -fdata-sections \

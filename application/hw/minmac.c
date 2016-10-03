@@ -73,7 +73,7 @@ enum enMiniMACErrorCodes miniMAC_tx_slot_allocate(uint8_t ** pslot_addr) {
         return MINIMAC_E_NOMEM;
     }
 
-    uint32_t* tx_slot_addr = MAC_TX_MEM_BASE;
+    uint32_t* tx_slot_addr = (uint32_t*)MAC_TX_MEM_BASE;
     MINIMAC_TX_SLOT_ADDR = tx_slot_addr;
     if (pslot_addr) *pslot_addr = tx_slot_addr;
     return MINIMAC_OK;

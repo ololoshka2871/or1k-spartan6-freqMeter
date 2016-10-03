@@ -209,7 +209,7 @@
 #define PHY_PHYCR_LED_CNFG_SH   (5)
 #define PHY_PHYCR_LED_CNFG_MSK  (0b11 << PHY_PHYCR_LED_CNFG_SH)
 #define PHY_PHYCR_PHYADDR       (0)
-#define PHY_PHYCR_LED_CNFG_MSK  (0b11111 << PHY_PHYCR_PHYADDR)
+#define PHY_PHYCR_PHYADDR_MSK   (0b11111 << PHY_PHYCR_PHYADDR)
 
 
 #define PHY_10BTSCR             (0x1a)  // 10Base-T Status/Control Register

@@ -80,6 +80,15 @@ add_definitions(
 
 add_custom_target(mkldscript DEPENDS ${LD_SCRIPT_FILE})
 
+add_definitions(
+    -DMAC_TX_MEM_BASE=${MAC_TX_MEM_BASE}
+    -DMAC_RX_MEM_BASE=${MAC_RX_MEM_BASE}
+    -DMAC_CTL_BASE=${MAC_CTL_BASE}
+    -DMTU=${MTU}
+    -DMYMINMAC_RX_SLOTS=${MYMINMAC_RX_SLOTS}
+    -DFREQMETERS_BASE=${FREQMETERS_BASE}
+    )
+
 add_subdirectory(hw)
 add_subdirectory(lib)
 
