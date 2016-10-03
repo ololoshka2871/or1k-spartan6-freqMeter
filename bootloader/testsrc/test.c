@@ -63,6 +63,7 @@ static void GDB_STUB_SECTION_TEXT test_mdio() {
                           PHY_BMCR_AUTONEG_EN |
                           PHY_BMCR_RESET_AUTONEG |
                           PHY_BMCR_FULL_DUPLEX);
+    miniMAC_MDIO_ReadREG(0, PHY_BMSR);
 }
 
 static void GDB_STUB_SECTION_TEXT test_minmac() {

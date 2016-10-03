@@ -39,7 +39,8 @@
 #define PHY_ADDR_LEN_BITS        (5)
 #define PHY_REG_ADDR_LEN_BITS    (5)
 
-#define MDIO_DELAY()             // mdio_delay()
+#define MDIO_DELAY_0()             mdio_delay()
+#define MDIO_DELAY_1()             // mdio_delay()
 
 enum enMDIOOperations {
     MDIO_READ = 0b01,
@@ -52,27 +53,27 @@ static void mdio_delay() {
 
 static void MDIO_send_bit(bool v) {
     MINIMAC_MDIO_BB = (v ? MINIMAC_MDIO_BB_DO : 0) | MINIMAC_MDIO_BB_OE;
-    MDIO_DELAY();
+    MDIO_DELAY_0();
     MINIMAC_MDIO_BB = (v ? MINIMAC_MDIO_BB_DO : 0) | MINIMAC_MDIO_BB_OE
             | MINIMAC_MDIO_BB_CLK;
-    MDIO_DELAY();
+    MDIO_DELAY_1();
 }
 
 
 static bool MDIO_read_bit() {
     MINIMAC_MDIO_BB = 0;
-    MDIO_DELAY();
+    MDIO_DELAY_0();
     MINIMAC_MDIO_BB = MINIMAC_MDIO_BB_CLK;
-    MDIO_DELAY();
+    MDIO_DELAY_1();
     return !!(MINIMAC_MDIO_BB & MINIMAC_MDIO_BB_DI);
 }
 
 
 static bool MDIO_write_z() {
     MINIMAC_MDIO_BB = 0;
-    MDIO_DELAY();
+    MDIO_DELAY_0();
     MINIMAC_MDIO_BB = MINIMAC_MDIO_BB_CLK;
-    MDIO_DELAY();
+    MDIO_DELAY_1();
 }
 
 
