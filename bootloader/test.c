@@ -62,12 +62,12 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
 
     uint8_t* ptx_slot;
     miniMAC_tx_slot_allocate(&ptx_slot);
-    memcpy(ptx_slot, 0, 13);
+    //memcpy(ptx_slot, 0, 13);
 
     miniMAC_control(true, true);
 
     for (uint8_t i = 0; i < 5; ++i) { // 4 - will be dropped
-        miniMAC_tx_start(17 * (i + 1));
+        miniMAC_tx_start((12 * sizeof(uint32_t) - 2) * (i + 1));
         while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_TX)));
         IRQ_STATUS = (1 << IRQ_MINIMAC_TX);
         while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_RX)));

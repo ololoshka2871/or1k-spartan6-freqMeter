@@ -67,17 +67,20 @@ parameter MEMORY_DATA_WIDTH = 32;
 parameter RMII_BUS_WIDTH = 2;
 parameter COUNTER_WIDTH = $clog2(MEMORY_DATA_WIDTH / RMII_BUS_WIDTH);
 
+parameter PREAMBLE_END = 13;
+
 reg tx_en;
+reg sending_preamble;
 reg byte_count_stop;
 reg [ADDR_LEN - 1:2] mem_tx_addr;
-reg [MEMORY_DATA_WIDTH - 1:0] transmitt_data;  // shift register to transmitt
-reg [COUNTER_WIDTH-1:0] transmitt_counter;
+reg [MEMORY_DATA_WIDTH - 1:0] transmit_data;  // shift register to transmitt
+reg [COUNTER_WIDTH-1:0] transmit_counter;
 
 wire [31:0] data_from_memory;
 
-wire read_from_memory = transmitt_counter == 0;
-wire transmitted28bits = (transmitt_counter == (MEMORY_DATA_WIDTH / 2) - 2);
-wire byte_transferted = ~|transmitt_counter[1:0];
+wire read_from_memory = transmit_counter == 0;
+wire transmitted28bits = (transmit_counter == (MEMORY_DATA_WIDTH / 2) - 2);
+wire byte_transferted = ~|transmit_counter[1:0];
 
 wb_dma_ram
 #(
@@ -105,40 +108,53 @@ wb_dma_ram
 
 always @(posedge phy_rmii_clk) begin
     if (sys_rst | tx_rst) begin
-        transmitt_counter <= 0;
+        transmit_counter <= 0;
         tx_en <= 0;
         mem_tx_addr <= 0;
-        transmitt_data <= 0;
+        transmit_data <= 0;
         byte_count_stop <= 1'b0;
+        sending_preamble <= 1'b0;
     end else begin
         tx_en <= tx_valid;
 
         if (tx_valid) begin
-            if (read_from_memory) begin
-                transmitt_data <= data_from_memory;
-                transmitt_counter <= 1;
-            end else begin
-                transmitt_data <= {transmitt_data[MEMORY_DATA_WIDTH-1-2 : 0], 2'd0};
-                transmitt_counter <= transmitt_counter + 1;
-                if (transmitted28bits) begin
-                    mem_tx_addr <= mem_tx_addr + 1;
+            if (~tx_en | sending_preamble) begin
+                sending_preamble <= 1'b1;
+                transmit_counter <= transmit_counter + 1;
+                transmit_data[MEMORY_DATA_WIDTH - 1 -: 2] <= {
+                    transmit_counter == PREAMBLE_END - 1, 1'b1};
+                if (transmit_counter == PREAMBLE_END) begin
+                    sending_preamble <= 1'b0;
+                    transmit_data <= data_from_memory;
+                    transmit_counter <= 1;
                 end
-            end
+            end else begin
+                if (read_from_memory) begin
+                    transmit_data <= data_from_memory;
+                    transmit_counter <= 1;
+                end else begin
+                    transmit_data <= {transmit_data[MEMORY_DATA_WIDTH-1-2 : 0], 2'd0};
+                    transmit_counter <= transmit_counter + 1;
+                    if (transmitted28bits) begin
+                        mem_tx_addr <= mem_tx_addr + 1;
+                    end
+                end
 
-            if (tx_next & tx_last_byte_i) begin
-                byte_count_stop <= 1'b1;
+                if (tx_next & tx_last_byte_i) begin
+                    byte_count_stop <= 1'b1;
+                end
             end
         end else begin
             byte_count_stop <= 1'b0;
             mem_tx_addr <= tx_adr;
-            transmitt_counter <= 0;
+            transmit_counter <= 0;
         end
     end
 end
 
 assign phy_tx_en = tx_en & ~byte_count_stop;
-assign tx_next = tx_en & byte_transferted;
-assign phy_rmii_tx_data = transmitt_data[MEMORY_DATA_WIDTH - 1 -: 2];
+assign tx_next = tx_en & byte_transferted & ~sending_preamble;
+assign phy_rmii_tx_data = transmit_data[MEMORY_DATA_WIDTH - 1 -: 2];
 
 endmodule
 

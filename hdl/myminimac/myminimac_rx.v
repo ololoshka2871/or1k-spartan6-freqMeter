@@ -32,6 +32,13 @@
 
 `include "config.v"
 
+/* TODO
+ * 1. False carier detect => first ressived != 2'b00 phy_rmii_rx_data[1:0] == 2'b10 - DONE
+ * 2. Если phy_rmii_crs -> 0, но phy_rmii_rx_data != 2'b00, то следует установить приём на пузу до того как phy_rmii_crs == 1
+ */
+
+// http://ebook.pldworld.com/_eBook/-Telecommunications,Networks-/TCPIP/RMII/rmii_rev12.pdf
+
 module myminimac_rx
 #(
     parameter MTU                   = 1530,
@@ -69,6 +76,9 @@ parameter MEMORY_DATA_WIDTH = 32;
 parameter RMII_BUS_WIDTH = 2;
 parameter COUNTER_WIDTH = $clog2(MEMORY_DATA_WIDTH / RMII_BUS_WIDTH);
 
+parameter PREAMBLE_VALID_START = 2'b01;
+parameter CRS_END_FRAME = 2'b00;
+
 reg [MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0] input_data;  // shift register to ressive
 reg [COUNTER_WIDTH-1:0] ressive_counter;
 reg [ADDR_LEN-1:2] write_adr;
@@ -92,7 +102,7 @@ wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory =
 */
 
 wire shifting_in_progress = (ressive_counter[1:0] != 2'b00);
-wire ressived30bytes = (ressive_counter == ((MEMORY_DATA_WIDTH / 2) - 1));
+wire ressived30bits = (ressive_counter == ((MEMORY_DATA_WIDTH / 2) - 1));
 wire write_trigger = (ressive_counter[1:0] == 2'b11);
 wire memory_error;
 
@@ -134,36 +144,41 @@ always @(posedge phy_rmii_clk) begin
     end else begin
         rx_endframe <= 1'b0;
         rx_byte_error <= 1'b0;
-        input_data <= {input_data[MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0], phy_rmii_rx_data};
         rx_resetcount <= 1'b0;
 
-        if (phy_rmii_crs) begin
-            // start or continue ressiving
-            if (ressiving_frame) begin
+        if (phy_rmii_crs)
+            input_data <= {input_data[MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0], phy_rmii_rx_data};
+
+        if (ressiving_frame) begin
+            if (phy_rmii_crs) begin
+                // normal ressiving
                 ressive_counter <= ressive_counter + 1;
-                if (ressived30bytes) begin
+                if (ressived30bits) begin
                     ressive_counter <= 0;
                     if (rx_valid) begin
                         write_adr <= write_adr + 1;
                     end
                 end
-            end else begin
-                // wait preamble 01 to start
-                rx_resetcount <= 1'b1;
-                if (phy_rmii_rx_data != 2'b00) begin
-                    // start ressiving
+            end else if (phy_rmii_rx_data == CRS_END_FRAME) begin
+                    // end frame
+                    ressiving_frame <= 1'b0;
+                    rx_endframe   <= ~shifting_in_progress;
+                    rx_byte_error <=  shifting_in_progress;
+                end
+        end else begin
+            // Дропаем J,       K и     False Carrier detected
+            //         2'b00    2'b00   2'b10
+            if (phy_rmii_crs & (phy_rmii_rx_data[0] == 1'b1)) begin
+                // need to await 7 times: Preamble + SFD
+                ressive_counter <= ressive_counter + 1;
+                if ((ressive_counter >= 6) && (phy_rmii_rx_data[1] == 1'b1)) begin
+                    // start ressiving from next
+                    ressive_counter <= 0;
                     ressiving_frame <= 1'b1;
-                    ressive_counter <= 1;
                     write_adr <= rx_adr;
                 end
             end
-        end else
-            if (ressiving_frame) begin
-                // make stop
-                ressiving_frame <= 1'b0;
-                rx_endframe   <= ~shifting_in_progress;
-                rx_byte_error <=  shifting_in_progress;
-            end
+        end
     end
 end
 

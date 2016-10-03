@@ -71,6 +71,18 @@ add_custom_target(memory_refresh_sim
     )
 
 set(TEST_IMAGE_FOR_DMA_MEMORY_NAME  ${CMAKE_CURRENT_BINARY_DIR}/test_image.hex)
+
+# Чтобы затестить готовый пакет а не рандомные данные положить данные
+# в этот файл текстом для команды verilog $readmemh()
+set(TEST_POCKET_FILE                ${CMAKE_CURRENT_SOURCE_DIR}/tx_data.raw)
+if (EXISTS ${TEST_POCKET_FILE})
+add_custom_command(
+    OUTPUT  ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
+    DEPENDS memory_refresh
+    COMMAND
+        cp ${TEST_POCKET_FILE} ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
+    )
+else()
 #generate test image for memory
 add_custom_command(
     OUTPUT  ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
@@ -78,6 +90,7 @@ add_custom_command(
     COMMAND
         xxd -ps -c 4 ${SYSTEM_MEMORY_MODULE} > ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
     )
+endif()
 
 SET(MEMORY_HDL_V	${RAM_HDL_V};${SYSTEM_MEMORY_MODULE})
 SET(MEMORY_HDL_SIM_V	${RAM_HDL_V};${SYSTEM_MEMORY_MODULE_SIM})
