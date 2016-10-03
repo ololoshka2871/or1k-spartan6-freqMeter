@@ -1,1 +1,0 @@
-../application/hw/minmac.c

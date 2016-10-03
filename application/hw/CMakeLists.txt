@@ -42,6 +42,7 @@ SET(LIBHW_SOURCES
     seg7_display.c
     freqmeters.c
     minmac.c
+    ethernet_phy.c
     )
 
 INCLUDE_DIRECTORIES(.)

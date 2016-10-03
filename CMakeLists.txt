@@ -115,10 +115,12 @@ set(CPU_CLOCK_DEVIDER       24
 #--- test firmware ---
 set(SIM_TEST_FREQMETER      OFF
     CACHE BOOL  "Bootloader firmware tests freqmeter IP-core")
-set(SIM_TEST_MULTIPLICATION      OFF
+set(SIM_TEST_MULTIPLICATION OFF
     CACHE BOOL  "Bootloader firmware tests processor multiplication")
 set(SIM_TEST_MINIMAC        OFF
     CACHE BOOL  "Bootloader firmware tests myminimac IP-core")
+set(SIM_TEST_MDIO           OFF
+    CACHE BOOL  "Bootloader firmware tests myminimac IP-core MDIO interface")
 
 #----------------------------------/config--------------------------------------
 

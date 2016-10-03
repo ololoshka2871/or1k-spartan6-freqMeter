@@ -33,6 +33,7 @@
 #define MINMAC_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include "mem_map.h"
 
 #ifndef MAC_CTL_BASE
@@ -84,6 +85,7 @@
 #define MINIMAC_TX_SLOT_ADDR    (*(REG32 (MAC_CTL_BASE + REG_OFFSET(14))))
 #define MINIMAC_TX_REMAINING    (*(REG32 (MAC_CTL_BASE + REG_OFFSET(15))))
 
+
 enum enMiniMACSlotStates {
     MINIMAC_SLOT_STATE_DISABLED = 0b00,
     MINIMAC_SLOT_STATE_READY = 0b01,
@@ -123,9 +125,5 @@ enum enMiniMACErrorCodes miniMAC_verifyRxData(
         enum enMiniMACRxSlots slot, uint8_t** ppayload, uint16_t *ppl_size);
 void miniMAC_reset_rx_slot(enum enMiniMACRxSlots slot);
 
-uint16_t miniMAC_MDIO_ReadREG(const uint8_t phy_addr, const uint8_t reg_addr);
-void miniMAC_MDIO_WriteREG(const uint8_t phy_addr, const uint8_t reg_addr,
-                           const uint16_t val);
-void miniMAC_MDIO_init();
 
 #endif // MINMAC_H

@@ -53,32 +53,7 @@ else()
     SET(BOOT_LIB    gdb_stub_notrap)
 endif()
 
-add_definitions(-DBOOTLOADER)
-
-################# TESTS #####################
-include_directories(gdb_stub)
-set(TEST_SRC
-    freqmeters.c
-    minmac.c
-    )
-
-add_definitions(
-    -DF_REF=${REFERENCE_CLOCK_HZ}
-    -DFREQMETERS_COUNT=24
-    )
-
-if (SIM_TEST_FREQMETER)
-    add_definitions(-DSIM_TEST_FREQMETER)
-endif()
-
-if (SIM_TEST_MULTIPLICATION)
-    add_definitions(-DSIM_TEST_MULTIPLICATION)
-endif()
-
-if (SIM_TEST_MINIMAC)
-    add_definitions(-DSIM_TEST_MINIMAC)
-endif()
-##############################################
+add_subdirectory(testsrc)
 
 add_executable(${PROJECT_NAME}.elf
     ${BOOT_S}
@@ -90,10 +65,10 @@ target_link_libraries(${PROJECT_NAME}.elf
 add_executable(${PROJECT_NAME}_sim.elf
     ${BOOT_S}
     ${TEST_SRC}
-    test.c
     )
 target_link_libraries(${PROJECT_NAME}_sim.elf
     ${BOOT_LIB_SIM_NOTRAP}
+    testsrc
     )
 
 function(elf2hex ELF_FILE HEX_FILE)
