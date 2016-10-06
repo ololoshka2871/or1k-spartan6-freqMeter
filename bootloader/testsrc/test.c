@@ -33,7 +33,7 @@
 
 #include "freqmeters.h"
 #include "minmac.h"
-#include "ethernet_phy.h"
+#include "mdio.h"
 
 static void GDB_STUB_SECTION_TEXT test_freqmeter() {
     fm_init();
@@ -58,12 +58,10 @@ static void GDB_STUB_SECTION_TEXT test_multiplication() {
 
 static void GDB_STUB_SECTION_TEXT test_mdio() {
     // Test MDIO
-    miniMAC_MDIO_init();
-    miniMAC_MDIO_WriteREG(0, PHY_BMCR, PHY_BMCR_SPEED100MB |
-                          PHY_BMCR_AUTONEG_EN |
-                          PHY_BMCR_RESET_AUTONEG |
-                          PHY_BMCR_FULL_DUPLEX);
-    miniMAC_MDIO_ReadREG(0, PHY_BMSR);
+    for(uint8_t i = 0; i < 5; ++i) {
+        MDIO_WriteREG(i, PHY_ANNPTR - i, PHY_BMCR_SPEED100MB | PHY_BMCR_FULL_DUPLEX);
+        MDIO_ReadREG_sync(i, PHY_ANNPTR - i);
+    }
 }
 
 static void GDB_STUB_SECTION_TEXT test_minmac() {

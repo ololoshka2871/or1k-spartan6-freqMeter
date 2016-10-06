@@ -57,14 +57,14 @@ module soc_fast
     input  wire [INPUTS_COUNT - 1:0]    F_in,          // входы для частоты
     output wire [MASER_FREQ_COUNTER_LEN-1:0] devided_clocks, // clk_i деленная на 2, 4, ... 2^MASER_FREQ_COUNTER_LEN
 
+`ifdef ETHERNET_ENABLED
     // RMII interface
-    output wire                         phy_mdclk,      // MDCLK
-    inout  wire                         phy_mdio,       // MDIO
     input  wire                         phy_rmii_clk,   // 50 MHZ input
     input  wire                         phy_rmii_crs,   // Ressiver ressiving data
     output wire [1:0]                   phy_rmii_tx_data,// transmit data bis
     input  wire [1:0]                   phy_rmii_rx_data,// ressive data bus
     output wire                         phy_tx_en,      // transmitter enable
+`endif
 
     output wire [2:0]                   interrupts_o
 );
@@ -219,7 +219,7 @@ freqmeters
     .devided_clocks(devided_clocks)
 );
 
-
+`ifdef ETHERNET_ENABLED
 // ethernet
 myminimac
 #(
@@ -257,13 +257,25 @@ myminimac
     .tx_mem_cyc_i(ethernet_txbuf_cyc),
     .tx_mem_stall_o(ethernet_txbuf_stall),
 
-    .phy_mdclk(phy_mdclk),
-    .phy_mdio(phy_mdio),
     .phy_rmii_clk(phy_rmii_clk),
     .phy_rmii_crs(phy_rmii_crs),
     .phy_rmii_tx_data(phy_rmii_tx_data),
     .phy_rmii_rx_data(phy_rmii_rx_data),
     .phy_tx_en(phy_tx_en)
 );
+`else
+assign ethernat_rx_int = 1'b0;
+
+assign ethernat_tx_int = 1'b0;
+assign ethernet_ctl_data_r = 32'b0;
+
+assign ethernet_rxbuf_data_r = 32'b0;
+assign ethernet_rxbuf_ack = 1'b0;
+assign ethernet_rxbuf_stall = 1'b1;
+
+assign ethernet_txbuf_data_r = 32'b0;
+assign ethernet_txbuf_ack = 1'b0;
+assign ethernet_txbuf_stall = 1'b1;
+`endif
 
 endmodule

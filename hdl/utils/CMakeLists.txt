@@ -44,4 +44,5 @@ add_custom_target(utils_sources
 	${UTILS_HDL_V}
     )
 
-set(UTILS_HDL_V	    ${UTILS_HDL_V}		PARENT_SCOPE)
+set(UTILS_HDL_V             ${UTILS_HDL_V}		PARENT_SCOPE)
+set(UTILS_INCLUDE_PATH      ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)

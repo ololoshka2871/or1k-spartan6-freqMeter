@@ -49,10 +49,6 @@ module myminimac_ctlif_cd
     input       [31:0]              csr_di,             // control logick data input
     output reg  [31:0]              csr_do,             // control logick data output
 
-    // connected to reg
-    output reg                      phy_mii_clk,        // MDCLK
-    inout                           phy_mii_data,       // MDIO
-
     input                           rmii_clk_i,         // 50 MHz
 
     output                          rx_rst,             // reset rx request
@@ -71,35 +67,6 @@ module myminimac_ctlif_cd
 );
 
 parameter TRANSFER_COUNTER_LEN = $clog2(MTU);
-
-reg mii_data_oe;
-reg mii_data_do;
-
-wire phy_mii_data_i;
-
-IOBUF #(
-   .DRIVE(12), // Specify the output drive strength
-   .IOSTANDARD("DEFAULT"), // Specify the I/O standard
-   .SLEW("SLOW") // Specify the output slew rate
-) IOBUF_inst (
-   .O(phy_mii_data_i),  // Buffer output
-   .IO(phy_mii_data),   // Buffer inout port (connect directly to top-level port)
-   .I(mii_data_do),     // Buffer input
-   .T(~mii_data_oe)     // 3-state enable input, high=input, low=output
-);
-
-/* Be paranoid about metastability */
-reg mii_data_di1;
-reg mii_data_di;
-always @(posedge sys_clk) begin
-    if (sys_rst) begin
-        mii_data_di1 <= 1'b0;
-        mii_data_di <= 1'b0;
-    end else begin
-        mii_data_di1 <= phy_mii_data_i;
-        mii_data_di <= mii_data_di1;
-    end
-end
 
 reg p_sys_we;
 reg [5:2] p_sys_addr;
@@ -416,10 +383,6 @@ always @(posedge sys_clk) begin
     if(sys_rst) begin
         csr_do <= 32'd0;
 
-        mii_data_oe <= 1'b0;
-        mii_data_do <= 1'b0;
-        phy_mii_clk <= 1'b0;
-
         for (k = 0; k < 4; k = k + 1) begin
             slot_adr[k] <= 0;
             slot_state_write[k] <= 2'b00;
@@ -445,12 +408,6 @@ always @(posedge sys_clk) begin
                 4'd0 : begin // reset
                     rst_ctl_sys_i <= csr_di[1:0];
                     rst_ctl_sys_wr <= sys_wr;
-                end
-
-                4'd1 : begin // bitbang MDIO (set)
-                    phy_mii_clk <= csr_di[3];
-                    mii_data_oe <= csr_di[2];
-                    mii_data_do <= csr_di[0];
                 end
 
                 // RX slots
@@ -496,8 +453,7 @@ always @(posedge sys_clk) begin
         case(reg_selector)
             4'd0 : csr_do <= rst_ctl_sys_o;
 
-            // bitbang MDIO read
-            4'd1 : csr_do <= {phy_mii_clk, mii_data_oe, mii_data_di, mii_data_do};
+            4'd1 : csr_do <= 0;
 
             // RX slots
             4'd2 : csr_do <= slot_state_sys_o[0];

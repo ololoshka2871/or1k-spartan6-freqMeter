@@ -33,9 +33,23 @@
 #ifndef ETHERNET_PHY_H
 #define ETHERNET_PHY_H
 
+#include "mem_map.h"
 #include <stdint.h>
 
-// basic ctrl registers
+#define MDIO_BASE               (IO_BASE + 0x500)
+#define MDIO_REG_CTL            (*(REG32 (MDIO_BASE + 0x0)))
+#define MDIO_REG_CTL_START      (1 << 31)
+#define MDIO_REG_CTL_RW         (1 << 30)
+#define MDIO_REG_CTL_IE         (1 << 29)
+#define MDIO_REG_CTL_IF         (1 << 28) // RO
+#define MDIO_REG_CTL_PHY_ADDR_SH        (5)
+#define MDIO_REG_CTL_PHY_ADDR_MSK       (0b11111 << MDIO_REG_CTL_PHY_ADDR_SH)
+#define MDIO_REG_CTL_PHY_REGADDR_SH     (0)
+#define MDIO_REG_CTL_PHY_REGADDR_MSK    (0b11111 << MDIO_REG_CTL_PHY_REGADDR_SH)
+
+#define MDIO_REG_DATA           (*(REG32 (MDIO_BASE + 0x4)))
+
+// PHY basic ctrl registers
 #define PHY_BMCR                (0)     // Basic Mode Control Register
 #define PHY_BMCR_RESET          (1 << 15)
 #define PHY_BMCR_LOOPBACK       (1 << 14)
@@ -85,7 +99,7 @@
 #define PHY_ANAR_PROTO_SEL_SH   (0)
 #define PHY_ANAR_PROTO_SEL_MSK  (0b11111 << PHY_ANAR_PROTO_SEL_SH)
 
-
+// base page
 #define PHY_ANLPAR              (5)     // Auto-Negotiation Link Partner Ability Register
 #define PHY_ANLPAR_NP           (1 << 15)
 #define PHY_ANLPAR_ACK          (1 << 14)
@@ -100,8 +114,8 @@
 #define PHY_ANLPAR_PROTO_SEL_SH     (0)
 #define PHY_ANLPAR_PROTO_SEL_MSK    (0b11111 << PHY_ANLPAR_PROTO_SEL_SH)
 
-
-#define PHY_ANLPARNP            (6)     // Auto-Negotiation Link Partner Ability Register
+// next page
+#define PHY_ANLPARNP            (5)     // Auto-Negotiation Link Partner Ability Register
 #define PHY_ANLPARNP_NP         (1 << 15)
 #define PHY_ANLPARNP_ACK        (1 << 14)
 #define PHY_ANLPARNP_MP         (1 << 13)
@@ -110,7 +124,7 @@
 #define PHY_ANLPARNP_CODE_SH    (0)
 #define PHY_ANLPARNP_CODE_MSK   (0b11111111111 << PHY_ANLPARNP_CODE_SH)
 
-#define PHY_ANER                (7)     // Auto-Negotiation Expansion Register
+#define PHY_ANER                (6)     // Auto-Negotiation Expansion Register
 #define PHY_ANER_PDF            (1 << 4)
 #define PHY_ANER_LP_NP_ABLE     (1 << 3)
 #define PHY_ANER_NP_ABLE        (1 << 2)
@@ -118,7 +132,7 @@
 #define PHY_ANER_LP_AN_ABLE     (1 << 0)
 
 
-#define PHY_ANNPTR              (8)     // Auto-Negotiation Next Page TX
+#define PHY_ANNPTR              (7)     // Auto-Negotiation Next Page TX
 #define PHY_ANNPTR_NP           (1 << 15)
 #define PHY_ANNPTR_MP           (1 << 13)
 #define PHY_ANNPTR_ACK2         (1 << 12)
@@ -250,9 +264,9 @@
 
 //------------------------------------------------------------------------------
 
-uint16_t miniMAC_MDIO_ReadREG(const uint8_t phy_addr, const uint8_t reg_addr);
-void miniMAC_MDIO_WriteREG(const uint8_t phy_addr, const uint8_t reg_addr,
+uint16_t MDIO_ReadREG_sync(const uint8_t phy_addr, const uint8_t reg_addr);
+uint16_t MDIO_WriteREG(const uint8_t phy_addr, const uint8_t reg_addr,
                            const uint16_t val);
-void miniMAC_MDIO_init();
+int8_t MDIO_DetectPHY(uint8_t startAddr);
 
 #endif // ETHERNET_PHY_H

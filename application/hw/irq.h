@@ -18,6 +18,7 @@ enum InterruptSources {
     IS_TIMER_HIRES = IRQ_TIMER_HIRES,
     IS_BOOT_SPI = IRQ_BOOT_SPI,
     IS_GPIO = IRQ_GPIO,
+    IS_MDIO = IRQ_MDIO,
 
     // ext
     IS_FREQMETERS = IRQ_FREQMETERS,

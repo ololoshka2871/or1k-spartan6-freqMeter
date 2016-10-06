@@ -91,6 +91,8 @@ set(UART0_BAUD              115200
     CACHE STRING "UART0 (debug) speed")
 set(UART1_BAUD              921600
     CACHE STRING "UART1 speed")
+set(MDIO_BAUD               2500000
+    CACHE STRING "MDIO speed")
 #--- /UARTs ---
 
 set(MASER_FREQ_COUNTER_LEN  30

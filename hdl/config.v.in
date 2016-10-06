@@ -63,5 +63,8 @@
 `define     F_INPUTS_COUNT          @F_INPUTS_COUNT@
 @USE_PHISICAL_INPUTS@
 
+// mdio
+`define     MDIO_BAUD               @MDIO_BAUD@
+
 // tests
 `define     TEST_IMAGE_FOR_DMA_MEMORY_NAME "@TEST_IMAGE_FOR_DMA_MEMORY_NAME@"

@@ -63,6 +63,7 @@ module top
     input  wire         miso_i,        // MasterIn SlaveOut
 
     // Ethernet RMII interface
+`ifdef ETHERNET_ENABLED
     output wire         phy_mdclk,      // MDCLK
     inout  wire         phy_mdio,       // MDIO
     output wire         phy_rmii_clk,   // 50 MHZ input
@@ -70,6 +71,7 @@ module top
     output wire [1:0]   phy_rmii_tx_data,// transmit data bis
     input  wire [1:0]   phy_rmii_rx_data,// ressive data bus
     output wire         phy_tx_en       // transmitter enable
+`endif
 
 `ifdef USE_PHISICAL_INPUTS
     ,
@@ -290,13 +292,13 @@ soc_fast
     .F_in(Fin_inv_pars),
     .devided_clocks(devided_clocks),
 
-    .phy_mdclk(phy_mdclk),
-    .phy_mdio(phy_mdio),
+`ifdef ETHERNET_ENABLED
     .phy_rmii_clk(rmii_clk),
     .phy_rmii_crs(phy_rmii_crs),
     .phy_rmii_tx_data(phy_rmii_tx_data),
     .phy_rmii_rx_data(phy_rmii_rx_data),
     .phy_tx_en(phy_tx_en),
+`endif
 
     .interrupts_o(ext_intr)
 );
@@ -309,6 +311,7 @@ soc
     .ENABLE_HIGHRES_TIMER("ENABLED"),
     .UART0_BAUD(`UART0_BAUD),
     .UART1_BAUD(`UART1_BAUD),
+    .MDIO_BAUD(`MDIO_BAUD),
     .EXTERNAL_INTERRUPTS(3)
 )
 u_soc
@@ -339,7 +342,11 @@ u_soc
     .sck_o(sck_o),
     .mosi_o(mosi_o),
     .miso_i(miso_i),
-    .spi_cs_o(spi_cs_o)
+    .spi_cs_o(spi_cs_o),
+`ifdef ETHERNET_ENABLED
+    .mdclk_o(phy_mdclk),
+    .mdio(phy_mdio)
+`endif
 );
 
 //-----------------------------------------------------------------

@@ -30,10 +30,13 @@
  *
  ****************************************************************************/
 
+#include <string.h>
+
 #include "irq.h"
 #include "freqmeters.h"
 #include "serial.h"
 #include "minmac.h"
+#include "mdio.h"
 
 static uint32_t irqCountes[FREQMETERS_COUNT];
 
@@ -74,13 +77,31 @@ void main(void)
         fm_enableChanel(i, true);
     }
 
+    /*
     for (uint8_t i = 0; i < 4; ++i) {
         miniMAC_rx_static_slot_allocate();
     }
     miniMAC_control(true, false);
+    */
 
-    uint8_t v = 1;
-    uint16_t count = 0;
+    // find phy addr
+    int8_t phy_addr = MDIO_DetectPHY(1);
+    volatile uint16_t data[PHY_ANNPTR + 1];
+
+    memset(data, 0, sizeof(data));
+    if (phy_addr >= 0) {
+        for (uint8_t i = PHY_BMCR; i <= PHY_ANNPTR; ++i) {
+            data[i] = MDIO_ReadREG_sync(phy_addr, i);
+        }
+    }
+    // 25607
+    // 61951
+    // 16387
+    // 62751
+    // 967
+    // 48927
+    // 31
+    // 24591
 
     irq_enable(IS_FREQMETERS);
 

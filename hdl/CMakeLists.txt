@@ -72,6 +72,7 @@ Verilog_GenControlMacro(ETHERNET_ENABLED_STR "ETHERNET_ENABLED" ${PERIPHERIAL_EN
 add_subdirectory(altor32)
 add_subdirectory(soc)
 add_subdirectory(memory)
+add_subdirectory(mdio)
 add_subdirectory(myminimac)
 add_subdirectory(utils)
 add_subdirectory(ucf)
@@ -98,7 +99,7 @@ build_prj(ALTOR32_CORE_PRJ  "verilog altor32	%f\n"	"${ALTOR32_HDL_V}")
 build_prj(SOC_V_PRJ	    "verilog soc	%f\n"	"${SOC_HDL_V}")
 build_prj(SOC_VHDL_PRJ	    "vhdl    soc        %f\n"	"${SOC_HDL_VHDL}")
 build_prj(MEMORY_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_V}")
-build_prj(MINMAC_PRJ	    "verilog minmac	%f\n"	"${MINMAC_HDL_V}")
+build_prj(MDIO_PRJ	    "verilog mdio	%f\n"	"${MDIO_HDL_V}")
 build_prj(MYMINMAC_PRJ	    "verilog myminimac	%f\n"	"${MYMINMAC_HDL_V}")
 build_prj(MYMINMAC_VHDL_PRJ "vhdl    myminimac	%f\n"	"${MYMINMAC_HDL_VHDL}")
 build_prj(UTILS_PRJ	    "verilog utils	%f\n"	"${UTILS_HDL_V}")
@@ -109,7 +110,7 @@ set(PRJ_TEXT
     ${ALTOR32_CORE_PRJ}
     ${SOC_V_PRJ}
     ${SOC_VHDL_PRJ}
-    ${MINMAC_PRJ}
+    ${MDIO_PRJ}
     ${MYMINMAC_PRJ}
     ${MYMINMAC_VHDL_PRJ}
     ${UTILS_PRJ}
@@ -140,7 +141,7 @@ configure_file(${UT_IN_FILE_NAME} ${UT_FILE_NAME} @ONLY)
 #-------------------------------------sym---------------------------------------
 add_subdirectory(testbench)
 
-set(prj_libs altor32 soc memory utils work myminimac)
+set(prj_libs altor32 soc memory utils work mdio myminimac)
 set(testlibs_list)
 foreach(l ${prj_libs})
     list(APPEND testlibs_list -lib ${l})
@@ -149,6 +150,7 @@ endforeach()
 set(test_include_path
     -i ${CMAKE_CURRENT_BINARY_DIR}
     -i ${CMAKE_CURRENT_SOURCE_DIR}
+    -i ${UTILS_INCLUDE_PATH}
     )
 
 build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	"${XILINX_VERILOG_glbl}")

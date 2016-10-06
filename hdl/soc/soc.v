@@ -72,7 +72,13 @@ module soc
     sck_o,
     mosi_o,
     miso_i,
-    spi_cs_o
+    spi_cs_o,
+
+    // MDIO
+`ifdef ETHERNET_ENABLED
+    mdio,
+    mdclk_o
+`endif
 );
 
 //-----------------------------------------------------------------
@@ -82,6 +88,7 @@ parameter  [31:0]   CLK_KHZ              = 12288;
 parameter  [31:0]   EXTERNAL_INTERRUPTS  = 1;
 parameter           UART0_BAUD           = 115200;
 parameter           UART1_BAUD           = 115200;
+parameter           MDIO_BAUD            = 2500000;
 parameter           SYSTICK_INTR_MS      = 1;
 parameter           ENABLE_SYSTICK_TIMER = "ENABLED";
 parameter           ENABLE_HIGHRES_TIMER = "ENABLED";
@@ -112,6 +119,11 @@ output                  sck_o /*verilator public*/;
 output                  mosi_o /*verilator public*/;
 input                   miso_i /*verilator public*/;
 output [6:0]            spi_cs_o /*verilator public*/;
+//MDIO
+`ifdef ETHERNET_ENABLED
+inout                   mdio /*verilator public*/;
+output                  mdclk_o /*verilator public*/;
+`endif
 
 //-----------------------------------------------------------------
 // Registers / Wires
@@ -150,6 +162,13 @@ wire [31:0]        spi_data_i;
 wire               spi_we;
 wire               spi_stb;
 wire               spi_intr;
+
+wire [3:0]         mdio_addr;
+wire               mdio_stb;
+wire               mdio_we;
+wire [31:0]        mdio_data_w;
+wire [31:0]        mdio_data_r;
+wire               mdio_intr;
 
 //-----------------------------------------------------------------
 // Peripheral Interconnect
@@ -206,12 +225,12 @@ u2_soc
     .periph4_we_o(/*open*/),
     .periph4_stb_o(/*open*/),
 
-    // Unused = 0x12000500 - 0x120005FF
-    .periph5_addr_o(/*open*/),
-    .periph5_data_o(/*open*/),
-    .periph5_data_i(32'h00000000),
-    .periph5_we_o(/*open*/),
-    .periph5_stb_o(/*open*/),
+    // MDIO = 0x12000500 - 0x120005FF
+    .periph5_addr_o(mdio_addr),
+    .periph5_data_o(mdio_data_w),
+    .periph5_data_i(mdio_data_r),
+    .periph5_we_o(mdio_we),
+    .periph5_stb_o(mdio_stb),
 
     // Unused = 0x12000600 - 0x120006FF
     .periph6_addr_o(/*open*/),
@@ -329,7 +348,7 @@ u_intr
     .intr2_i(timer_intr_hires),
     .intr3_i(spi_intr),
     .intr4_i(1'b0),
-    .intr5_i(1'b0),
+    .intr5_i(mdio_intr),
     .intr6_i(1'b0),
     .intr7_i(uart1_intr),
 
@@ -366,6 +385,34 @@ spi_boot
 
     .cs_o(spi_cs_o)
 );
+
+//-----------------------------------------------------------------
+// MDIO Controller
+//-----------------------------------------------------------------
+`ifdef ETHERNET_ENABLED
+wb_mdio
+#(
+    .MASTER_CLK_FREQ_HZ(CLK_KHZ * 1000),
+    .MDIO_BAUDRATE(MDIO_BAUD)
+) mdio_ip (
+    .clk_i(clk_i),
+    .rst_i(rst_i),
+    .cyc_i(io_cyc_i),
+    .stb_i(mdio_stb),
+    .adr_i(mdio_addr),
+    .we_i(mdio_we),
+    .dat_i(mdio_data_w),
+    .dat_o(mdio_data_r),
+
+    .inta_o(mdio_intr),
+
+    .mdio(mdio),
+    .mdclk_o(mdclk_o)
+);
+`else
+assign mdio_data_r = 32'b0;
+assign mdio_intr = 1'b0;
+`endif
 
 //-------------------------------------------------------------------
 // Hooks for debug

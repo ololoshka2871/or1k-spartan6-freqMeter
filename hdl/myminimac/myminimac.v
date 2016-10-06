@@ -71,8 +71,6 @@ module myminimac
     output wire                     tx_mem_stall_o, // incorrect address
 
     // RMII
-    output wire                     phy_mdclk,      // MDCLK
-    inout  wire                     phy_mdio,       // MDIO
     input  wire                     phy_rmii_clk,   // 50 MHZ input
     input  wire                     phy_rmii_crs,   // Ressiver ressiving data
     output wire [1:0]               phy_rmii_tx_data,// transmit data bis
@@ -121,9 +119,6 @@ myminimac_ctlif_cd
     .csr_we(csr_we_i),
     .csr_di(csr_dat_i),
     .csr_do(csr_dat_o),
-
-    .phy_mii_clk(phy_mdclk),
-    .phy_mii_data(phy_mdio),
 
     .rmii_clk_i(phy_rmii_clk),
 

@@ -39,6 +39,7 @@ file(GLOB_RECURSE
 
 add_definitions(
     -DBOOTLOADER
+    -DSIM
     -DF_REF=${REFERENCE_CLOCK_HZ}
     -DFREQMETERS_COUNT=24
     )

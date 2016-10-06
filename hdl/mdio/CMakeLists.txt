@@ -29,33 +29,20 @@
 #*
 #****************************************************************************/
 
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 3.0.2)
 
-SET(LIBHW_SOURCES
-    cache.c
-    irq.c
-    serial0.c
-    serial1.c
-    timer.c
-    GPIO.c
-    syscall.c
-    seg7_display.c
-    freqmeters.c
-    minmac.c
-    mdio.c
+
+file(GLOB_RECURSE
+    MDIO_HDL_V
+    FOLLOW_SYMLINKS
+    "*.v"
     )
 
-INCLUDE_DIRECTORIES(.)
-
-set(difenitions
-    MAC_TX_MEM_BASE=${MAC_TX_MEM_BASE}
-    MAC_RX_MEM_BASE=${MAC_RX_MEM_BASE}
-    MAC_CTL_BASE=${MAC_CTL_BASE}
-    MTU=${MTU}
-    MYMINMAC_RX_SLOTS=${MYMINMAC_RX_SLOTS}
-    FREQMETERS_BASE=${FREQMETERS_BASE}
+# Fake target: add sources to project tree (Qt Creator)
+add_custom_target(mdio_sources
+    SOURCES
+        ${MDIO_HDL_V}
     )
 
-add_library(hw STATIC ${LIBHW_SOURCES})
+set(MDIO_HDL_V		    ${MDIO_HDL_V}		PARENT_SCOPE)
 
-set_target_properties(hw PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
