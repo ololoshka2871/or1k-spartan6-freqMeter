@@ -82,6 +82,8 @@ wire read_from_memory = transmit_counter == 0;
 wire transmitted28bits = (transmit_counter == (MEMORY_DATA_WIDTH / 2) - 2);
 wire byte_transferted = ~|transmit_counter[1:0];
 
+`include "convert.v"
+
 wb_dma_ram
 #(
     .NUM_OF_MEM_UNITS_TO_USE(MEM_UNITS_TO_ALLOC),
@@ -130,7 +132,7 @@ always @(posedge phy_rmii_clk) begin
                 end
             end else begin
                 if (read_from_memory) begin
-                    transmit_data <= data_from_memory;
+                    transmit_data <= ether_bitorder_convert32(data_from_memory);
                     transmit_counter <= 1;
                 end else begin
                     transmit_data <= {transmit_data[MEMORY_DATA_WIDTH-1-2 : 0], 2'd0};
