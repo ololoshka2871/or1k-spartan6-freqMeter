@@ -22,10 +22,10 @@ NET "tx1"                       LOC = P95 | IOSTANDARD = "LVCMOS33";
 NET "rst_i" LOC = P16;
 
 # SPI
-NET "flash_CS" LOC = P38;
-NET "sck_o" LOC = P70;
-NET "mosi_o" LOC = P64;
-NET "miso_i" LOC = P65;
+NET "flash_CS"                  LOC = P38 | IOSTANDARD = "LVCMOS33";
+NET "sck_o"                     LOC = P70 | IOSTANDARD = "LVCMOS33";
+NET "mosi_o"                    LOC = P64 | IOSTANDARD = "LVCMOS33";
+NET "miso_i"                    LOC = P65 | IOSTANDARD = "LVCMOS33" | PULLUP;
 
 # RMII
 NET "phy_rmii_rx_data[0]"       LOC = P80 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_A
@@ -35,8 +35,8 @@ NET "phy_rmii_tx_data[0]"       LOC = P82 | IOSTANDARD = "LVCMOS33" | IOB = True
 NET "phy_rmii_tx_data[1]"       LOC = P81 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_E
 NET "phy_tx_en"                 LOC = P78 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_F
 NET "phy_rmii_clk"              LOC = P94 | IOSTANDARD = "LVCMOS33" | IOB = True;   # LED2 #TODO
-NET "phy_mdclk"                 LOC = P84 | IOSTANDARD = "LVCMOS33";                # DS_G
-NET "phy_mdio"                  LOC = P85 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_dp
+NET "phy_mdclk"                 LOC = P58 | IOSTANDARD = "LVCMOS33";                # EXT+
+NET "phy_mdio"                  LOC = P57 | IOSTANDARD = "LVCMOS33" | PULLUP;       # EXT-
 
 # Freqmeter inputs
 NET "Fin[0]"                    LOC = P23 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # PS2_DAT
@@ -59,8 +59,8 @@ NET "Fin[16]"                   LOC = P48 | IOSTANDARD = LVCMOS33 | PULLDOWN;   
 NET "Fin[17]"                   LOC = P47 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VR1
 NET "Fin[18]"                   LOC = P51 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VR4
 NET "Fin[19]"                   LOC = P50 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VR3
-NET "Fin[20]"                   LOC = P58 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # EXT+
-NET "Fin[21]"                   LOC = P57 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # EXT-
+# NET "Fin[20]"                   LOC = P58 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # EXT+
+# NET "Fin[21]"                   LOC = P57 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # EXT-
 
 ## TIMINGS
 NET "clk_i" TNM_NET = "clk_i_grp";

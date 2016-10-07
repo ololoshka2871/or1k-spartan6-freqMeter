@@ -91,8 +91,8 @@ mdio_read_write
     .ip_sync_reset(rst_i),
     .ip_master_clk(clk_i),
 
-    .op_mdio_clk(mdclk),
-    .io_mdio_data(mdclk_o),
+    .op_mdio_clk(mdclk_o),
+    .io_mdio_data(mdio),
 
     .ip_rd_wr(rw),                  // 0 - read, 1 - write
     .ip_start(start_pulse),         // begin reansaction pulse
