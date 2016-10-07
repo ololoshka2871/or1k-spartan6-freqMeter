@@ -25,10 +25,10 @@ BOOTLOADER_END=`${TOOLCHAIN_PREFIX}readelf -l $BOOTLOADER_ELF | grep -P "LOAD.*R
 APP_START="$BOOTLOADER_START + $BOOTLOADER_SIZE + 8"
 APP_SIZE="$BOOTLOADER_END - ($APP_START)"
 
-MAC_TX_MEM_SIZE=`python -c "import math; print(\
-    $MEMORY_UNIT_SIZE / 8 * int(math.ceil($MTU.0 * $MYMINMAC_TX_SLOTS / ($MEMORY_UNIT_SIZE / 8))))"`
-MAC_RX_MEM_SIZE=`python -c "import math; print(\
-    $MEMORY_UNIT_SIZE / 8 * int(math.ceil($MTU.0 * $MYMINMAC_RX_SLOTS / ($MEMORY_UNIT_SIZE / 8))))"`
+MAC_TX_MEM_SIZE=`python -c "import math; print(int(\
+    $MEMORY_UNIT_SIZE / 8 * int(math.ceil($MTU.0 * $MYMINMAC_TX_SLOTS / ($MEMORY_UNIT_SIZE / 8)))))"`
+MAC_RX_MEM_SIZE=`python -c "import math; print(int(\
+    $MEMORY_UNIT_SIZE / 8 * int(math.ceil($MTU.0 * $MYMINMAC_RX_SLOTS / ($MEMORY_UNIT_SIZE / 8)))))"`
 
 sed -e "s/@APP_START@/$APP_START/"\
     -e "s/@APP_SIZE@/$APP_SIZE/"\
