@@ -85,21 +85,14 @@ reg [ADDR_LEN-1:2] write_adr;
 reg ressiving_frame;
 reg rx_byte_error;
 
-wire [MEMORY_DATA_WIDTH - 1:0] shifted_data = {input_data, phy_rmii_rx_data};
+wire [MEMORY_DATA_WIDTH - 1:0] shifted_data = {phy_rmii_rx_data, input_data};
 wire [1:0] shift_selector = ressive_counter[COUNTER_WIDTH-1 -:2];
 
 wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory =
-    shift_selector == 2'b00 ? {shifted_data[7:0], 24'd0} :
-    shift_selector == 2'b01 ? {shifted_data[15:0], 16'd0}:
-    shift_selector == 2'b10 ? {shifted_data[23:0], 8'd0}:
+    shift_selector == 2'b00 ? {shifted_data[MEMORY_DATA_WIDTH - 1 -:8], 24'd0} :
+    shift_selector == 2'b01 ? {shifted_data[MEMORY_DATA_WIDTH - 1 -:16], 16'd0}:
+    shift_selector == 2'b10 ? {shifted_data[MEMORY_DATA_WIDTH - 1 -:24], 8'd0}:
     shifted_data;
-/*
-wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory =
-    shift_selector == 2'b00 ? {24'd0, shifted_data[7:0]} :
-    shift_selector == 2'b01 ? {16'd0, shifted_data[15:0]}:
-    shift_selector == 2'b10 ? { 8'd0, shifted_data[23:0]}:
-    shifted_data;
-*/
 
 wire shifting_in_progress = (ressive_counter[1:0] != 2'b00);
 wire ressived30bits = (ressive_counter == ((MEMORY_DATA_WIDTH / 2) - 1));
@@ -134,7 +127,7 @@ wb_dma_ram
 always @(posedge phy_rmii_clk) begin
     if (sys_rst | rx_rst) begin
         // reset
-        input_data <= 7'b0;
+        input_data <= 0;
         ressive_counter <= 0;
         ressiving_frame <= 1'b0;
         rx_resetcount <= 1'b0;
@@ -146,8 +139,10 @@ always @(posedge phy_rmii_clk) begin
         rx_byte_error <= 1'b0;
         rx_resetcount <= 1'b0;
 
-        if (phy_rmii_crs)
-            input_data <= {input_data[MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0], phy_rmii_rx_data};
+        if (phy_rmii_crs) begin
+            input_data <= {phy_rmii_rx_data,
+                input_data[MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1 : RMII_BUS_WIDTH]};
+        end
 
         if (ressiving_frame) begin
             if (phy_rmii_crs) begin

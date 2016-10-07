@@ -121,7 +121,7 @@ always @(posedge phy_rmii_clk) begin
             if (~tx_en | sending_preamble) begin
                 sending_preamble <= 1'b1;
                 transmit_counter <= transmit_counter + 1;
-                transmit_data[MEMORY_DATA_WIDTH - 1 -: 2] <= {
+                transmit_data[RMII_BUS_WIDTH - 1 : 0] <= {
                     transmit_counter == PREAMBLE_END - 1, 1'b1};
                 if (transmit_counter == PREAMBLE_END) begin
                     sending_preamble <= 1'b0;
@@ -133,7 +133,8 @@ always @(posedge phy_rmii_clk) begin
                     transmit_data <= data_from_memory;
                     transmit_counter <= 1;
                 end else begin
-                    transmit_data <= {transmit_data[MEMORY_DATA_WIDTH-1-2 : 0], 2'd0};
+                    // TODO Разобраться с порядком байтов!
+                    transmit_data <= {2'b00, transmit_data[MEMORY_DATA_WIDTH-1 : RMII_BUS_WIDTH]};
                     transmit_counter <= transmit_counter + 1;
                     if (transmitted28bits) begin
                         mem_tx_addr <= mem_tx_addr + 1;
@@ -154,7 +155,7 @@ end
 
 assign phy_tx_en = tx_en & ~byte_count_stop;
 assign tx_next = tx_en & byte_transferted & ~sending_preamble;
-assign phy_rmii_tx_data = transmit_data[MEMORY_DATA_WIDTH - 1 -: 2];
+assign phy_rmii_tx_data = transmit_data[RMII_BUS_WIDTH - 1 : 0];
 
 endmodule
 
