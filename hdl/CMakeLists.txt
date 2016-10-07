@@ -151,6 +151,7 @@ set(test_include_path
     -i ${CMAKE_CURRENT_BINARY_DIR}
     -i ${CMAKE_CURRENT_SOURCE_DIR}
     -i ${UTILS_INCLUDE_PATH}
+    -i ${MYMINIMAC_INCLUDE_PATH}
     )
 
 build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	"${XILINX_VERILOG_glbl}")

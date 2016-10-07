@@ -127,7 +127,7 @@ always @(posedge phy_rmii_clk) begin
                     transmit_counter == PREAMBLE_END - 1, 1'b1};
                 if (transmit_counter == PREAMBLE_END) begin
                     sending_preamble <= 1'b0;
-                    transmit_data <= data_from_memory;
+                    transmit_data <= ether_bitorder_convert32(data_from_memory);
                     transmit_counter <= 1;
                 end
             end else begin
