@@ -78,11 +78,11 @@ void main(void)
     }
 
     // find phy addr
-    int8_t phy_addr = MDIO_DetectPHY(1);
+    int8_t phy_addr = MDIO_DetectPHY(0);
     volatile uint16_t data[PHY_ANNPTR + 1];
 
     memset(data, 0, sizeof(data));
-    MDIO_WriteREG(phy_addr, PHY_BMCR, PHY_BMCR_SPEED100MB | PHY_BMCR_FULL_DUPLEX);
+    //MDIO_WriteREG(phy_addr, PHY_BMCR, PHY_BMCR_SPEED100MB | PHY_BMCR_FULL_DUPLEX);
     if (phy_addr >= 0) {
         for (uint8_t i = PHY_BMCR; i <= PHY_ANNPTR; ++i) {
             data[i] = MDIO_ReadREG_sync(phy_addr, i);
@@ -99,6 +99,7 @@ void main(void)
     EXIT_CRITICAL();
 
     while(1) {
+        miniMAC_rx_static_slot_allocate();
         Send_Data();
     }
 }
