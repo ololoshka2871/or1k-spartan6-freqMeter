@@ -110,6 +110,9 @@ wire wr_request = write_trigger & rx_valid & ressiving_frame;
 
 `include "convert.v"
 
+wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory_norm =
+    ether_bitorder_convert32(data_to_write_memory);
+
 wb_dma_ram
 #(
     .NUM_OF_MEM_UNITS_TO_USE(MEM_UNITS_TO_ALLOC)
@@ -127,7 +130,7 @@ wb_dma_ram
 
     .rawp_clk(phy_rmii_clk),
     .rawp_adr_i({write_adr, 2'b0}),
-    .rawp_dat_i(ether_bitorder_convert32(data_to_write_memory)),
+    .rawp_dat_i(data_to_write_memory_norm),
     .rawp_dat_o(/* open */),
     .rawp_we_i(wr_request),
     .rawp_stall_o(memory_error)
