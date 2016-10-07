@@ -77,13 +77,6 @@ void main(void)
         fm_enableChanel(i, true);
     }
 
-    /*
-    for (uint8_t i = 0; i < 4; ++i) {
-        miniMAC_rx_static_slot_allocate();
-    }
-    miniMAC_control(true, false);
-    */
-
     // find phy addr
     int8_t phy_addr = MDIO_DetectPHY(1);
     volatile uint16_t data[PHY_ANNPTR + 1];
@@ -95,6 +88,11 @@ void main(void)
             data[i] = MDIO_ReadREG_sync(phy_addr, i);
         }
     }
+
+    for (uint8_t i = 0; i < 4; ++i) {
+        miniMAC_rx_static_slot_allocate();
+    }
+    miniMAC_control(true, false);
 
     irq_enable(IS_FREQMETERS);
 

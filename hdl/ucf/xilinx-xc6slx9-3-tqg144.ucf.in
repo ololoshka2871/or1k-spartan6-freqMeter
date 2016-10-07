@@ -28,13 +28,13 @@ NET "mosi_o"                    LOC = P64 | IOSTANDARD = "LVCMOS33";
 NET "miso_i"                    LOC = P65 | IOSTANDARD = "LVCMOS33" | PULLUP;
 
 # RMII
-NET "phy_rmii_rx_data[0]"       LOC = P80 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_A
-NET "phy_rmii_rx_data[1]"       LOC = P79 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_B
-NET "phy_rmii_crs"              LOC = P83 | IOSTANDARD = "LVCMOS33" | PULLUP;       # DS_C
-NET "phy_rmii_tx_data[0]"       LOC = P82 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_D
-NET "phy_rmii_tx_data[1]"       LOC = P81 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_E
-NET "phy_tx_en"                 LOC = P78 | IOSTANDARD = "LVCMOS33" | IOB = True;   # DS_F
-NET "phy_rmii_clk"              LOC = P94 | IOSTANDARD = "LVCMOS33" | IOB = True;   # LED2 #TODO
+NET "phy_tx_en"                 LOC = P47 | IOSTANDARD = "LVCMOS33" | IOB = True;   # VR4
+NET "phy_rmii_tx_data[0]"       LOC = P46 | IOSTANDARD = "LVCMOS33" | IOB = True;   # VR2
+NET "phy_rmii_tx_data[1]"       LOC = P45 | IOSTANDARD = "LVCMOS33" | IOB = True;   # VR1
+NET "phy_rmii_rx_data[0]"       LOC = P50 | IOSTANDARD = "LVCMOS33" | PULLUP;       # VG3
+NET "phy_rmii_rx_data[1]"       LOC = P48 | IOSTANDARD = "LVCMOS33" | PULLUP;       # VR0
+NET "phy_rmii_crs"              LOC = P51 | IOSTANDARD = "LVCMOS33" | PULLUP;       # VG5
+NET "phy_rmii_clk"              LOC = P84 | IOSTANDARD = "LVCMOS33" | IOB = True;   # SEG_G
 NET "phy_mdclk"                 LOC = P58 | IOSTANDARD = "LVCMOS33";                # EXT+
 NET "phy_mdio"                  LOC = P57 | IOSTANDARD = "LVCMOS33" | PULLUP;       # EXT-
 
@@ -52,13 +52,13 @@ NET "Fin[9]"                    LOC = P34 | IOSTANDARD = LVCMOS33 | PULLDOWN;   
 NET "Fin[10]"                   LOC = P41 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VG2
 NET "Fin[11]"                   LOC = P40 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VG1
 NET "Fin[12]"                   LOC = P44 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VG4
-NET "Fin[13]"                   LOC = P43 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VG3
-NET "Fin[14]"                   LOC = P46 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VR0
-NET "Fin[15]"                   LOC = P45 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VG5
-NET "Fin[16]"                   LOC = P48 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VR2
-NET "Fin[17]"                   LOC = P47 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VR1
-NET "Fin[18]"                   LOC = P51 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VR4
-NET "Fin[19]"                   LOC = P50 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VR3
+# NET "Fin[13]"                   LOC = P43 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VG3
+# NET "Fin[14]"                   LOC = P46 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VR0
+# NET "Fin[15]"                   LOC = P45 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VG5
+# NET "Fin[16]"                   LOC = P48 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VR2
+# NET "Fin[17]"                   LOC = P47 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VR1
+# NET "Fin[18]"                   LOC = P51 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VR4
+# NET "Fin[19]"                   LOC = P50 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VR3
 # NET "Fin[20]"                   LOC = P58 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # EXT+
 # NET "Fin[21]"                   LOC = P57 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # EXT-
 
