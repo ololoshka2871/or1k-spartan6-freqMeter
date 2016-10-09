@@ -45,7 +45,7 @@ SET(LIBHW_SOURCES
     mdio.c
     )
 
-INCLUDE_DIRECTORIES(.)
+include_directories(. ${LIBBASE_INCLUDE_DIR})
 
 set(difenitions
     MAC_TX_MEM_BASE=${MAC_TX_MEM_BASE}

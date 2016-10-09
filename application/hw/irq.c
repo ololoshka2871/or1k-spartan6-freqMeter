@@ -18,6 +18,9 @@ static struct src_handler ISRs[IS_Count] = {
 { IS_UART0, NULL },
 { IS_BOOT_SPI, NULL },
 { IS_GPIO, NULL },
+{ IS_MDIO, NULL },
+{ IS_MINIMAC_TX, NULL },
+{ IS_MINIMAC_RX, NULL },
 };
 
 static unsigned int irq_disable_counter = 1;

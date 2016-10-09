@@ -36,6 +36,8 @@
 #include <stdint.h>
 #include "mem_map.h"
 
+// based on https://github.com/m-labs/misoc/blob/master/misoc/software/libnet/microudp.c
+
 #ifndef MAC_CTL_BASE
 #warning "MAC_CTL_BASE undefined!"
 #define MAC_CTL_BASE            (FIO_BASE + 0x00100000)
@@ -85,6 +87,12 @@
 #define MINIMAC_TX_SLOT_ADDR    (*(REG32 (MAC_CTL_BASE + REG_OFFSET(14))))
 #define MINIMAC_TX_REMAINING    (*(REG32 (MAC_CTL_BASE + REG_OFFSET(15))))
 
+//------------------------------------------------------------------------------
+
+#define ETHERTYPE_ARP           0x0806
+#define ETHERTYPE_IP            0x0800
+
+#define ETHERNET_FRAME_SIZE_MIN 64
 
 enum enMiniMACSlotStates {
     MINIMAC_SLOT_STATE_DISABLED = 0b00,
@@ -104,26 +112,45 @@ enum enMiniMACRxSlots {
 
 enum enMiniMACErrorCodes {
     MINIMAC_OK = 0,
-    MINIMAC_E_NOMEM = 1,
+    MINIMAC_NOMEM_ERROR = 1,
     MINIMAC_MTU_ERROR = 2,
-    MINIMAC_VALUE_ERROR = 3
+    MINIMAC_VALUE_ERROR = 3,
+    MINIMAC_SLOT_STATE_ERROR = 4,
+    MINIMAC_CRC_ERROR = 5,
+    MINIMAC_NO_DATA_AVALABLE = 6
+};
+
+struct sminiMAC_Stat {
+    uint32_t pocket_rx;
+    uint32_t pocket_rx_errors;
+
+    uint32_t pocket_tx;
+};
+
+struct ethernet_header {
+    uint8_t destmac[6];
+    uint8_t srcmac[6];
+    uint16_t ethertype;
+} __attribute__((packed));
+
+
+union uethernet_buffer {
+    struct ethernet_header frame;
+    unsigned char raw[1532];
 };
 
 //------------------------------------------------------------------------------
 
 void miniMAC_control(bool rx_enable, bool tx_enable);
 
-// interrupt handlers
-void miniMAC_rx_isr(unsigned int * registers);
-void miniMAC_tx_isr(unsigned int * registers);
-
 enum enMiniMACRxSlots miniMAC_rx_static_slot_allocate();
 enum enMiniMACErrorCodes miniMAC_tx_slot_allocate(uint8_t ** pslot_addr);
 enum enMiniMACErrorCodes miniMAC_tx_start(uint16_t byte_count);
 enum enMiniMACRxSlots miniMAC_findSlotWithState(enum enMiniMACSlotStates state);
-enum enMiniMACErrorCodes miniMAC_verifyRxData(
-        enum enMiniMACRxSlots slot, uint8_t** ppayload, uint16_t *ppl_size);
+enum enMiniMACErrorCodes miniMAC_getpointerRxDatarRxData(
+        enum enMiniMACRxSlots *pslot, uint8_t **ppayload, uint16_t *ppl_size);
 void miniMAC_reset_rx_slot(enum enMiniMACRxSlots slot);
-
+enum enMiniMACRxSlots miniMAC_is_data_ressived();
+void minMAC_stat(struct sminiMAC_Stat* pstst);
 
 #endif // MINMAC_H

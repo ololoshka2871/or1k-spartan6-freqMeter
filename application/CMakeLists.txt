@@ -80,10 +80,10 @@ add_definitions(
 
 add_custom_target(mkldscript DEPENDS ${LD_SCRIPT_FILE})
 
+add_subdirectory(libbase)
 add_subdirectory(hw)
-add_subdirectory(lib)
 
-include_directories(hw)
+include_directories(hw libbase)
 
 get_target_property(hwlib_difenitions hw COMPILE_DEFINITIONS)
 
@@ -95,6 +95,7 @@ add_executable(${APPLICATION_ELF_NAME}
     )
 target_link_libraries(${APPLICATION_ELF_NAME}
     hw
+    base
     )
 set_target_properties(${APPLICATION_ELF_NAME} PROPERTIES COMPILE_DEFINITIONS "${hwlib_difenitions}")
 add_dependencies(${APPLICATION_ELF_NAME} mkldscript)

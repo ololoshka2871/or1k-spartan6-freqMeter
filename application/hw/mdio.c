@@ -51,7 +51,7 @@ uint16_t MDIO_ReadREG_sync(const uint8_t phy_addr, const uint8_t reg_addr) {
     return MDIO_REG_DATA;
 }
 
-uint16_t MDIO_WriteREG(const uint8_t phy_addr, const uint8_t reg_addr,
+void MDIO_WriteREG(const uint8_t phy_addr, const uint8_t reg_addr,
                            const uint16_t val) {
     while(!(MDIO_REG_CTL & MDIO_REG_CTL_IF)); // wait ready
     MDIO_REG_DATA = val;

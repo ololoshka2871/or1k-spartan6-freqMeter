@@ -89,9 +89,6 @@ void main(void)
         }
     }
 
-    for (uint8_t i = 0; i < 4; ++i) {
-        miniMAC_rx_static_slot_allocate();
-    }
     miniMAC_control(true, false);
 
     irq_enable(IS_FREQMETERS);
@@ -99,7 +96,13 @@ void main(void)
     EXIT_CRITICAL();
 
     while(1) {
-        miniMAC_rx_static_slot_allocate();
+        enum enMiniMACRxSlots slot;
+        enum enMiniMACErrorCodes err;
+
+
         Send_Data();
+        err = miniMAC_getpointerRxDatarRxData(&slot, NULL, NULL);
+        if (err == MINIMAC_OK)
+            miniMAC_reset_rx_slot(slot);
     }
 }

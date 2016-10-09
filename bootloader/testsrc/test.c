@@ -29,6 +29,8 @@
  *
  ****************************************************************************/
 
+#include <stddef.h>
+
 #include "gdb-stub-sections.h"
 
 #include "freqmeters.h"
@@ -73,19 +75,20 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
     miniMAC_tx_slot_allocate(&ptx_slot);
     //memcpy(ptx_slot, 0, 13);
 
+    MINIMAC_SLOT_STATE(MINIMAC_RX_SLOT0) = 0b00;
     miniMAC_control(true, true);
+
+    miniMAC_findSlotWithState(MINIMAC_SLOT_STATE_READY);
 
     for (uint8_t i = 0; i < 5; ++i) { // 4 - will be dropped
         miniMAC_tx_start((12 * sizeof(uint32_t) - 2) * (i + 1));
         while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_TX)));
         IRQ_STATUS = (1 << IRQ_MINIMAC_TX);
         while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_RX)));
-        enum enMiniMACRxSlots slot =
-                miniMAC_findSlotWithState(MINIMAC_SLOT_STATE_DATA_RESSIVED);
-
-        uint8_t *ppayload;
-        uint16_t ppl_size;
-        if (MINIMAC_OK != miniMAC_verifyRxData(slot, &ppayload, &ppl_size))
+        enum enMiniMACRxSlots slot;
+        enum enMiniMACErrorCodes err =
+                miniMAC_getpointerRxDatarRxData(&slot, NULL, NULL);
+        if (err == MINIMAC_OK)
             miniMAC_reset_rx_slot(slot);
         IRQ_STATUS = (1 << IRQ_MINIMAC_RX);
     }

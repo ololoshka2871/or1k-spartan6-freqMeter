@@ -31,4 +31,13 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
+SET(LIBBASE_SOURCES
+    crc32.c
+    )
+
+include_directories(.)
+
+add_library(base STATIC ${LIBBASE_SOURCES})
+
 set(APP_STARTUP_SRC      ${CMAKE_CURRENT_SOURCE_DIR}/startup.c   PARENT_SCOPE)
+set(LIBBASE_INCLUDE_DIR  ${CMAKE_CURRENT_SOURCE_DIR}             PARENT_SCOPE)

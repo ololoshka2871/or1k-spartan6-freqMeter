@@ -84,6 +84,7 @@ reg [COUNTER_WIDTH-1:0] ressive_counter;
 reg [ADDR_LEN-1:2] write_adr;
 reg ressiving_frame;
 reg rx_byte_error;
+reg crs_want_stop;
 
 wire [MEMORY_DATA_WIDTH - 1:0] shifted_data = {input_data, phy_rmii_rx_data};
 wire [1:0] shift_selector = ressive_counter[COUNTER_WIDTH-1 -:2];
@@ -101,7 +102,7 @@ wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory =
     shifted_data;
 */
 
-wire shifting_in_progress = (ressive_counter[1:0] != 2'b00);
+wire shifting_in_progress = ~ressive_counter[0];
 wire ressived30bits = (ressive_counter == ((MEMORY_DATA_WIDTH / 2) - 1));
 wire write_trigger = (ressive_counter[1:0] == 2'b11);
 wire memory_error;
@@ -146,30 +147,35 @@ always @(posedge phy_rmii_clk) begin
         rx_byte_error <= 1'b0;
         rx_endframe <= 1'b0;
         write_adr <= 0;
+        crs_want_stop <= 1'b1;
     end else begin
         rx_endframe <= 1'b0;
         rx_byte_error <= 1'b0;
         rx_resetcount <= 1'b0;
 
-        if (phy_rmii_crs)
-            input_data <= {input_data[MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0], phy_rmii_rx_data};
+        crs_want_stop <= ~phy_rmii_crs;
 
         if (ressiving_frame) begin
             if (phy_rmii_crs) begin
                 // normal ressiving
                 ressive_counter <= ressive_counter + 1;
+                input_data <= {input_data[MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0], phy_rmii_rx_data};
                 if (ressived30bits) begin
                     ressive_counter <= 0;
                     if (rx_valid) begin
                         write_adr <= write_adr + 1;
                     end
                 end
-            end else if (phy_rmii_rx_data == CRS_END_FRAME) begin
-                    // end frame
+            end else begin
+                if (crs_want_stop) begin
                     ressiving_frame <= 1'b0;
                     rx_endframe   <= ~shifting_in_progress;
                     rx_byte_error <=  shifting_in_progress;
+                end else begin
+                    ressive_counter <= ressive_counter + 1;
+                    input_data <= {input_data[MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0], phy_rmii_rx_data};
                 end
+            end
         end else begin
             // Дропаем J,       K и     False Carrier detected
             //         2'b00    2'b00   2'b10
@@ -178,6 +184,7 @@ always @(posedge phy_rmii_clk) begin
                 ressive_counter <= ressive_counter + 1;
                 if ((ressive_counter >= 6) && (phy_rmii_rx_data[1] == 1'b1)) begin
                     // start ressiving from next
+                    rx_resetcount <= 1'b1;
                     ressive_counter <= 0;
                     ressiving_frame <= 1'b1;
                     write_adr <= rx_adr;

@@ -257,7 +257,8 @@ wire [1:0] rst_ctl_ctl_o;
 reg rst_ctl_ctl_wr;
 clk_domain_cros_register
 #(
-    .DATA_WIDTH(2)
+    .DATA_WIDTH(2),
+    .INITIAL_VALUE(2'b11)
 )  reset_ctrl (
     .reset_i(sys_rst),
     .clk_sys_i(sys_clk),
@@ -328,7 +329,7 @@ always @(posedge rmii_clk_i) begin
             endcase
         end
 
-        if(rx_incrcount) begin
+        if(rx_incrcount /*| rx_endframe*/) begin
             case(1'b1)
                 select0: begin
                     slot_count_ctl_i[0] <= slot_count_ctl_o[0] + 1;
@@ -414,28 +415,24 @@ always @(posedge sys_clk) begin
                 4'd2 : begin
                     slot_state_write[0] <= csr_di[1:0];
                     slot_state_sys_act[0] <= sys_wr;
-                    slot_count_sys_act[0] <= sys_wr;
                 end
                 4'd3 : slot_adr[0] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot0_count is read-only
                 4'd5 : begin
                     slot_state_write[1] <= csr_di[1:0];
                     slot_state_sys_act[1] <= sys_wr;
-                    slot_count_sys_act[1] <= sys_wr;
                 end
                 4'd6 : slot_adr[1] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot1_count is read-only
                 4'd8 : begin
                     slot_state_write[2] <= csr_di[1:0];
                     slot_state_sys_act[2] <= sys_wr;
-                    slot_count_sys_act[2] <= sys_wr;
                 end
                 4'd9 : slot_adr[2] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot2_count is read-only
                 4'd11: begin
                     slot_state_write[3] <= csr_di[1:0];
                     slot_state_sys_act[3] <= sys_wr;
-                    slot_count_sys_act[3] <= sys_wr;
                 end
                 4'd12: slot_adr[3] <= csr_di[RX_ADDR_WIDTH-1:2];
                 // slot3_count is read-only
