@@ -40,7 +40,7 @@ module tb_top;
         wire     mosi_o;
 
         wire     phy_tx_en;
-        wire     rmii_clk;
+        reg      rmii_clk;
         wire     mii_mdclk;
         wire     mii_mdio;
         wire  [1:0]   rmi_tx_data;
@@ -97,6 +97,7 @@ module tb_top;
             clk = 0;
             rx = 0;
             devided_clocks = 0;
+            rmii_clk = 1;
             // Wait 100 ns for global reset to finish
             #100;
 
@@ -105,6 +106,8 @@ module tb_top;
 	end
 	
 	always #10 clk <= !clk;
+
+        always #11 rmii_clk <= !rmii_clk;
 
         always @(posedge clk) begin
             devided_clocks = devided_clocks + 1;

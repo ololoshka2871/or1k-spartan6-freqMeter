@@ -39,7 +39,7 @@ module clock_provider
     input wire                  clk_i,
 
     output wire                 sys_clk_o,
-    output wire                 rmii_clk_to_PHY_o,
+    input  wire                 rmii_clk_to_PHY_i,
     output wire                 rmii_logick_clk_o,
     output wire                 clk_ref
 );
@@ -96,22 +96,6 @@ DCM_CLKGEN_f_rmii (
    .RST(1'b0)              // 1-bit input: Reset input pin
 );
 
-ODDR2
-#(
-   .DDR_ALIGNMENT("NONE"), // Sets output alignment to "NONE", "C0" or "C1"
-   .INIT(1'b0),    // Sets initial state of the Q output to 1'b0 or 1'b1
-   .SRTYPE("SYNC") // Specifies "SYNC" or "ASYNC" set/reset
-) RMII_clock_provider (
-   .Q(rmii_clk_to_PHY_o),   // 1-bit DDR output data
-   .C0(~sys_clk_o),   // 1-bit clock input
-   .C1(sys_clk_o),   // 1-bit clock input
-   .CE(1'b1), // 1-bit clock enable input
-   .D0(1'b1), // 1-bit data input (associated with C0)
-   .D1(1'b0), // 1-bit data input (associated with C1)
-   .R(1'b0),   // 1-bit reset input
-   .S(1'b0)    // 1-bit set input
-);
-
-assign rmii_logick_clk_o = sys_clk_o;
+assign rmii_logick_clk_o = rmii_clk_to_PHY_i;
 
 endmodule

@@ -85,11 +85,6 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
         while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_TX)));
         IRQ_STATUS = (1 << IRQ_MINIMAC_TX);
         while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_RX)));
-        enum enMiniMACRxSlots slot;
-        enum enMiniMACErrorCodes err =
-                miniMAC_getpointerRxDatarRxData(&slot, NULL, NULL);
-        if (err == MINIMAC_OK)
-            miniMAC_reset_rx_slot(slot);
         IRQ_STATUS = (1 << IRQ_MINIMAC_RX);
     }
 }

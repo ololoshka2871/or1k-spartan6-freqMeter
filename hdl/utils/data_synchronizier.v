@@ -54,7 +54,7 @@ module data_synchronizier
 
 reg [DATA_WIDTH - 1:0] Qs;
 
-always @(posedge clk_i) begin
+always @(negedge clk_i) begin
     if (rst_i) begin
         Qs <= INITIAL_VALUE;
         Q <= INITIAL_VALUE;

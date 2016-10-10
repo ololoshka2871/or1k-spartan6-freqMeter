@@ -64,9 +64,9 @@ module top
 
     // Ethernet RMII interface
 `ifdef ETHERNET_ENABLED
+    input  wire         phy_rmii_clk,   // 50 MHZ input
     output wire         phy_mdclk,      // MDCLK
     inout  wire         phy_mdio,       // MDIO
-    output wire         phy_rmii_clk,   // 50 MHZ input
     input  wire         phy_rmii_crs,   // Ressiver ressiving data
     output wire [1:0]   phy_rmii_tx_data,// transmit data bis
     input  wire [1:0]   phy_rmii_rx_data,// ressive data bus
@@ -262,7 +262,7 @@ clock_provider clk_prov
     .clk_i(clk_i),
 
     .sys_clk_o(clk),
-    .rmii_clk_to_PHY_o(phy_rmii_clk),
+    .rmii_clk_to_PHY_i(phy_rmii_clk),
     .rmii_logick_clk_o(rmii_clk),
     .clk_ref(clk_ref)
 );

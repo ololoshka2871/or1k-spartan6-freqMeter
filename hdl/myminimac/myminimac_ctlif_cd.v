@@ -280,7 +280,7 @@ assign tx_rst = rst_ctl_ctl_o[1];
 
 integer j;
 
-always @(posedge rmii_clk_i) begin
+always @(negedge rmii_clk_i) begin
     if (sys_rst) begin
         slot_write_ctl_act <= 4'd0;
         for (j = 0; j < 4; j = j + 1) begin

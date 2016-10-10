@@ -137,7 +137,7 @@ wb_dma_ram
     .rawp_stall_o(memory_error)
 );
 
-always @(posedge phy_rmii_clk) begin
+always @(negedge phy_rmii_clk) begin
     if (sys_rst | rx_rst) begin
         // reset
         input_data <= 7'b0;
@@ -169,6 +169,7 @@ always @(posedge phy_rmii_clk) begin
             end else begin
                 if (crs_want_stop) begin
                     ressiving_frame <= 1'b0;
+                    ressive_counter <= 0;
                     rx_endframe   <= ~shifting_in_progress;
                     rx_byte_error <=  shifting_in_progress;
                 end else begin

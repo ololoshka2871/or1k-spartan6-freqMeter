@@ -111,7 +111,7 @@ wb_dma_ram
     .rawp_stall_o(/* open */)
 );
 
-always @(posedge phy_rmii_clk) begin
+always @(negedge phy_rmii_clk) begin
     if (sys_rst | tx_rst) begin
         transmit_counter <= 0;
         tx_en <= 0;

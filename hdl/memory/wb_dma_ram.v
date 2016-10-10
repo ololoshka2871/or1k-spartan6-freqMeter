@@ -107,7 +107,7 @@ always @(posedge wb_clk) begin
 end
 
 // port RAW
-always @(posedge rawp_clk) begin
+always @(negedge rawp_clk) begin
     rawp_stall_o <= rawp_incorrect_addr;
     if (~rawp_incorrect_addr) begin
         if (rawp_we_i) begin
