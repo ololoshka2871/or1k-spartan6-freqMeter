@@ -208,8 +208,10 @@ enum enMiniMACErrorCodes miniMAC_tx_start(uint16_t byte_count) {
 
 
 void miniMAC_reset_rx_slot(enum enMiniMACRxSlots slot) {
-    MINIMAC_SLOT_ADDR(slot) = align32(MAC_RX_MEM_BASE + MTU * (int)slot);
-    MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
+    if (slot < MINIMAC_RX_SLOT_COUNT) {
+        MINIMAC_SLOT_ADDR(slot) = align32(MAC_RX_MEM_BASE + MTU * (int)slot);
+        MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
+    }
 }
 
 
@@ -218,6 +220,7 @@ enum enMiniMACErrorCodes miniMAC_getpointerRxDatarRxData(
     enum enMiniMACRxSlots  slot = miniMAC_is_data_ressived();
     enum enMiniMACErrorCodes ret = MINIMAC_OK;
     if (slot < MINIMAC_RX_SLOT_COUNT) {
+        if (pslot) *pslot = slot;
         // check slot crc
         uint32_t rxlen = MINIMAC_SLOT_COUNT(slot);
         union uethernet_buffer* rxbuffer = (union uethernet_buffer*)MINIMAC_SLOT_ADDR(slot);
@@ -237,16 +240,18 @@ enum enMiniMACErrorCodes miniMAC_getpointerRxDatarRxData(
                 *ppayload = &rxbuffer->raw[sizeof(struct ethernet_header)];
             }
             minimacstat.pocket_rx++;
+            return ret;
         } else {
             ret = MINIMAC_CRC_ERROR;
             minimacstat.pocket_rx_errors++;
         }
         miniMAC_reset_rx_slot(slot);
-    } else
+    } else {
+        if (pslot) *pslot = MINIMAC_RX_SLOT_INVALID;
         ret = MINIMAC_NO_DATA_AVALABLE;
+    }
 
     if (ppl_size)   *ppl_size = 0;
-    if (pslot)      *pslot = slot;
     return ret;
 }
 

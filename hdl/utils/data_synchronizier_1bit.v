@@ -53,7 +53,7 @@ module data_synchronizier_1bit
 
 reg Qs;
 
-always @(negedge clk_i) begin
+always @(posedge clk_i) begin
     if (rst_i) begin
         Qs <= INITIAL_VALUE;
         Q <= INITIAL_VALUE;

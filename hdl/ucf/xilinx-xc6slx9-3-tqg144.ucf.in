@@ -31,9 +31,9 @@ NET "miso_i"                    LOC = P65 | IOSTANDARD = "LVCMOS33" | PULLUP;
 NET "phy_tx_en"                 LOC = P44 | IOSTANDARD = "LVCMOS33" | IOB = True;   # VG4
 NET "phy_rmii_tx_data[0]"       LOC = P46 | IOSTANDARD = "LVCMOS33" | IOB = True;   # VR2
 NET "phy_rmii_tx_data[1]"       LOC = P45 | IOSTANDARD = "LVCMOS33" | IOB = True;   # VR1
-NET "phy_rmii_rx_data[0]"       LOC = P50 | IOSTANDARD = "LVCMOS33" | PULLUP;       # VG3
-NET "phy_rmii_rx_data[1]"       LOC = P48 | IOSTANDARD = "LVCMOS33" | PULLUP;       # VR0
-NET "phy_rmii_crs"              LOC = P51 | IOSTANDARD = "LVCMOS33" | PULLUP;       # VG5
+NET "phy_rmii_rx_data[0]"       LOC = P50 | IOSTANDARD = "LVCMOS33" | IOB = True;   # VG3
+NET "phy_rmii_rx_data[1]"       LOC = P48 | IOSTANDARD = "LVCMOS33" | IOB = True;   # VR0
+NET "phy_rmii_crs"              LOC = P51 | IOSTANDARD = "LVCMOS33" | IOB = True;   # VG5
 NET "phy_rmii_clk"              LOC = P23 | IOSTANDARD = "LVCMOS33";                # VR4 (gclk)
 NET "phy_mdclk"                 LOC = P58 | IOSTANDARD = "LVCMOS33";                # EXT+
 NET "phy_mdio"                  LOC = P57 | IOSTANDARD = "LVCMOS33" | PULLUP;       # EXT-
@@ -62,11 +62,33 @@ NET "Fin[10]"                   LOC = P40 | IOSTANDARD = LVCMOS33 | PULLDOWN;   
 # NET "Fin[20]"                   LOC = P58 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # EXT+
 # NET "Fin[21]"                   LOC = P57 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # EXT-
 
+## RMII
+### Clock source 50 MHz/20 ns ###
+TIMESPEC TS_RMII_CLK = PERIOD TS_RMII_CLK 20 ns HIGH;
+Net phy_rmii_clk TNM_NET = TS_RMII_CLK;
+
+NET "phy_rmii_clk"              TNM = RMII_GROUP;
+NET "phy_rmii_crs"              TNM = RMII_GROUP;
+NET "phy_tx_en"                 TNM = RMII_GROUP;
+NET "phy_rmii_tx_data[0]"       TNM = RMII_GROUP;
+NET "phy_rmii_tx_data[1]"       TNM = RMII_GROUP;
+NET "phy_rmii_rx_data[0]"       TNM = RMII_GROUP;
+NET "phy_rmii_rx_data[1]"       TNM = RMII_GROUP;
+
+NET "phy_rmii_clk"              IOBDELAY = NONE;
+NET "phy_rmii_crs"              IOBDELAY = NONE;
+NET "phy_tx_en"                 IOBDELAY = NONE;
+NET "phy_rmii_tx_data[0]"       IOBDELAY = NONE;
+NET "phy_rmii_tx_data[1]"       IOBDELAY = NONE;
+NET "phy_rmii_rx_data[0]"       IOBDELAY = NONE;
+NET "phy_rmii_rx_data[1]"       IOBDELAY = NONE;
+
 ## TIMINGS
-NET "clk_i" TNM_NET = "clk_i_grp";
-TIMESPEC "TS_clk_i" = PERIOD "clk_i_grp" @INPUT_CLOCK_PERIOD_NS_F@ns HIGH;
+TIMESPEC TS_CLK_IN = PERIOD TS_CLK_IN @INPUT_CLOCK_PERIOD_NS_F@ns HIGH;
+NET "clk_i" TNM_NET = TS_CLK_IN;
 
 TIMESPEC "TS_clk_to_clk_ref" = FROM "clk" TO "clk_ref" TIG;
 TIMESPEC "TS_clk_ref_to_clk" = FROM "clk_ref" TO "clk" TIG;
 
-#NET "mii_clk" CLOCK_DEDICATED_ROUTE = TRUE;
+TIMESPEC "TS_clk_to_rmii_clk"= FROM "clk" TO "phy_rmii_clk" TIG;
+TIMESPEC "TS_rmii_clk_to_clk"= FROM "phy_rmii_clk" TO "clk" TIG;

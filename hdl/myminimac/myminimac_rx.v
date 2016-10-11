@@ -137,7 +137,7 @@ wb_dma_ram
     .rawp_stall_o(memory_error)
 );
 
-always @(negedge phy_rmii_clk) begin
+always @(posedge phy_rmii_clk) begin
     if (sys_rst | rx_rst) begin
         // reset
         input_data <= 7'b0;
