@@ -37,11 +37,11 @@
 module clock_provider
 (
     input wire                  clk_i,
+    input wire                  rmii_clk_to_PHY_i,
 
     output wire                 sys_clk_o,
-    input  wire                 rmii_clk_to_PHY_i,
     output wire                 rmii_logick_clk_o,
-    output wire                 clk_ref
+    output wire                 clk_ref_o
 );
 
 // reference clock gen clk_ref = clk_i * `FREF_PLL_MULTIPLYER / `FREF_CLOCK_DEVIDER
@@ -58,7 +58,7 @@ DCM_CLKGEN #(
 DCM_CLKGEN_f_ref (
    .CLKFX(/* open */),         // 1-bit output: Generated clock output
    .CLKFX180(/* open */),   // 1-bit output: Generated clock output 180 degree out of phase from CLKFX.
-   .CLKFXDV(clk_ref),     // 1-bit output: Divided clock output
+   .CLKFXDV(clk_ref_o),     // 1-bit output: Divided clock output
    .LOCKED(/* open */),       // 1-bit output: Locked output
    .PROGDONE(/* open */),   // 1-bit output: Active high output to indicate the successful re-programming
    .STATUS(/* open */),       // 2-bit output: DCM_CLKGEN status

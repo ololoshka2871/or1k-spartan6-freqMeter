@@ -82,6 +82,7 @@ module top
 //-----------------------------------------------------------------
 // Params
 //-----------------------------------------------------------------
+
 parameter CLK_KHZ = `INPUT_CLOCK_HZ * `CPU_PLL_MULTIPLYER / `CPU_CLOCK_DEVIDER / 1000;
 
 //-----------------------------------------------------------------
@@ -260,11 +261,11 @@ u_cpu
 clock_provider clk_prov
 (
     .clk_i(clk_i),
+    .rmii_clk_to_PHY_i(phy_rmii_clk),
 
     .sys_clk_o(clk),
-    .rmii_clk_to_PHY_i(phy_rmii_clk),
     .rmii_logick_clk_o(rmii_clk),
-    .clk_ref(clk_ref)
+    .clk_ref_o(clk_ref)
 );
 
 // FREQMETER and ETHERNET
