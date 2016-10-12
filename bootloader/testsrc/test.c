@@ -80,13 +80,14 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
 
     miniMAC_findSlotWithState(MINIMAC_SLOT_STATE_READY);
 
-    for (uint8_t i = 0; i < 5; ++i) { // 4 - will be dropped
+    for (uint8_t i = 0; i < 3; ++i) {
         miniMAC_tx_start((12 * sizeof(uint32_t) - 2) * (i + 1));
         while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_TX)));
         IRQ_STATUS = (1 << IRQ_MINIMAC_TX);
         while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_RX)));
         IRQ_STATUS = (1 << IRQ_MINIMAC_RX);
     }
+    memcpy(MINIMAC_SLOT_ADDR(0), MINIMAC_SLOT_ADDR(1), (12 * sizeof(uint32_t) - 2) * 3);
 }
 
 void GDB_STUB_SECTION_TEXT start_tests() {
