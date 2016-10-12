@@ -79,32 +79,24 @@ parameter COUNTER_WIDTH = $clog2(MEMORY_DATA_WIDTH / RMII_BUS_WIDTH);
 parameter PREAMBLE_VALID_START = 2'b01;
 parameter CRS_END_FRAME = 2'b00;
 
-reg [MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0] input_data;  // shift register to ressive
+reg [MEMORY_DATA_WIDTH - 1:0] input_data;  // shift register to ressive
 reg [COUNTER_WIDTH-1:0] ressive_counter;
 reg [ADDR_LEN-1:2] write_adr;
 reg ressiving_frame;
 reg rx_byte_error;
 reg crs_want_stop;
 
-wire [MEMORY_DATA_WIDTH - 1:0] shifted_data = {input_data, phy_rmii_rx_data};
 wire [1:0] shift_selector = ressive_counter[COUNTER_WIDTH-1 -:2];
 
 wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory =
-    shift_selector == 2'b00 ? {shifted_data[7:0], 24'd0} :
-    shift_selector == 2'b01 ? {shifted_data[15:0], 16'd0}:
-    shift_selector == 2'b10 ? {shifted_data[23:0], 8'd0}:
-    shifted_data;
-/*
-wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory =
-    shift_selector == 2'b00 ? {24'd0, shifted_data[7:0]} :
-    shift_selector == 2'b01 ? {16'd0, shifted_data[15:0]}:
-    shift_selector == 2'b10 ? { 8'd0, shifted_data[23:0]}:
-    shifted_data;
-*/
+    shift_selector == 2'b11 ? {input_data[23:0], 8'd0}:
+    shift_selector == 2'b10 ? {input_data[15:0], 16'd0} :
+    shift_selector == 2'b01 ? {input_data[7:0], 24'd0} :
+    input_data;
 
 wire shifting_in_progress = ~ressive_counter[0];
-wire ressived30bits = (ressive_counter == ((MEMORY_DATA_WIDTH / 2) - 1));
-wire write_trigger = (ressive_counter[1:0] == 2'b11);
+wire ressived32bits = (ressive_counter == 0);
+wire write_trigger = (ressive_counter[1:0] == 2'b00);
 wire memory_error;
 
 wire wr_request = write_trigger & rx_valid & ressiving_frame;
@@ -140,7 +132,7 @@ wb_dma_ram
 always @(posedge phy_rmii_clk) begin
     if (sys_rst | rx_rst) begin
         // reset
-        input_data <= 7'b0;
+        input_data <= 0;
         ressive_counter <= 0;
         ressiving_frame <= 1'b0;
         rx_resetcount <= 1'b0;
@@ -160,11 +152,8 @@ always @(posedge phy_rmii_clk) begin
                 // normal ressiving
                 ressive_counter <= ressive_counter + 1;
                 input_data <= {input_data[MEMORY_DATA_WIDTH - RMII_BUS_WIDTH - 1:0], phy_rmii_rx_data};
-                if (ressived30bits) begin
-                    ressive_counter <= 0;
-                    if (rx_valid) begin
-                        write_adr <= write_adr + 1;
-                    end
+                if (ressived32bits && rx_valid && ~rx_resetcount) begin
+                    write_adr <= write_adr + 1;
                 end
             end else begin
                 if (crs_want_stop) begin
@@ -196,6 +185,6 @@ always @(posedge phy_rmii_clk) begin
 end
 
 assign rx_error = rx_byte_error | memory_error; // drop pocket
-assign rx_incrcount = wr_request;
+assign rx_incrcount = wr_request & ~rx_resetcount;
 
 endmodule
