@@ -147,13 +147,13 @@ always @(posedge phy_rmii_clk) begin
 
                 if (tx_next & tx_last_byte_i) begin
                     byte_count_stop <= 1'b1;
-                    transmit_data[MEMORY_DATA_WIDTH - 1 -: 2] <= 2'b00;
                 end
             end
         end else begin
             byte_count_stop <= 1'b0;
             mem_tx_addr <= tx_adr;
             transmit_counter <= 0;
+				transmit_data[MEMORY_DATA_WIDTH - 1 -: 2] <= 2'b00;
         end
     end
 end
