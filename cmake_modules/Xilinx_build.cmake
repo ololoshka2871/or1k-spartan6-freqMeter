@@ -303,3 +303,5 @@ function(Verilog_GenControlMacro OUTVALUE MACRO STATE)
     endif()
     set(${OUTVALUE} ${result} PARENT_SCOPE)
 endfunction()
+
+#function(Create build_summary)

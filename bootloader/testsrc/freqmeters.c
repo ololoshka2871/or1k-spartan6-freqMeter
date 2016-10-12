@@ -1,1 +1,1 @@
-../../application/hw/freqmeters.c
+../../application/libhw/freqmeters.c

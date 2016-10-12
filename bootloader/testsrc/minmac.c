@@ -1,1 +1,1 @@
-../../application/hw/minmac.c
+../../application/libhw/minmac.c

@@ -1,1 +1,1 @@
-../../application/hw/mdio.h
+../../application/libhw/mdio.h
