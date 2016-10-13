@@ -114,6 +114,9 @@ set(CPU_PLL_MULTIPLYER      25
 set(CPU_CLOCK_DEVIDER       24
     CACHE STRING "Input clock to RMII and CPU 50MHz devider")
 
+set(SYSTEM_HEAP_SIZE        256
+    CACHE STRING "System memory heap size")
+
 #--- test firmware ---
 set(SIM_TEST_FREQMETER      OFF
     CACHE BOOL  "Bootloader firmware tests freqmeter IP-core")

@@ -1,30 +1,176 @@
+/*
+ * This file is part of m-labs/misoc project
+ * https://github.com/m-labs/misoc
+ * Modified by Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
+ */
+
+#include <string.h>
+
+#include "minimac.h"
+#include "cache.h"
+
+#include "microudp.h"
+
+#define ARP_HWTYPE_ETHERNET 0x0001
+#define ARP_PROTO_IP        0x0800
+#define ARP_PACKET_LENGTH   60
+
+#define ARP_OPCODE_REQUEST  0x0001
+#define ARP_OPCODE_REPLY    0x0002
+
+#define IP_IPV4             0x45
+#define IP_DONT_FRAGMENT	0x4000
+#define IP_TTL              64
+#define IP_PROTO_UDP		0x11
+
+struct arp_frame {
+    unsigned short hwtype;
+    unsigned short proto;
+    unsigned char hwsize;
+    unsigned char protosize;
+    unsigned short opcode;
+    unsigned char sender_mac[6];
+    unsigned int sender_ip;
+    unsigned char target_mac[6];
+    unsigned int target_ip;
+    unsigned char padding[18];
+} __attribute__((packed));
+
+struct ip_header {
+    unsigned char version;
+    unsigned char diff_services;
+    unsigned short total_length;
+    unsigned short identification;
+    unsigned short fragment_offset;
+    unsigned char ttl;
+    unsigned char proto;
+    unsigned short checksum;
+    unsigned int src_ip;
+    unsigned int dst_ip;
+} __attribute__((packed));
+
+struct udp_header {
+    unsigned short src_port;
+    unsigned short dst_port;
+    unsigned short length;
+    unsigned short checksum;
+} __attribute__((packed));
+
+struct udp_frame {
+    struct ip_header ip;
+    struct udp_header udp;
+    char payload[];
+} __attribute__((packed));
+
+struct ethernet_frame {
+    struct ethernet_header eth_header;
+    union {
+        struct arp_frame arp;
+        struct udp_frame udp;
+    } contents;
+} __attribute__((packed));
+
+typedef union {
+    struct ethernet_frame frame;
+    unsigned char raw[1532];
+} ethernet_buffer;
+
+//------------------------------------------------------------------------------
+
+/* ARP cache - one entry only */
+static unsigned char cached_mac[6];
+static unsigned int cached_ip;
+
+static void process_arp(const struct arp_frame *rx_arp, uint16_t rxlen)
+{
+    if(rxlen < ARP_PACKET_LENGTH) return;
+    if(rx_arp->hwtype != ARP_HWTYPE_ETHERNET) return;
+    if(rx_arp->proto != ARP_PROTO_IP) return;
+    if(rx_arp->hwsize != 6) return;
+    if(rx_arp->protosize != 4) return;
+    if ((rx_arp->opcode == ARP_OPCODE_REPLY) &&
+        (rx_arp->sender_ip == cached_ip)) {
+            memcpy(cached_mac, rx_arp->sender_mac, sizeof(cached_mac));
+            return;
+    }
+    /*
+    if(rx_arp->opcode == ARP_OPCODE_REQUEST) {
+        if(rx_arp->target_ip == my_ip) {
+            int i;
+            struct arp_frame *tx_arp = &txbuffer->frame.contents.arp;
+
+            fill_eth_header(&txbuffer->frame.eth_header,
+                rx_arp->sender_mac,
+                my_mac,
+                ETHERTYPE_ARP);
+            txlen = ARP_PACKET_LENGTH;
+            tx_arp->hwtype = ARP_HWTYPE_ETHERNET;
+            tx_arp->proto = ARP_PROTO_IP;
+            tx_arp->hwsize = 6;
+            tx_arp->protosize = 4;
+            tx_arp->opcode = ARP_OPCODE_REPLY;
+            tx_arp->sender_ip = my_ip;
+            for(i=0;i<6;i++)
+                tx_arp->sender_mac[i] = my_mac[i];
+            tx_arp->target_ip = rx_arp->sender_ip;
+            for(i=0;i<6;i++)
+                tx_arp->target_mac[i] = rx_arp->sender_mac[i];
+            send_packet();
+        }
+        return;
+    }
+    */
+}
+
+//------------------------------------------------------------------------------
+
+static void process_frame(ethernet_buffer * rxbuffer, uint16_t rxlen)
+{
+    cache_dflush();
+
+    if(rxbuffer->frame.eth_header.ethertype == ETHERTYPE_ARP)
+        process_arp(&rxbuffer->frame.contents.arp, rxlen);
+//    else if(rxbuffer->frame.eth_header.ethertype == ETHERTYPE_IP)
+//        process_ip();
+}
+
+void microudp_service(void)
+{
+    enum enMiniMACRxSlots slot;
+    enum enMiniMACErrorCodes err;
+
+    ethernet_buffer* pyload;
+    uint16_t size;
+
+    err = miniMAC_getpointerRxDatarRxData(
+                &slot, (union uethernet_buffer**)&pyload, &size);
+    if (err == MINIMAC_OK) {
+        process_frame(pyload, size);
+        miniMAC_reset_rx_slot(slot);
+    }
+
+    /*
+    if(ethmac_sram_writer_ev_pending_read() & ETHMAC_EV_SRAM_WRITER) {
+        rxslot = ethmac_sram_writer_slot_read();
+        rxlen = ethmac_sram_writer_length_read();
+        if (rxslot)
+            rxbuffer = rxbuffer1;
+        else
+            rxbuffer = rxbuffer0;
+        process_frame();
+        ethmac_sram_writer_ev_pending_write(ETHMAC_EV_SRAM_WRITER);
+    }
+    */
+}
+
 #if 0
 #include <generated/csr.h>
-#ifdef CSR_ETHMAC_BASE
 
 #include <stdio.h>
 #include <system.h>
 #include <crc.h>
 #include <hw/flags.h>
 #include <hw/ethmac_mem.h>
-
-#include <net/microudp.h>
-
-#define ETHERTYPE_ARP 0x0806
-#define ETHERTYPE_IP  0x0800
-
-#ifdef CSR_ETHMAC_PREAMBLE_CRC_ADDR
-#define HW_PREAMBLE_CRC
-#endif
-
-struct ethernet_header {
-#ifndef HW_PREAMBLE_CRC
-	unsigned char preamble[8];
-#endif
-	unsigned char destmac[6];
-	unsigned char srcmac[6];
-	unsigned short ethertype;
-} __attribute__((packed));
 
 static void fill_eth_header(struct ethernet_header *h, const unsigned char *destmac, const unsigned char *srcmac, unsigned short ethertype)
 {
@@ -41,75 +187,6 @@ static void fill_eth_header(struct ethernet_header *h, const unsigned char *dest
 		h->srcmac[i] = srcmac[i];
 	h->ethertype = ethertype;
 }
-
-#define ARP_HWTYPE_ETHERNET 0x0001
-#define ARP_PROTO_IP        0x0800
-#ifndef HW_PREAMBLE_CRC
-#define ARP_PACKET_LENGTH 68
-#else
-#define ARP_PACKET_LENGTH 60
-#endif
-
-#define ARP_OPCODE_REQUEST  0x0001
-#define ARP_OPCODE_REPLY    0x0002
-
-struct arp_frame {
-	unsigned short hwtype;
-	unsigned short proto;
-	unsigned char hwsize;
-	unsigned char protosize;
-	unsigned short opcode;
-	unsigned char sender_mac[6];
-	unsigned int sender_ip;
-	unsigned char target_mac[6];
-	unsigned int target_ip;
-	unsigned char padding[18];
-} __attribute__((packed));
-
-#define IP_IPV4			0x45
-#define IP_DONT_FRAGMENT	0x4000
-#define IP_TTL			64
-#define IP_PROTO_UDP		0x11
-
-struct ip_header {
-	unsigned char version;
-	unsigned char diff_services;
-	unsigned short total_length;
-	unsigned short identification;
-	unsigned short fragment_offset;
-	unsigned char ttl;
-	unsigned char proto;
-	unsigned short checksum;
-	unsigned int src_ip;
-	unsigned int dst_ip;
-} __attribute__((packed));
-
-struct udp_header {
-	unsigned short src_port;
-	unsigned short dst_port;
-	unsigned short length;
-	unsigned short checksum;
-} __attribute__((packed));
-
-struct udp_frame {
-	struct ip_header ip;
-	struct udp_header udp;
-	char payload[];
-} __attribute__((packed));
-
-struct ethernet_frame {
-	struct ethernet_header eth_header;
-	union {
-		struct arp_frame arp;
-		struct udp_frame udp;
-	} contents;
-} __attribute__((packed));
-
-typedef union {
-	struct ethernet_frame frame;
-	unsigned char raw[1532];
-} ethernet_buffer;
-
 
 static unsigned int rxslot;
 static unsigned int rxlen;
@@ -146,10 +223,6 @@ static void send_packet(void)
 
 static unsigned char my_mac[6];
 static unsigned int my_ip;
-
-/* ARP cache - one entry only */
-static unsigned char cached_mac[6];
-static unsigned int cached_ip;
 
 static void process_arp(void)
 {
@@ -354,37 +427,12 @@ void microudp_set_callback(udp_callback callback)
 	rx_callback = callback;
 }
 
-static void process_frame(void)
-{
-	flush_cpu_dcache();
 
-#ifndef HW_PREAMBLE_CRC
-	int i;
-	for(i=0;i<7;i++)
-		if(rxbuffer->frame.eth_header.preamble[i] != 0x55) return;
-	if(rxbuffer->frame.eth_header.preamble[7] != 0xd5) return;
-#endif
-
-#ifndef HW_PREAMBLE_CRC
-	unsigned int received_crc;
-	unsigned int computed_crc;
-	received_crc = ((unsigned int)rxbuffer->raw[rxlen-1] << 24)
-		|((unsigned int)rxbuffer->raw[rxlen-2] << 16)
-		|((unsigned int)rxbuffer->raw[rxlen-3] <<  8)
-		|((unsigned int)rxbuffer->raw[rxlen-4]);
-	computed_crc = crc32(&rxbuffer->raw[8], rxlen-12);
-	if(received_crc != computed_crc) return;
-
-	rxlen -= 4; /* strip CRC here to be consistent with TX */
-#endif
-
-	if(rxbuffer->frame.eth_header.ethertype == ETHERTYPE_ARP) process_arp();
-	else if(rxbuffer->frame.eth_header.ethertype == ETHERTYPE_IP) process_ip();
-}
 
 void microudp_start(const unsigned char *macaddr, unsigned int ip)
 {
 	int i;
+    /*
 	ethmac_sram_reader_ev_pending_write(ETHMAC_EV_SRAM_READER);
 	ethmac_sram_writer_ev_pending_write(ETHMAC_EV_SRAM_WRITER);
 
@@ -401,61 +449,16 @@ void microudp_start(const unsigned char *macaddr, unsigned int ip)
 
 	for(i=0;i<6;i++)
 		my_mac[i] = macaddr[i];
+    */
 	my_ip = ip;
 
-	cached_ip = 0;
-	for(i=0;i<6;i++)
-		cached_mac[i] = 0;
+    //cached_ip = 0;
+    //for(i=0;i<6;i++)
+        //cached_mac[i] = 0;
 
 	rx_callback = (udp_callback)0;
 }
 
-void microudp_service(void)
-{
-	if(ethmac_sram_writer_ev_pending_read() & ETHMAC_EV_SRAM_WRITER) {
-		rxslot = ethmac_sram_writer_slot_read();
-		rxlen = ethmac_sram_writer_length_read();
-		if (rxslot)
-			rxbuffer = rxbuffer1;
-		else
-			rxbuffer = rxbuffer0;
-		process_frame();
-		ethmac_sram_writer_ev_pending_write(ETHMAC_EV_SRAM_WRITER);
-	}
-}
 
-static void busy_wait(unsigned int ds)
-{
-	timer0_en_write(0);
-	timer0_reload_write(0);
-	timer0_load_write(CONFIG_CLOCK_FREQUENCY/10*ds);
-	timer0_en_write(1);
-	timer0_update_value_write(1);
-	while(timer0_value_read()) timer0_update_value_write(1);
-}
 
-void eth_init(void)
-{
-	ethphy_crg_reset_write(0);
-	busy_wait(2);
-	/* that pesky ethernet PHY needs two resets at times... */
-	ethphy_crg_reset_write(1);
-	busy_wait(2);
-	ethphy_crg_reset_write(0);
-	busy_wait(2);
-}
-
-#ifdef CSR_ETHPHY_MODE_DETECTION_MODE_ADDR
-void eth_mode(void)
-{
-	printf("Ethernet phy mode: ");
-	if (ethphy_mode_detection_mode_read())
-		printf("MII");
-	else
-		printf("GMII");
-	printf("\n");
-}
-#endif
-
-#endif
 #endif

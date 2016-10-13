@@ -1,1 +1,0 @@
-../../application/libhw/minmac.h

@@ -37,27 +37,6 @@
 #include "mem_map.h"
 
 // based on https://github.com/m-labs/misoc/blob/master/misoc/software/libnet/microudp.c
-
-#ifndef MAC_CTL_BASE
-#warning "MAC_CTL_BASE undefined!"
-#define MAC_CTL_BASE            (FIO_BASE + 0x00100000)
-#endif
-
-#ifndef MAC_TX_MEM_BASE
-#warning "MAC_TX_MEM_BASE undefined!"
-#define MAC_TX_MEM_BASE         (FIO_BASE + 0x00200000)
-#endif
-
-#ifndef MAC_RX_MEM_BASE
-#warning "MAC_RX_MEM_BASE undefined!"
-#define MAC_RX_MEM_BASE         (FIO_BASE + 0x00300000)
-#endif
-
-#ifndef MTU
-#warning "MTU undefined!"
-#define MTU                     1530
-#endif
-
 //------------------------------------------------------------------------------
 
 // Registers
@@ -148,9 +127,13 @@ enum enMiniMACErrorCodes miniMAC_tx_slot_allocate(uint8_t ** pslot_addr);
 enum enMiniMACErrorCodes miniMAC_tx_start(uint16_t byte_count);
 enum enMiniMACRxSlots miniMAC_findSlotWithState(enum enMiniMACSlotStates state);
 enum enMiniMACErrorCodes miniMAC_getpointerRxDatarRxData(
-        enum enMiniMACRxSlots *pslot, uint8_t **ppayload, uint16_t *ppl_size);
+        enum enMiniMACRxSlots *pslot, union uethernet_buffer** ppayload,
+        uint16_t *ppl_size);
 void miniMAC_reset_rx_slot(enum enMiniMACRxSlots slot);
 enum enMiniMACRxSlots miniMAC_is_data_ressived();
 void minMAC_stat(struct sminiMAC_Stat* pstst);
+
+extern uint8_t myMAC[6];
+extern const uint8_t broadcastMAC[6];
 
 #endif // MINMAC_H

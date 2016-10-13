@@ -84,7 +84,7 @@ add_subdirectory(libbase)
 add_subdirectory(libhw)
 add_subdirectory(libnet)
 
-include_directories(hw libbase)
+include_directories(libhw libbase libnet)
 
 get_target_property(hwlib_difenitions hw COMPILE_DEFINITIONS)
 
@@ -96,8 +96,9 @@ add_executable(${APPLICATION_ELF_NAME}
     )
 target_link_libraries(${APPLICATION_ELF_NAME}
     hw
-    base
     net
+    base
+    hw
     )
 set_target_properties(${APPLICATION_ELF_NAME} PROPERTIES COMPILE_DEFINITIONS "${hwlib_difenitions}")
 add_dependencies(${APPLICATION_ELF_NAME} mkldscript)

@@ -35,7 +35,7 @@ SET(LIBNET_SOURCES
     microudp.c
     )
 
-include_directories(.)
+include_directories(. ${LIBHW_INCLUDE_DIR})
 
 add_library(net STATIC ${LIBNET_SOURCES})
 

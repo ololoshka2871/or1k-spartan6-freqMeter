@@ -41,7 +41,7 @@ SET(LIBHW_SOURCES
     syscall.c
     seg7_display.c
     freqmeters.c
-    minmac.c
+    minimac.c
     mdio.c
     )
 
@@ -59,3 +59,5 @@ set(difenitions
 add_library(hw STATIC ${LIBHW_SOURCES})
 
 set_target_properties(hw PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
+
+set(LIBHW_INCLUDE_DIR           ${CMAKE_CURRENT_SOURCE_DIR}      PARENT_SCOPE)

@@ -35,8 +35,9 @@
 #include "irq.h"
 #include "freqmeters.h"
 #include "serial.h"
-#include "minmac.h"
+#include "minimac.h"
 #include "mdio.h"
+#include "microudp.h"
 
 static uint32_t irqCountes[FREQMETERS_COUNT];
 
@@ -96,13 +97,7 @@ void main(void)
     EXIT_CRITICAL();
 
     while(1) {
-        enum enMiniMACRxSlots slot;
-        enum enMiniMACErrorCodes err;
-
-
         Send_Data();
-        err = miniMAC_getpointerRxDatarRxData(&slot, NULL, NULL);
-        if (err == MINIMAC_OK)
-            miniMAC_reset_rx_slot(slot);
+        microudp_service();
     }
 }

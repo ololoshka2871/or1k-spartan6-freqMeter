@@ -33,11 +33,31 @@
 #include <stddef.h>
 #include <string.h>
 
-#include "minmac.h"
+#include "minimac.h"
 
 #ifndef SIM
 #include "irq.h"
 #include "crc32.h"
+#endif
+
+#ifndef MAC_CTL_BASE
+#warning "MAC_CTL_BASE undefined!"
+#define MAC_CTL_BASE            (FIO_BASE + 0x00100000)
+#endif
+
+#ifndef MAC_TX_MEM_BASE
+#warning "MAC_TX_MEM_BASE undefined!"
+#define MAC_TX_MEM_BASE         (FIO_BASE + 0x00200000)
+#endif
+
+#ifndef MAC_RX_MEM_BASE
+#warning "MAC_RX_MEM_BASE undefined!"
+#define MAC_RX_MEM_BASE         (FIO_BASE + 0x00300000)
+#endif
+
+#ifndef MTU
+#warning "MTU undefined!"
+#define MTU                     1530
 #endif
 
 #ifndef ETHERNET_MAC // TODO: Make generation
@@ -64,8 +84,8 @@
 
 static struct sminiMAC_Stat minimacstat;
 
-static const uint8_t myMAC[6] = {ETHERNET_MAC};
-static const uint8_t broadcastMAC[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+uint8_t myMAC[6] = {ETHERNET_MAC};
+const uint8_t broadcastMAC[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 static bool rx_quick_verify(enum enMiniMACRxSlots slot) {
     struct ethernet_header *pocket_data = (struct ethernet_header *)MINIMAC_SLOT_ADDR(slot);
@@ -216,7 +236,8 @@ void miniMAC_reset_rx_slot(enum enMiniMACRxSlots slot) {
 
 
 enum enMiniMACErrorCodes miniMAC_getpointerRxDatarRxData(
-        enum enMiniMACRxSlots *pslot, uint8_t** ppayload, uint16_t *ppl_size) {
+        enum enMiniMACRxSlots *pslot, union uethernet_buffer** ppayload,
+        uint16_t *ppl_size) {
     enum enMiniMACRxSlots  slot = miniMAC_is_data_ressived();
     enum enMiniMACErrorCodes ret = MINIMAC_OK;
     if (slot < MINIMAC_RX_SLOT_COUNT) {
@@ -236,8 +257,8 @@ enum enMiniMACErrorCodes miniMAC_getpointerRxDatarRxData(
 #endif
         if (ressived_crc == computed_crc) {
             if (ppayload && ppl_size) {
-                *ppl_size = rxlen - sizeof(struct ethernet_header) - sizeof(ressived_crc);
-                *ppayload = &rxbuffer->raw[sizeof(struct ethernet_header)];
+                *ppl_size = rxlen - sizeof(ressived_crc);
+                *ppayload = rxbuffer;
             }
             minimacstat.pocket_rx++;
             return ret;
