@@ -38,13 +38,16 @@ enum enHeapPools {
 };
 
 
-#define malloc(size)        pvPortMalloc(HEAP_POOL_SYSTEM, size)
-#define free(p)             vPortFree(HEAP_POOL_SYSTEM, p)
+#define malloc_sys(size)        pvPortMalloc(HEAP_POOL_SYSTEM, size)
+#define free_sys(p)             vPortFree(HEAP_POOL_SYSTEM, p)
+#define get_heap_free_sys()     xPortGetFreeHeapSize(HEAP_POOL_SYSTEM)
 
-#define malloc_mac_tx(size) pvPortMalloc(HEAP_POOL_ETH_TX, size)
-#define free_mac_tx(p)      vPortFree(HEAP_POOL_ETH_TX, p)
+#define malloc_mac_tx(size)     pvPortMalloc(HEAP_POOL_ETH_TX, size)
+#define free_mac_tx(p)          vPortFree(HEAP_POOL_ETH_TX, p)
+#define get_heap_free_mac_tx()  xPortGetFreeHeapSize(HEAP_POOL_ETH_TX)
 
 void *pvPortMalloc( enum enHeapPools pool, size_t xWantedSize );
 void vPortFree( enum enHeapPools pool, void *pv );
+size_t xPortGetFreeHeapSize( enum enHeapPools pool );
 
-#endif _HEAP_H_
+#endif /*_HEAP_H_*/

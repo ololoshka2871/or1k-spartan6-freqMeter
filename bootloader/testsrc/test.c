@@ -71,9 +71,7 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
         miniMAC_rx_static_slot_allocate();
     }
 
-    uint8_t* ptx_slot;
-    miniMAC_tx_slot_allocate(&ptx_slot);
-    //memcpy(ptx_slot, 0, 13);
+    uint8_t* ptx_slot = miniMAC_tx_slot_allocate(-1 /*all space*/);
 
     MINIMAC_SLOT_STATE(MINIMAC_RX_SLOT0) = 0b00;
     miniMAC_control(true, true);

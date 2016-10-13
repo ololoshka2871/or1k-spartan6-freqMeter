@@ -68,6 +68,8 @@
 
 //------------------------------------------------------------------------------
 
+#define MAC_ADDR_SIZE           6
+
 #define ETHERTYPE_ARP           0x0806
 #define ETHERTYPE_IP            0x0800
 
@@ -123,7 +125,9 @@ union uethernet_buffer {
 void miniMAC_control(bool rx_enable, bool tx_enable);
 
 enum enMiniMACRxSlots miniMAC_rx_static_slot_allocate();
-enum enMiniMACErrorCodes miniMAC_tx_slot_allocate(uint8_t ** pslot_addr);
+uint8_t* miniMAC_tx_slot_allocate(size_t wanted_size);
+uint8_t* miniMAC_slot_prepare(uint8_t dest_mac[MAC_ADDR_SIZE], uint16_t ether_type, uint8_t* slot);
+void miniMAC_slot_complite_and_send(uint8_t* slot_data);
 enum enMiniMACErrorCodes miniMAC_tx_start(uint16_t byte_count);
 enum enMiniMACRxSlots miniMAC_findSlotWithState(enum enMiniMACSlotStates state);
 enum enMiniMACErrorCodes miniMAC_getpointerRxDatarRxData(

@@ -38,6 +38,7 @@
 #ifndef SIM
 #include "irq.h"
 #include "crc32.h"
+#include "heap.h"
 #endif
 
 #ifndef MAC_CTL_BASE
@@ -81,6 +82,13 @@
             MINIMAC_RST_CTL |= MINIMAC_RST_TX;\
     } while (0)
 
+struct stx_slot_alloc_unit {
+    struct tx_slot_queue_item {
+        uint8_t* next_data;
+        uint32_t size;
+    } queue_info;
+    uint8_t data[MTU];
+};
 
 static struct sminiMAC_Stat minimacstat;
 
@@ -107,6 +115,7 @@ static bool rx_quick_verify(enum enMiniMACRxSlots slot) {
 
 // interrupt handlers
 static void miniMAC_rx_isr(unsigned int * registers) {
+    (void)registers;
     enum enMiniMACSlotStates slot_state;
     enum enMiniMACRxSlots slot;
     if (MINIMAC_RST_CTL & MINIMAC_RST_RX) {
@@ -150,6 +159,18 @@ static void miniMAC_rx_isr(unsigned int * registers) {
 
 
 static void miniMAC_tx_isr(unsigned int * registers) {
+    (void)registers;
+    struct stx_slot_alloc_unit* sent_mem_block = (struct stx_slot_alloc_unit*)(
+        MINIMAC_TX_SLOT_ADDR - sizeof(struct tx_slot_queue_item));
+    uint8_t* next_data = sent_mem_block->queue_info.next_data;
+
+    if (next_data) {
+        struct stx_slot_alloc_unit* next_alloc_unit = (struct stx_slot_alloc_unit*)(
+                next_data - sizeof(struct tx_slot_queue_item));
+        MINIMAC_TX_SLOT_ADDR = (uint32_t)next_data;
+        MINIMAC_TX_REMAINING = next_alloc_unit->queue_info.size;
+    }
+    free_mac_tx(sent_mem_block);
 }
 
 static uint32_t align32(uint32_t x) {
@@ -206,18 +227,6 @@ enum enMiniMACRxSlots miniMAC_rx_static_slot_allocate() {
     return slot;
 }
 
-enum enMiniMACErrorCodes miniMAC_tx_slot_allocate(uint8_t ** pslot_addr) {
-    if (MINIMAC_TX_REMAINING != 0) {
-        if (pslot_addr) *pslot_addr = NULL;
-        return MINIMAC_NOMEM_ERROR;
-    }
-
-    uint32_t* tx_slot_addr = (uint32_t*)MAC_TX_MEM_BASE;
-    MINIMAC_TX_SLOT_ADDR = (uint32_t)tx_slot_addr;
-    if (pslot_addr) *pslot_addr = (uint8_t*)tx_slot_addr;
-    return MINIMAC_OK;
-}
-
 enum enMiniMACErrorCodes miniMAC_tx_start(uint16_t byte_count) {
     if (byte_count <= MTU) {
         MINIMAC_TX_REMAINING = byte_count;
@@ -233,7 +242,6 @@ void miniMAC_reset_rx_slot(enum enMiniMACRxSlots slot) {
         MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
     }
 }
-
 
 enum enMiniMACErrorCodes miniMAC_getpointerRxDatarRxData(
         enum enMiniMACRxSlots *pslot, union uethernet_buffer** ppayload,
@@ -290,4 +298,69 @@ enum enMiniMACRxSlots miniMAC_is_data_ressived() {
 void minMAC_stat(struct sminiMAC_Stat* pstst) {
     if (pstst)
         memcpy(pstst, &minimacstat, sizeof(struct sminiMAC_Stat));
+}
+
+uint8_t* miniMAC_tx_slot_allocate(size_t wanted_size) {
+#ifdef SIM
+    if (MINIMAC_TX_REMAINING != 0) {
+        return NULL;
+    }
+    return (uint32_t*)MAC_TX_MEM_BASE;
+#else
+    if (wanted_size < 0)
+        wanted_size = get_heap_free_mac_tx();
+    else {
+        wanted_size +=  sizeof(struct tx_slot_queue_item) + // queue data
+                        sizeof(uint32_t); // crc32
+    }
+
+    struct stx_slot_alloc_unit * res = malloc_mac_tx(wanted_size);
+    if (res) {
+        res->queue_info.next_data = NULL;
+        res->queue_info.size = wanted_size - sizeof(struct tx_slot_queue_item);
+    }
+    return (uint8_t*)(res + sizeof(struct tx_slot_queue_item));
+#endif
+}
+
+uint8_t *miniMAC_slot_prepare(uint8_t dest_mac[], uint16_t ether_type, uint8_t *slot) {
+    memcpy(slot, dest_mac, MAC_ADDR_SIZE);
+    slot += MAC_ADDR_SIZE;
+    memcpy(slot, myMAC, MAC_ADDR_SIZE);
+    slot += MAC_ADDR_SIZE;
+    memcpy(slot, &ether_type, sizeof(uint16_t));
+    return slot + sizeof(uint16_t);
+}
+
+void miniMAC_slot_complite_and_send(uint8_t *slot_data) {
+#ifndef SIM
+    struct stx_slot_alloc_unit* slot_alloc_unit = (struct stx_slot_alloc_unit*)(
+            slot_data - sizeof(struct tx_slot_queue_item));
+    uint32_t data_size = slot_alloc_unit->queue_info.size;
+
+    uint32_t crc = crc32(slot_data, data_size - sizeof(uint32_t), 0);
+    slot_data[data_size + 0] = (crc >> 24) & 0xff;
+    slot_data[data_size + 1] = (crc >> 16) & 0xff;
+    slot_data[data_size + 2] = (crc >> 8) & 0xff;
+    slot_data[data_size + 3] = crc & 0xff;
+
+    irq_disable(IS_MINIMAC_TX);
+    if (!MINIMAC_TX_REMAINING) {
+        // send now
+        MINIMAC_TX_SLOT_ADDR = (uint32_t)slot_data;
+        MINIMAC_TX_REMAINING = slot_alloc_unit->queue_info.size;
+        slot_alloc_unit->queue_info.next_data = NULL;
+    } else {
+        // add to queue
+        struct stx_slot_alloc_unit* send_queue_pointer = (struct stx_slot_alloc_unit*)(
+                MINIMAC_TX_SLOT_ADDR - sizeof(struct tx_slot_queue_item));
+        while(send_queue_pointer->queue_info.next_data != NULL) {
+            send_queue_pointer = (struct stx_slot_alloc_unit*)(
+                    send_queue_pointer->queue_info.next_data -
+                        sizeof(struct tx_slot_queue_item));
+        }
+        send_queue_pointer->queue_info.next_data = slot_data;
+    }
+    irq_enable(IS_MINIMAC_TX);
+#endif
 }

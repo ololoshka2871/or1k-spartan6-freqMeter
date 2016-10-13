@@ -360,13 +360,21 @@ BlockLink_t *pxLink;
 
 size_t xPortGetFreeHeapSize( enum enHeapPools pool )
 {
-        return _xFreeBytesRemaining(pool);
+    if( _pxEnd(pool) == NULL )
+    {
+        prvHeapInit(pool);
+    }
+    return _xFreeBytesRemaining(pool);
 }
 /*-----------------------------------------------------------*/
 
 size_t xPortGetMinimumEverFreeHeapSize( enum enHeapPools pool )
 {
-        return _xMinimumEverFreeBytesRemaining(pool);
+    if( _pxEnd(pool) == NULL )
+    {
+        prvHeapInit(pool);
+    }
+    return _xMinimumEverFreeBytesRemaining(pool);
 }
 /*-----------------------------------------------------------*/
 

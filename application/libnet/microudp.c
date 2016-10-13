@@ -77,6 +77,10 @@ typedef union {
 
 //------------------------------------------------------------------------------
 
+static unsigned int my_ip;
+
+//------------------------------------------------------------------------------
+
 /* ARP cache - one entry only */
 static unsigned char cached_mac[6];
 static unsigned int cached_ip;
@@ -90,36 +94,26 @@ static void process_arp(const struct arp_frame *rx_arp, uint16_t rxlen)
     if(rx_arp->protosize != 4) return;
     if ((rx_arp->opcode == ARP_OPCODE_REPLY) &&
         (rx_arp->sender_ip == cached_ip)) {
-            memcpy(cached_mac, rx_arp->sender_mac, sizeof(cached_mac));
-            return;
-    }
-    /*
-    if(rx_arp->opcode == ARP_OPCODE_REQUEST) {
-        if(rx_arp->target_ip == my_ip) {
-            int i;
-            struct arp_frame *tx_arp = &txbuffer->frame.contents.arp;
-
-            fill_eth_header(&txbuffer->frame.eth_header,
-                rx_arp->sender_mac,
-                my_mac,
-                ETHERTYPE_ARP);
-            txlen = ARP_PACKET_LENGTH;
-            tx_arp->hwtype = ARP_HWTYPE_ETHERNET;
-            tx_arp->proto = ARP_PROTO_IP;
-            tx_arp->hwsize = 6;
-            tx_arp->protosize = 4;
-            tx_arp->opcode = ARP_OPCODE_REPLY;
-            tx_arp->sender_ip = my_ip;
-            for(i=0;i<6;i++)
-                tx_arp->sender_mac[i] = my_mac[i];
-            tx_arp->target_ip = rx_arp->sender_ip;
-            for(i=0;i<6;i++)
-                tx_arp->target_mac[i] = rx_arp->sender_mac[i];
-            send_packet();
-        }
+        memcpy(cached_mac, rx_arp->sender_mac, sizeof(cached_mac));
         return;
     }
-    */
+    if ((rx_arp->opcode == ARP_OPCODE_REQUEST) && (rx_arp->target_ip == my_ip)) {
+        uint8_t * tx_slot = miniMAC_tx_slot_allocate(ARP_PACKET_LENGTH);
+
+        struct arp_frame *tx_arp =
+                miniMAC_slot_prepare(rx_arp->sender_mac, ETHERTYPE_ARP, tx_slot);
+
+        tx_arp->hwtype = ARP_HWTYPE_ETHERNET;
+        tx_arp->proto = ARP_PROTO_IP;
+        tx_arp->hwsize = 6;
+        tx_arp->protosize = 4;
+        tx_arp->opcode = ARP_OPCODE_REPLY;
+        tx_arp->sender_ip = my_ip;
+        memcpy(tx_arp->sender_mac, myMAC, MAC_ADDR_SIZE);
+        tx_arp->target_ip = rx_arp->sender_ip;
+        memcpy(tx_arp->target_mac, rx_arp->sender_mac, MAC_ADDR_SIZE);
+        miniMAC_slot_complite_and_send(tx_slot);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -222,7 +216,6 @@ static void send_packet(void)
 }
 
 static unsigned char my_mac[6];
-static unsigned int my_ip;
 
 static void process_arp(void)
 {

@@ -34,11 +34,6 @@
 
 #include "heap.h"
 
-enum enHeapPools {
-    HEAP_POOL_SYSTEM = 0,
-    HEAP_POOL_ETH_TX = 1
-};
-
 typedef struct A_BLOCK_LINK
 {
     struct A_BLOCK_LINK *pxNextFreeBlock;	/*<< The next free block in the list. */
