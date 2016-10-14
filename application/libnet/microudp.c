@@ -79,14 +79,15 @@ typedef union {
 
 static unsigned int my_ip;
 
+static udp_callback rx_callback;
+
 //------------------------------------------------------------------------------
 
 /* ARP cache - one entry only */
 static unsigned char cached_mac[6];
 static unsigned int cached_ip;
 
-static void process_arp(const struct arp_frame *rx_arp, uint16_t rxlen)
-{
+static void process_arp(const struct arp_frame *rx_arp, uint16_t rxlen) {
     if(rxlen < ARP_PACKET_LENGTH) return;
     if(rx_arp->hwtype != ARP_HWTYPE_ETHERNET) return;
     if(rx_arp->proto != ARP_PROTO_IP) return;
@@ -100,7 +101,7 @@ static void process_arp(const struct arp_frame *rx_arp, uint16_t rxlen)
     if ((rx_arp->opcode == ARP_OPCODE_REQUEST) && (rx_arp->target_ip == my_ip)) {
         uint8_t * tx_slot = miniMAC_tx_slot_allocate(ARP_PACKET_LENGTH);
 
-        struct arp_frame *tx_arp =
+        struct arp_frame *tx_arp = (struct arp_frame*)
                 miniMAC_slot_prepare(rx_arp->sender_mac, ETHERTYPE_ARP, tx_slot);
 
         tx_arp->hwtype = ARP_HWTYPE_ETHERNET;
@@ -118,8 +119,7 @@ static void process_arp(const struct arp_frame *rx_arp, uint16_t rxlen)
 
 //------------------------------------------------------------------------------
 
-static void process_frame(ethernet_buffer * rxbuffer, uint16_t rxlen)
-{
+static void process_frame(ethernet_buffer * rxbuffer, uint16_t rxlen) {
     cache_dflush();
 
     if(rxbuffer->frame.eth_header.ethertype == ETHERTYPE_ARP)
@@ -128,8 +128,7 @@ static void process_frame(ethernet_buffer * rxbuffer, uint16_t rxlen)
 //        process_ip();
 }
 
-void microudp_service(void)
-{
+void microudp_service(void) {
     enum enMiniMACRxSlots slot;
     enum enMiniMACErrorCodes err;
 
@@ -155,6 +154,14 @@ void microudp_service(void)
         ethmac_sram_writer_ev_pending_write(ETHMAC_EV_SRAM_WRITER);
     }
     */
+}
+
+
+void microudp_start(unsigned int ip) {
+    my_ip = ip;
+    rx_callback = (udp_callback)0;
+
+    miniMAC_control(true, true);
 }
 
 #if 0

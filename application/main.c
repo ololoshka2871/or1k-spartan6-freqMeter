@@ -82,7 +82,7 @@ void main(void)
     int8_t phy_addr = MDIO_DetectPHY(0);
     volatile uint16_t data[PHY_ANNPTR + 1];
 
-    memset(data, 0, sizeof(data));
+    memset((void*)data, 0, sizeof(data));
     //MDIO_WriteREG(phy_addr, PHY_BMCR, PHY_BMCR_SPEED100MB | PHY_BMCR_FULL_DUPLEX);
     if (phy_addr >= 0) {
         for (uint8_t i = PHY_BMCR; i <= PHY_ANNPTR; ++i) {
@@ -90,7 +90,7 @@ void main(void)
         }
     }
 
-    miniMAC_control(true, false);
+    microudp_start(IPTOINT(192, 168, 1, 99));
 
     irq_enable(IS_FREQMETERS);
 

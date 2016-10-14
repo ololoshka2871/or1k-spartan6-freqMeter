@@ -34,7 +34,7 @@
 #include "gdb-stub-sections.h"
 
 #include "freqmeters.h"
-#include "minmac.h"
+#include "minimac.h"
 #include "mdio.h"
 
 static void GDB_STUB_SECTION_TEXT test_freqmeter() {

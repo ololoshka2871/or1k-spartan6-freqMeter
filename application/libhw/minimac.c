@@ -170,6 +170,7 @@ static void miniMAC_tx_isr(unsigned int * registers) {
         MINIMAC_TX_SLOT_ADDR = (uint32_t)next_data;
         MINIMAC_TX_REMAINING = next_alloc_unit->queue_info.size;
     }
+    memset(sent_mem_block, 0, sizeof(struct tx_slot_queue_item));
     free_mac_tx(sent_mem_block);
 }
 
@@ -189,6 +190,11 @@ enum enMiniMACRxSlots miniMAC_findSlotWithState(enum enMiniMACSlotStates state) 
 }
 
 void miniMAC_control(bool rx_enable, bool tx_enable) {
+#ifndef SIM
+    irq_acknowledge(IS_MINIMAC_RX);
+    irq_acknowledge(IS_MINIMAC_TX);
+#endif
+
     MINIMAC_ENABLE_RX(rx_enable);
     MINIMAC_ENABLE_TX(tx_enable);
 
@@ -323,7 +329,8 @@ uint8_t* miniMAC_tx_slot_allocate(size_t wanted_size) {
 #endif
 }
 
-uint8_t *miniMAC_slot_prepare(uint8_t dest_mac[], uint16_t ether_type, uint8_t *slot) {
+uint8_t *miniMAC_slot_prepare(const uint8_t dest_mac[],
+                              uint16_t ether_type, uint8_t *slot) {
     memcpy(slot, dest_mac, MAC_ADDR_SIZE);
     slot += MAC_ADDR_SIZE;
     memcpy(slot, myMAC, MAC_ADDR_SIZE);

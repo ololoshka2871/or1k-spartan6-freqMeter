@@ -16,10 +16,10 @@ SECTIONS
       LONG(@HEADER_W2@);
       LONG(@FLASH_TEXT_START@);             /* test_start (in flash) */
       LONG(ABSOLUTE(hader_start));          /* text_dest (Where to load) */
-      LONG(_data_end - hader_start)         /* size to load */
-      LONG(ABSOLUTE(_bss_start))            /* start of bss_clear */
-      LONG(_bss_end - _bss_start)           /* len to clear */
-      LONG(ABSOLUTE(entry))                 /* address of entry point */
+      LONG(_data_end - hader_start);        /* size to load */
+      LONG(ABSOLUTE(_bss_start));           /* start of bss_clear */
+      LONG(_bss_end - _bss_start);          /* len to clear */
+      LONG(ABSOLUTE(entry));                /* address of entry point */
   } > sram
 
   .text :
@@ -27,12 +27,12 @@ SECTIONS
       . = ALIGN(4);
       PROVIDE(_text_start = .);
       KEEP(*(.text.entry*))
-      *(.text .text.*)                      /* remaining code */
-      *(.rodata)                            /* read-only data (constants) */
-      *(.rodata*)
-      *(.rdata*)
+      *(.text .text.*);                     /* remaining code */
+      *(.rodata);                           /* read-only data (constants) */
+      *(.rodata*);
+      *(.rdata*);
       . = ALIGN(4);
-      PROVIDE(_text_end = .);
+      _text_end = .;
   } > sram
   
   .data : 
@@ -65,7 +65,7 @@ SECTIONS
     end = __heap_start__;
     _end = end;
     __end = end;
-    KEEP(*(.heap))
+    KEEP(*(*.heap))
     __heap_end__ = .;
     __HeapLimit = __heap_end__;
   } > sram

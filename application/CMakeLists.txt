@@ -39,13 +39,14 @@ INCLUDE("or1k_toolchain")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
 
-set(MK_APP_LD_SCRIPT   "${CMAKE_CURRENT_SOURCE_DIR}/scripts/mkldscript.sh")
+add_subdirectory(scripts)
+
 set(LD_SCRIPT_FILE_IN  "${CMAKE_CURRENT_SOURCE_DIR}/link.app.ld.in")
 set(LD_SCRIPT_FILE     "${CMAKE_CURRENT_BINARY_DIR}/link.app.ld")
 
 add_custom_target(mkldscript.files
     SOURCES
-        ${MK_APP_LD_SCRIPT} ${LD_SCRIPT_FILE_IN}
+        ${LD_SCRIPT_FILE_IN}
     )
 
 add_custom_command(
@@ -64,7 +65,8 @@ add_custom_command(
             ${MYMINMAC_TX_SLOTS}
             ${MEMORY_UNIT_SIZE}
             ${MTU}
-            ${TOOLCHAIN_PREFIX} > ${LD_SCRIPT_FILE}
+            ${TOOLCHAIN_PREFIX}
+            ${PYTHON_EXECUTABLE} > ${LD_SCRIPT_FILE}
     DEPENDS
         ${BOOTLOADER_IMAGE_ELF} ${LD_SCRIPT_FILE_IN}
     COMMENT
@@ -95,11 +97,7 @@ add_executable(${APPLICATION_ELF_NAME}
     main.c
     )
 target_link_libraries(${APPLICATION_ELF_NAME}
-    hw
-    net
-    base
-    hw
-    )
+    -Wl,--start-group hw net base -Wl,--end-group)
 set_target_properties(${APPLICATION_ELF_NAME} PROPERTIES COMPILE_DEFINITIONS "${hwlib_difenitions}")
 add_dependencies(${APPLICATION_ELF_NAME} mkldscript)
 
@@ -124,6 +122,18 @@ set(application_BIN	    ${CMAKE_CURRENT_BINARY_DIR}/app.bin)
 
 elf2bin(${APPLICATION_ELF_NAME} ${application_BIN})
 
-add_custom_target(application DEPENDS ${application_BIN})
+set(SUMMARY_FILE_NAME       ${CMAKE_CURRENT_BINARY_DIR}/firmware_summary.txt)
+
+add_custom_target(firmware_summary
+    COMMAND ${SUMMARY_GENERATOR}
+            ${BOOTLOADER_IMAGE_ELF}
+            ${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_ELF_NAME}
+            ${TOOLCHAIN_PREFIX}
+            ${SUMMARY_FILE_NAME}
+            ${PYTHON_EXECUTABLE}
+    DEPENDS ${BOOTLOADER_IMAGE_ELF} ${APPLICATION_ELF_NAME}
+    )
+
+add_custom_target(application DEPENDS ${application_BIN} firmware_summary)
 
 SET(APPLICATION_BINARY		${application_BIN}	    PARENT_SCOPE)
