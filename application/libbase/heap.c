@@ -50,6 +50,10 @@ struct sHeapPools {
     size_t configTOTAL_HEAP_SIZE;
 };
 
+#ifndef SYSTEM_HEAP_SIZE
+#error "SYSTEM_HEAP_SIZE mast be defined"
+#endif
+
 #ifndef MACTX_HEAP_BASE
 #error "MACTX_HEAP_BASE mast be defined"
 #endif
@@ -58,11 +62,11 @@ struct sHeapPools {
 #error "MACTX_HEAP_SIZE mast be defined"
 #endif
 
-static uint8_t _ucHeap[ 256 ] __attribute__((section("system.heap")));
+static uint8_t heap[ SYSTEM_HEAP_SIZE ] __attribute__((section("system.heap")));
 
 struct sHeapPools heap_table[] = {
     { // system
-        {NULL, 0}, NULL, 0, 0, 0, (size_t)_ucHeap, sizeof(_ucHeap)
+        {NULL, 0}, NULL, 0, 0, 0, (size_t)heap, sizeof(heap)
     },
     { // eth_tx
         {NULL, 0}, NULL, 0, 0, 0, MACTX_HEAP_BASE, MACTX_HEAP_SIZE
@@ -77,11 +81,12 @@ struct sHeapPools heap_table[] = {
 #define _ucHeap(pool)                   (heap_table[(pool)].heap_base)
 #define configTOTAL_HEAP_SIZE(pool)     (heap_table[(pool)].configTOTAL_HEAP_SIZE)
 #ifndef NDEBUG
-#define mtCOVERAGE_TEST_MARKER()        asm volatile ("l.trap 0")
+#define configASSERT(v)                 do {if (!(v)) asm volatile ("l.trap 0");} while(0)
 #else
-#define mtCOVERAGE_TEST_MARKER()
+#define configASSERT(v)
 #endif
-#define configASSERT(v)                 do {if (!(v)) mtCOVERAGE_TEST_MARKER();} while(0)
+#define mtCOVERAGE_TEST_MARKER()
+
 
 // define hooks for FREERTOS memory manager
 

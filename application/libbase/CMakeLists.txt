@@ -41,8 +41,10 @@ include_directories(.)
 add_definitions(
     -DSYSTEM_HEAP_SIZE=${SYSTEM_HEAP_SIZE}
     -DMACTX_HEAP_BASE=${MAC_TX_MEM_BASE}
-    -DMACTX_HEAP_SIZE=${MAC_RX_MEM_SIZE}
+    -DMACTX_HEAP_SIZE=${MAC_TX_MEM_SIZE}
     )
+
+message(STATUS ${MAC_TX_MEM_SIZE})
 
 add_library(base STATIC ${LIBBASE_SOURCES})
 

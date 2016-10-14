@@ -39,35 +39,6 @@
 // based on https://github.com/m-labs/misoc/blob/master/misoc/software/libnet/microudp.c
 //------------------------------------------------------------------------------
 
-// Registers
-#define REG_OFFSET(N)           (sizeof(uint32_t) * (N))
-
-#define MINIMAC_RST_CTL         (*(REG32 (MAC_CTL_BASE + REG_OFFSET(0))))
-#define MINIMAC_RST_RX          (1 << 0)
-#define MINIMAC_RST_TX          (1 << 1)
-
-#define MINIMAC_MDIO_BB         (*(REG32 (MAC_CTL_BASE + REG_OFFSET(1))))
-#define MINIMAC_MDIO_BB_DO      (1 << 0)
-#define MINIMAC_MDIO_BB_DO_0    0
-#define MINIMAC_MDIO_BB_DI      (1 << 1) //RO
-#define MINIMAC_MDIO_BB_DI_0    0
-#define MINIMAC_MDIO_BB_OE      (1 << 2)
-#define MINIMAC_MDIO_BB_OE_0    0
-#define MINIMAC_MDIO_BB_CLK     (1 << 3)
-#define MINIMAC_MDIO_BB_CLK_0   0
-
-#define MINIMAC_SLOT0_STATE     (*(REG32 (MAC_CTL_BASE + REG_OFFSET(2))))
-#define MINIMAC_SLOT0_ADDR      (*(REG32 (MAC_CTL_BASE + REG_OFFSET(3))))
-#define MINIMAC_SLOT0_COUNT     (*(REG32 (MAC_CTL_BASE + REG_OFFSET(4)))) // RO
-#define MINIMAC_SLOT_STATE(slot) (*(REG32 (MAC_CTL_BASE + REG_OFFSET(2 + (slot) * 3))))
-#define MINIMAC_SLOT_ADDR(slot)  (*(REG32 (MAC_CTL_BASE + REG_OFFSET(3 + (slot) * 3))))
-#define MINIMAC_SLOT_COUNT(slot) (*(REG32 (MAC_CTL_BASE + REG_OFFSET(4 + (slot) * 3))))// RO
-
-#define MINIMAC_TX_SLOT_ADDR    (*(REG32 (MAC_CTL_BASE + REG_OFFSET(14))))
-#define MINIMAC_TX_REMAINING    (*(REG32 (MAC_CTL_BASE + REG_OFFSET(15))))
-
-//------------------------------------------------------------------------------
-
 #define MAC_ADDR_SIZE           6
 
 #define ETHERTYPE_ARP           0x0806

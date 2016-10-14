@@ -30,6 +30,7 @@
  ****************************************************************************/
 
 #include <stddef.h>
+#include <string.h>
 
 #include "gdb-stub-sections.h"
 
@@ -73,7 +74,6 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
 
     uint8_t* ptx_slot = miniMAC_tx_slot_allocate(-1 /*all space*/);
 
-    MINIMAC_SLOT_STATE(MINIMAC_RX_SLOT0) = 0b00;
     miniMAC_control(true, true);
 
     miniMAC_findSlotWithState(MINIMAC_SLOT_STATE_READY);
@@ -85,7 +85,6 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
         while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_RX)));
         IRQ_STATUS = (1 << IRQ_MINIMAC_RX);
     }
-    memcpy(MINIMAC_SLOT_ADDR(0), MINIMAC_SLOT_ADDR(1), (12 * sizeof(uint32_t) - 2) * 3);
 }
 
 void GDB_STUB_SECTION_TEXT start_tests() {

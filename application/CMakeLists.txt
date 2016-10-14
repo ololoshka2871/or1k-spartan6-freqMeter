@@ -44,6 +44,18 @@ add_subdirectory(scripts)
 set(LD_SCRIPT_FILE_IN  "${CMAKE_CURRENT_SOURCE_DIR}/link.app.ld.in")
 set(LD_SCRIPT_FILE     "${CMAKE_CURRENT_BINARY_DIR}/link.app.ld")
 
+function(calc_mac_memory_size OUT_VARIABLE SLOTS)
+    execute_process(COMMAND
+        ${PYTHON_EXECUTABLE} -c "import math; print(int(\
+            ${MEMORY_UNIT_SIZE} / 8 * int(math.ceil(${MTU}.0 * ${SLOTS} / (${MEMORY_UNIT_SIZE} / 8)))))"
+        OUTPUT_VARIABLE res)
+    string(REGEX REPLACE "\n" "" res ${res}) # trim
+    set(${OUT_VARIABLE} ${res} PARENT_SCOPE)
+endfunction()
+
+calc_mac_memory_size(MAC_TX_MEM_SIZE ${MYMINMAC_TX_SLOTS})
+calc_mac_memory_size(MAC_RX_MEM_SIZE ${MYMINMAC_RX_SLOTS})
+
 add_custom_target(mkldscript.files
     SOURCES
         ${LD_SCRIPT_FILE_IN}
@@ -61,12 +73,9 @@ add_custom_command(
             ${USER_CODE_FLASH_OFFSET}
             ${MAC_TX_MEM_BASE}
             ${MAC_RX_MEM_BASE}
-            ${MYMINMAC_RX_SLOTS}
-            ${MYMINMAC_TX_SLOTS}
-            ${MEMORY_UNIT_SIZE}
-            ${MTU}
-            ${TOOLCHAIN_PREFIX}
-            ${PYTHON_EXECUTABLE} > ${LD_SCRIPT_FILE}
+            ${MAC_RX_MEM_SIZE}
+            ${MAC_TX_MEM_SIZE}
+            ${TOOLCHAIN_PREFIX} > ${LD_SCRIPT_FILE}
     DEPENDS
         ${BOOTLOADER_IMAGE_ELF} ${LD_SCRIPT_FILE_IN}
     COMMENT

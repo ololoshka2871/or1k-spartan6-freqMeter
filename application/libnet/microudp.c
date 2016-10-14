@@ -100,6 +100,8 @@ static void process_arp(const struct arp_frame *rx_arp, uint16_t rxlen) {
     }
     if ((rx_arp->opcode == ARP_OPCODE_REQUEST) && (rx_arp->target_ip == my_ip)) {
         uint8_t * tx_slot = miniMAC_tx_slot_allocate(ARP_PACKET_LENGTH);
+        if (!tx_slot)
+            return; // E_NOMEM
 
         struct arp_frame *tx_arp = (struct arp_frame*)
                 miniMAC_slot_prepare(rx_arp->sender_mac, ETHERTYPE_ARP, tx_slot);

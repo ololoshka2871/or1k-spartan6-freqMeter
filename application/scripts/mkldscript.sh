@@ -7,14 +7,11 @@ HEADER_W2=$4
 USER_CODE_FLASH_OFFSET=$5
 MAC_TX_MEM_BASE=$6
 MAC_RX_MEM_BASE=$7
-MYMINMAC_RX_SLOTS=$8
-MYMINMAC_TX_SLOTS=$9
-MEMORY_UNIT_SIZE=${10}
-MTU=${11}
-TOOLCHAIN_PREFIX=${12}
-PYTHON_EXECUTABLE=${13}
+MAC_RX_MEM_SIZE=$8
+MAC_TX_MEM_SIZE=$9
+TOOLCHAIN_PREFIX=${10}
 
-if [[ $# -ne 13 ]]; then
+if [[ $# -ne 10 ]]; then
     echo "Incorrect call. Only for internal use."
     exit 1
 fi
@@ -27,11 +24,6 @@ BOOTLOADER_END=`$get_section_info $BOOTLOADER_ELF "LOAD.*RW " 3 ${TOOLCHAIN_PREF
 
 APP_START="$BOOTLOADER_START + $BOOTLOADER_SIZE + 8"
 APP_SIZE="$BOOTLOADER_END - ($APP_START)"
-
-MAC_TX_MEM_SIZE=`$PYTHON_EXECUTABLE -c "import math; print(int(\
-    $MEMORY_UNIT_SIZE / 8 * int(math.ceil($MTU.0 * $MYMINMAC_TX_SLOTS / ($MEMORY_UNIT_SIZE / 8)))))"`
-MAC_RX_MEM_SIZE=`$PYTHON_EXECUTABLE -c "import math; print(int(\
-    $MEMORY_UNIT_SIZE / 8 * int(math.ceil($MTU.0 * $MYMINMAC_RX_SLOTS / ($MEMORY_UNIT_SIZE / 8)))))"`
 
 sed -e "s/@APP_START@/$APP_START/"\
     -e "s/@APP_SIZE@/$APP_SIZE/"\

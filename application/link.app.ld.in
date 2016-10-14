@@ -61,6 +61,11 @@ SECTIONS
     . = ALIGN(4);
     PROVIDE(_bss_end = .);
 
+
+  } > sram
+
+  .heap :
+  {
     __heap_start__ = .;
     end = __heap_start__;
     _end = end;
