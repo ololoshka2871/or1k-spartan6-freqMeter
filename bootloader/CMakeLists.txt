@@ -33,10 +33,6 @@ cmake_minimum_required(VERSION 2.8.5)
 
 project(or1k-spartan6-platform_bootloader ASM C)
 
-# указать путь до модулей
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
-
 set(LD_SCRIPT_FILE_IN  "${CMAKE_CURRENT_SOURCE_DIR}/link.ld.in")
 set(LD_SCRIPT_FILE     "${CMAKE_CURRENT_BINARY_DIR}/link.ld")
 
@@ -46,6 +42,8 @@ math(EXPR MAIN_MEMORY_SIZE_B "${FPGA_DP_MEMORY_USE} * (16*1024) / 8")
 configure_file(${LD_SCRIPT_FILE_IN} ${LD_SCRIPT_FILE} @ONLY)
 
 INCLUDE("or1k_toolchain")
+
+include_directories(${TOOLCHAIN_INCLUDE_PATH})
 
 add_subdirectory(gdb_stub)
 SET(BOOT_LIB_SIM_NOTRAP	    gdb_stub_sim_notrap)

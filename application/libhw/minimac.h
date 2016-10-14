@@ -97,7 +97,7 @@ void miniMAC_control(bool rx_enable, bool tx_enable);
 
 enum enMiniMACRxSlots miniMAC_rx_static_slot_allocate();
 uint8_t* miniMAC_tx_slot_allocate(size_t wanted_size);
-uint8_t* miniMAC_slot_prepare(const uint8_t dest_mac[],
+uint8_t* miniMAC_slot_prepare(const uint8_t *dest_mac,
                               uint16_t ether_type, uint8_t* slot);
 void miniMAC_slot_complite_and_send(uint8_t* slot_data);
 enum enMiniMACErrorCodes miniMAC_tx_start(uint16_t byte_count);

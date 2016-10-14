@@ -467,7 +467,7 @@ always @(posedge sys_clk) begin
             4'd13: csr_do <= slot_count_sys_o[3];
 
             // TX slots
-            4'd14: csr_do <= {RX_MEMORY_BASE[31:TX_ADDR_WIDTH], tx_addr_sys, 2'b0};
+            4'd14: csr_do <= {TX_MEMORY_BASE[31:TX_ADDR_WIDTH], tx_addr_sys, 2'b0};
             4'd15: csr_do <= tx_remaining_sys_o;
 
             default:

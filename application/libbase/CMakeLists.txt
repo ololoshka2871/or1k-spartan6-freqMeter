@@ -44,8 +44,6 @@ add_definitions(
     -DMACTX_HEAP_SIZE=${MAC_TX_MEM_SIZE}
     )
 
-message(STATUS ${MAC_TX_MEM_SIZE})
-
 add_library(base STATIC ${LIBBASE_SOURCES})
 
 set(APP_STARTUP_SRC      ${CMAKE_CURRENT_SOURCE_DIR}/startup.c   PARENT_SCOPE)

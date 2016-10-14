@@ -341,23 +341,34 @@ uint8_t* miniMAC_tx_slot_allocate(size_t wanted_size) {
     }
     return (uint32_t*)MAC_TX_MEM_BASE;
 #else
-    if (wanted_size < 0)
-        wanted_size = get_heap_free_mac_tx();
+    size_t alloc_size;
+    if (wanted_size < 0) {
+        alloc_size = get_heap_free_mac_tx();
+        wanted_size = alloc_size - (sizeof(struct tx_slot_queue_item) + // queue data
+                sizeof(struct ethernet_header) + // hader
+                sizeof(uint32_t)); // crc32
+    }
     else {
-        wanted_size +=  sizeof(struct tx_slot_queue_item) + // queue data
+        alloc_size = wanted_size + sizeof(struct tx_slot_queue_item) + // queue data
+                        sizeof(struct ethernet_header) + // hader
                         sizeof(uint32_t); // crc32
     }
 
     struct stx_slot_alloc_unit * res = malloc_mac_tx(wanted_size);
     if (res) {
         res->queue_info.next_data = NULL;
-        res->queue_info.size = wanted_size - sizeof(struct tx_slot_queue_item);
-    }
-    return (uint8_t*)(res + sizeof(struct tx_slot_queue_item));
+        res->queue_info.size = wanted_size;
+#ifndef NDEBUG
+        memset(res->data, 0xFE, wanted_size);
+        memset(&res->data[wanted_size], 0xcc, sizeof(uint32_t));
+#endif
+        return &res->data;
+    } else
+        return res;
 #endif
 }
 
-uint8_t *miniMAC_slot_prepare(const uint8_t dest_mac[],
+uint8_t *miniMAC_slot_prepare(const uint8_t *dest_mac,
                               uint16_t ether_type, uint8_t *slot) {
     memcpy(slot, dest_mac, MAC_ADDR_SIZE);
     slot += MAC_ADDR_SIZE;
@@ -373,7 +384,7 @@ void miniMAC_slot_complite_and_send(uint8_t *slot_data) {
             slot_data - sizeof(struct tx_slot_queue_item));
     uint32_t data_size = slot_alloc_unit->queue_info.size;
 
-    uint32_t crc = crc32(slot_data, data_size - sizeof(uint32_t), 0);
+    uint32_t crc = crc32(slot_data, data_size, 0);
     slot_data[data_size + 0] = (crc >> 24) & 0xff;
     slot_data[data_size + 1] = (crc >> 16) & 0xff;
     slot_data[data_size + 2] = (crc >> 8) & 0xff;

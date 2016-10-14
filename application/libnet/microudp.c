@@ -13,7 +13,7 @@
 
 #define ARP_HWTYPE_ETHERNET 0x0001
 #define ARP_PROTO_IP        0x0800
-#define ARP_PACKET_LENGTH   60
+#define ARP_PACKET_LENGTH   (sizeof(struct arp_frame) + sizeof(struct ethernet_header))
 
 #define ARP_OPCODE_REQUEST  0x0001
 #define ARP_OPCODE_REPLY    0x0002
@@ -87,8 +87,7 @@ static udp_callback rx_callback;
 static unsigned char cached_mac[6];
 static unsigned int cached_ip;
 
-static void process_arp(const struct arp_frame *rx_arp, uint16_t rxlen) {
-    if(rxlen < ARP_PACKET_LENGTH) return;
+static void process_arp(const struct arp_frame *rx_arp) {
     if(rx_arp->hwtype != ARP_HWTYPE_ETHERNET) return;
     if(rx_arp->proto != ARP_PROTO_IP) return;
     if(rx_arp->hwsize != 6) return;
@@ -99,7 +98,7 @@ static void process_arp(const struct arp_frame *rx_arp, uint16_t rxlen) {
         return;
     }
     if ((rx_arp->opcode == ARP_OPCODE_REQUEST) && (rx_arp->target_ip == my_ip)) {
-        uint8_t * tx_slot = miniMAC_tx_slot_allocate(ARP_PACKET_LENGTH);
+        uint8_t* tx_slot = miniMAC_tx_slot_allocate(sizeof(struct arp_frame));
         if (!tx_slot)
             return; // E_NOMEM
 
@@ -124,8 +123,9 @@ static void process_arp(const struct arp_frame *rx_arp, uint16_t rxlen) {
 static void process_frame(ethernet_buffer * rxbuffer, uint16_t rxlen) {
     cache_dflush();
 
-    if(rxbuffer->frame.eth_header.ethertype == ETHERTYPE_ARP)
-        process_arp(&rxbuffer->frame.contents.arp, rxlen);
+    if((rxbuffer->frame.eth_header.ethertype == ETHERTYPE_ARP) &&
+            (rxlen == ARP_PACKET_LENGTH))
+        process_arp(&rxbuffer->frame.contents.arp);
 //    else if(rxbuffer->frame.eth_header.ethertype == ETHERTYPE_IP)
 //        process_ip();
 }
