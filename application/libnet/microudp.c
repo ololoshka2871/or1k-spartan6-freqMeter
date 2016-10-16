@@ -140,7 +140,12 @@ void microudp_service(void) {
     err = miniMAC_getpointerRxDatarRxData(
                 &slot, (union uethernet_buffer**)&pyload, &size);
     if (err == MINIMAC_OK) {
+#if 1
         process_frame(pyload, size);
+#else
+        if (miniMAC_tx_slot_allocate(sizeof(struct arp_frame)) == NULL)
+            asm volatile ("l.trap 0");
+#endif
         miniMAC_reset_rx_slot(slot);
     }
 

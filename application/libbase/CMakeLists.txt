@@ -34,6 +34,7 @@ cmake_minimum_required(VERSION 2.8.5)
 SET(LIBBASE_SOURCES
     crc32.c
     heap.c
+    assert_trap.c
     )
 
 include_directories(.)

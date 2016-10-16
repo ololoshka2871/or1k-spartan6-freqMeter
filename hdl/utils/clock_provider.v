@@ -70,7 +70,7 @@ DCM_CLKGEN_f_ref (
    .RST(1'b0)              // 1-bit input: Reset input pin
 );
 
-// CPU and RMII 50MHz clock gen clk = clk_i * `CPU_PLL_MULTIPLYER / `CPU_CLOCK_DEVIDER
+// CPU clock gen clk = clk_i * `CPU_PLL_MULTIPLYER / `CPU_CLOCK_DEVIDER
 DCM_CLKGEN #(
    .CLKFXDV_DIVIDE(2),       // CLKFXDV divide value (2, 4, 8, 16, 32)
    .CLKFX_DIVIDE(`CPU_CLOCK_DEVIDER),         // Divide value - D - (1-256)
@@ -96,6 +96,7 @@ DCM_CLKGEN_f_rmii (
    .RST(1'b0)              // 1-bit input: Reset input pin
 );
 
+// RMII clock - from PHY
 assign rmii_logick_clk_o = rmii_clk_to_PHY_i;
 
 endmodule

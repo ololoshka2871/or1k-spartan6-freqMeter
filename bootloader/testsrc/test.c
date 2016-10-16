@@ -72,14 +72,11 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
         miniMAC_rx_static_slot_allocate();
     }
 
-    uint8_t* ptx_slot = miniMAC_tx_slot_allocate(-1 /*all space*/);
-
     miniMAC_control(true, true);
 
-    miniMAC_findSlotWithState(MINIMAC_SLOT_STATE_READY);
-
-    for (uint8_t i = 0; i < 3; ++i) {
-        miniMAC_tx_start((12 * sizeof(uint32_t) - 2) * (i + 1));
+    for (uint8_t i = 0; i < 5; ++i) {
+        uint8_t* ptx_slot = miniMAC_tx_slot_allocate((12 * sizeof(uint32_t) - 2) * (i + 1));
+        miniMAC_slot_complite_and_send(ptx_slot);
         while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_TX)));
         IRQ_STATUS = (1 << IRQ_MINIMAC_TX);
         while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_RX)));

@@ -89,9 +89,9 @@ reg crs_want_stop;
 wire [1:0] shift_selector = ressive_counter[COUNTER_WIDTH-1 -:2];
 
 wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory =
-    shift_selector == 2'b11 ? {input_data[23:0], 8'd0}:
+    shift_selector == 2'b11 ? {input_data[23:0], 8'd0}  :
     shift_selector == 2'b10 ? {input_data[15:0], 16'd0} :
-    shift_selector == 2'b01 ? {input_data[7:0], 24'd0} :
+    shift_selector == 2'b01 ? {input_data[7:0], 24'd0}  :
     input_data;
 
 wire shifting_in_progress = ~ressive_counter[0];
@@ -108,7 +108,8 @@ wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory_norm =
 
 wb_dma_ram
 #(
-    .NUM_OF_MEM_UNITS_TO_USE(MEM_UNITS_TO_ALLOC)
+    .NUM_OF_MEM_UNITS_TO_USE(MEM_UNITS_TO_ALLOC),
+    .INIT_FILE_NAME(`COUNT_TEST_MEMORY_IMAGE)
 ) rx_ram (
     .wb_clk(sys_clk),
     .wb_adr_i(rx_mem_adr_i[ADDR_LEN-1:0]),

@@ -62,9 +62,9 @@ static unsigned int* default_ISR(unsigned int * registers) {
     for (int i = 0; i < IS_Count; ++i) {
         struct src_handler* d = &ISRs[i];
         if (irq_check(d->src)) {
-            irq_acknowledge(d->src);
             if (d->ISR)
                 d->ISR(registers);
+            irq_acknowledge(d->src);
         }
     }
 

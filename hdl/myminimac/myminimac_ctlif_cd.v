@@ -244,7 +244,7 @@ clk_domain_cros_register
     .we_i(tx_remaining_ctl_wr)
 );
 
-assign tx_last_byte = (tx_remaining_ctl_o == 1);
+assign tx_last_byte = (tx_remaining_ctl_i == 1);
 assign tx_valid = |tx_remaining_ctl_o;
 
 /* RX/TX Reset: Wishbone RW, ctl RW */
@@ -393,6 +393,7 @@ always @(posedge sys_clk) begin
         slot_count_sys_act <= 4'b0;
 
         tx_remaining_sys_wr <= 1'b0;
+        tx_addr_sys <= 0;
 
         rst_ctl_sys_wr <= 1'b0;
     end else begin

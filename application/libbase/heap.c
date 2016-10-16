@@ -31,6 +31,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <assert.h>
 
 #include "heap.h"
 
@@ -80,11 +81,7 @@ struct sHeapPools heap_table[] = {
 #define _xBlockAllocatedBit(pool)       (heap_table[(pool)].xBlockAllocatedBit)
 #define _ucHeap(pool)                   (heap_table[(pool)].heap_base)
 #define configTOTAL_HEAP_SIZE(pool)     (heap_table[(pool)].configTOTAL_HEAP_SIZE)
-#ifndef NDEBUG
-#define configASSERT(v)                 do {if (!(v)) asm volatile ("l.trap 0");} while(0)
-#else
-#define configASSERT(v)
-#endif
+#define configASSERT(v)                 assert(v);
 #define mtCOVERAGE_TEST_MARKER()
 
 

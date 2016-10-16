@@ -65,9 +65,10 @@ module myminimac_tx
 
 parameter MEMORY_DATA_WIDTH = 32;
 parameter RMII_BUS_WIDTH = 2;
-parameter COUNTER_WIDTH = $clog2(MEMORY_DATA_WIDTH / RMII_BUS_WIDTH);
 
-parameter PREAMBLE_END = 13;
+parameter PREAMBLE_END = 31;
+
+parameter COUNTER_WIDTH = $clog2(PREAMBLE_END);
 
 reg tx_en;
 reg sending_preamble;
@@ -82,6 +83,8 @@ wire read_from_memory = transmit_counter == 0;
 wire transmitted28bits = (transmit_counter == (MEMORY_DATA_WIDTH / 2) - 2);
 wire byte_transferted = ~|transmit_counter[1:0];
 
+wire transmission_started = ~tx_en & tx_valid;
+
 `include "convert.v"
 
 wire [MEMORY_DATA_WIDTH - 1:0] data_from_memory_norm =
@@ -90,7 +93,7 @@ wire [MEMORY_DATA_WIDTH - 1:0] data_from_memory_norm =
 wb_dma_ram
 #(
     .NUM_OF_MEM_UNITS_TO_USE(MEM_UNITS_TO_ALLOC),
-    .INIT_FILE_NAME(`TEST_IMAGE_FOR_DMA_MEMORY_NAME)
+    .INIT_FILE_NAME(`COUNT_TEST_MEMORY_IMAGE)
 ) tx_ram (
     .wb_clk(sys_clk),
     .wb_adr_i(tx_mem_adr_i),
@@ -125,7 +128,8 @@ always @(posedge phy_rmii_clk) begin
         if (tx_valid) begin
             if (~tx_en | sending_preamble) begin
                 sending_preamble <= 1'b1;
-                transmit_counter <= transmit_counter + 1;
+                transmit_counter <= transmission_started ? 0 :
+                    transmit_counter + 1;
                 transmit_data[MEMORY_DATA_WIDTH - 1 -: 2] <= {
                     transmit_counter == PREAMBLE_END - 1, 1'b1};
                 if (transmit_counter == PREAMBLE_END) begin
@@ -138,22 +142,23 @@ always @(posedge phy_rmii_clk) begin
                     transmit_data <= data_from_memory_norm;
                     transmit_counter <= 1;
                 end else begin
-                    transmit_data <= {transmit_data[MEMORY_DATA_WIDTH-1-2 : 0], 2'd0};
+                    if (tx_next & tx_last_byte_i) begin
+                        byte_count_stop <= 1'b1;
+                        transmit_data[MEMORY_DATA_WIDTH - 1 -: 2] <= 2'b00;
+                    end else begin
+                        transmit_data <= {transmit_data[MEMORY_DATA_WIDTH-1-2 : 0], 2'd0};
+                    end
                     transmit_counter <= transmit_counter + 1;
                     if (transmitted28bits) begin
                         mem_tx_addr <= mem_tx_addr + 1;
                     end
-                end
-
-                if (tx_next & tx_last_byte_i) begin
-                    byte_count_stop <= 1'b1;
                 end
             end
         end else begin
             byte_count_stop <= 1'b0;
             mem_tx_addr <= tx_adr;
             transmit_counter <= 0;
-				transmit_data[MEMORY_DATA_WIDTH - 1 -: 2] <= 2'b00;
+            transmit_data[MEMORY_DATA_WIDTH - 1 -: 2] <= 2'b00;
         end
     end
 end

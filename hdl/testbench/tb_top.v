@@ -43,7 +43,7 @@ module tb_top;
         reg      rmii_clk;
         wire     mii_mdclk;
         wire     mii_mdio;
-        wire  [1:0]   rmi_tx_data;
+        wire  [1:0]   rmii_tx_data;
 
         wire [23:0] Fin;
 
@@ -81,9 +81,9 @@ module tb_top;
             .mosi_o(mosi_o),
             .miso_i(mosi_o),
 
-            .phy_rmii_rx_data(rmi_tx_data),
+            .phy_rmii_rx_data(rmii_tx_data),
             .phy_rmii_crs(phy_tx_en),
-            .phy_rmii_tx_data(rmi_tx_data),
+            .phy_rmii_tx_data(rmii_tx_data),
             .phy_tx_en(phy_tx_en),
             .phy_rmii_clk(rmii_clk),
             .phy_mdclk(mii_mdclk),
