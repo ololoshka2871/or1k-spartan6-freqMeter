@@ -50,26 +50,6 @@ configure_file(${SYSTEM_MEMORY_MODULE_IN} ${SYSTEM_MEMORY_MODULE}.tmp @ONLY)
 set(IMAGE   ${BOOTLOADER_SIM_IMAGE})
 configure_file(${SYSTEM_MEMORY_MODULE_IN} ${SYSTEM_MEMORY_MODULE_SIM}.tmp @ONLY)
 
-#force rebuild, if bootloader changed
-add_custom_target(memory_refresh
-    COMMAND
-        ${SCRIPTS_DIR}/checkmemory.sh ${SYSTEM_MEMORY_MODULE}.tmp
-            ${SYSTEM_MEMORY_MODULE} ${BOOTLOADER_IMAGE}
-    DEPENDS
-        bootloader ${SYSTEM_MEMORY_MODULE}.tmp test_image.hex
-    COMMENT
-        "Checking main memory image"
-    )
-add_custom_target(memory_refresh_sim
-    COMMAND
-	${SCRIPTS_DIR}/checkmemory.sh ${SYSTEM_MEMORY_MODULE_SIM}.tmp
-	    ${SYSTEM_MEMORY_MODULE_SIM} ${BOOTLOADER_SIM_IMAGE}
-    DEPENDS
-        bootloader ${SYSTEM_MEMORY_MODULE_SIM}.tmp test_image.hex
-    COMMENT
-	"Checking sim memory image"
-    )
-
 set(TEST_IMAGE_FOR_DMA_MEMORY_NAME  ${CMAKE_CURRENT_BINARY_DIR}/test_image.hex)
 
 # Чтобы затестить готовый пакет а не рандомные данные положить данные
@@ -92,7 +72,40 @@ add_custom_command(
     )
 endif()
 
-set(COUNT_TEST_MEMORY_IMAGE     ${CMAKE_CURRENT_SOURCE_DIR}/count.hex)
+#getnerate count image
+set(COUNT_TEST_MEMORY_IMAGE     ${CMAKE_CURRENT_BINARY_DIR}/count.hex)
+set(MKKOUNT_SCRIPT              ${SCRIPTS_DIR}/mkcount.sh)
+add_custom_command(
+    OUTPUT ${COUNT_TEST_MEMORY_IMAGE}
+    COMMAND
+        ${MKKOUNT_SCRIPT} 2048 > ${COUNT_TEST_MEMORY_IMAGE}
+    )
+
+#force rebuild, if bootloader changed
+add_custom_target(memory_refresh
+    COMMAND
+        ${SCRIPTS_DIR}/checkmemory.sh ${SYSTEM_MEMORY_MODULE}.tmp
+            ${SYSTEM_MEMORY_MODULE} ${BOOTLOADER_IMAGE}
+    DEPENDS
+        bootloader
+        ${SYSTEM_MEMORY_MODULE}.tmp
+        ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
+        ${COUNT_TEST_MEMORY_IMAGE}
+    COMMENT
+        "Checking main memory image"
+    )
+add_custom_target(memory_refresh_sim
+    COMMAND
+        ${SCRIPTS_DIR}/checkmemory.sh ${SYSTEM_MEMORY_MODULE_SIM}.tmp
+            ${SYSTEM_MEMORY_MODULE_SIM} ${BOOTLOADER_SIM_IMAGE}
+    DEPENDS
+        bootloader
+        ${SYSTEM_MEMORY_MODULE_SIM}.tmp
+        ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
+        ${COUNT_TEST_MEMORY_IMAGE}
+    COMMENT
+        "Checking sim memory image"
+    )
 
 SET(MEMORY_HDL_V	${RAM_HDL_V};${SYSTEM_MEMORY_MODULE})
 SET(MEMORY_HDL_SIM_V	${RAM_HDL_V};${SYSTEM_MEMORY_MODULE_SIM})

@@ -33,6 +33,7 @@ add_custom_target(scripts.editor
     SOURCES
         checkmemory.sh
         checksrc.sh
+        mkcount.sh
     )
 
 set(SCRIPTS_DIR		${CMAKE_CURRENT_SOURCE_DIR}     PARENT_SCOPE)

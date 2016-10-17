@@ -170,7 +170,7 @@ always @(posedge phy_rmii_clk) begin
         end else begin
             // Дропаем J,       K и     False Carrier detected
             //         2'b00    2'b00   2'b10
-            if (phy_rmii_crs & (phy_rmii_rx_data[0] == 1'b1)) begin
+            if (rx_valid & phy_rmii_crs & (phy_rmii_rx_data[0] == 1'b1)) begin
                 // need to await 7 times: Preamble + SFD
                 ressive_counter <= ressive_counter + 1;
                 if ((ressive_counter >= 6) && (phy_rmii_rx_data[1] == 1'b1)) begin

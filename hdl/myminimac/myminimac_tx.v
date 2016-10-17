@@ -68,6 +68,7 @@ parameter RMII_BUS_WIDTH = 2;
 
 parameter PREAMBLE_END = 31;
 
+parameter NORMAL_COUNTER_WIDTH = $clog2(MEMORY_DATA_WIDTH / RMII_BUS_WIDTH);
 parameter COUNTER_WIDTH = $clog2(PREAMBLE_END);
 
 reg tx_en;
@@ -79,7 +80,7 @@ reg [COUNTER_WIDTH-1:0] transmit_counter;
 
 wire [MEMORY_DATA_WIDTH - 1:0] data_from_memory;
 
-wire read_from_memory = transmit_counter == 0;
+wire read_from_memory = (transmit_counter[NORMAL_COUNTER_WIDTH - 1:0] == 0);
 wire transmitted28bits = (transmit_counter == (MEMORY_DATA_WIDTH / 2) - 2);
 wire byte_transferted = ~|transmit_counter[1:0];
 
@@ -141,6 +142,10 @@ always @(posedge phy_rmii_clk) begin
                 if (read_from_memory) begin
                     transmit_data <= data_from_memory_norm;
                     transmit_counter <= 1;
+                    if (tx_last_byte_i) begin
+                        byte_count_stop <= 1'b1;
+                        transmit_data[MEMORY_DATA_WIDTH - 1 -: 2] <= 2'b00;
+                    end
                 end else begin
                     if (tx_next & tx_last_byte_i) begin
                         byte_count_stop <= 1'b1;
