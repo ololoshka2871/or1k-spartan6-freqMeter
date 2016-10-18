@@ -329,7 +329,7 @@ always @(posedge rmii_clk_i) begin
             endcase
         end
 
-        if(rx_incrcount /*| rx_endframe*/) begin
+        if(rx_incrcount) begin
             case(1'b1)
                 select0: begin
                     slot_count_ctl_i[0] <= slot_count_ctl_o[0] + 1;

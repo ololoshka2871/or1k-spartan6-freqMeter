@@ -108,7 +108,7 @@ wb_dma_ram
     .wb_stall_o(tx_mem_stall_o),
 
     .rawp_clk(phy_rmii_clk),
-    .rawp_adr_i({mem_tx_addr, 2'b0}),
+    .rawp_adr_i(mem_tx_addr),
     .rawp_dat_i(32'd0),
     .rawp_dat_o(data_from_memory),
     .rawp_we_i(1'b0),

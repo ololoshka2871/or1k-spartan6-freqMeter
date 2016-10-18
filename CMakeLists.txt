@@ -234,6 +234,37 @@ add_subdirectory(application)
 add_custom_command(OUTPUT ${APPLICATION_BINARY} DEPENDS application)
 #--------------------------------/application-----------------------------------
 
+#-----------------------------post-syntesis sim---------------------------------
+
+set(PS_NETLIST_DIR  ${CMAKE_CURRENT_BINARY_DIR}/ps_netlist)
+
+make_netgen(${NCD_FILE} ${PCF_FILE} ${PS_NETLIST_DIR} VERILOG_NETLIST SDF_FILE)
+add_dependencies(mk_ps_netgen ${PROJECT_NAME}_par)
+
+set(PS_TEST_EXECUTABLE ${PS_NETLIST_DIR}/${VERILOG_NETLIST}.exe)
+set(PS_TEST_PRJ_FILE   ${PS_NETLIST_DIR}/${VERILOG_NETLIST}.prj)
+
+build_prj(PS_TEST_TOP_PRJ           "verilog work	%f\n"   "${VERILOG_NETLIST}")
+build_prj(PS_TB_TOP                 "verilog work       %f\n"   "${TESTBENCH_TOP}")
+build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	"${XILINX_VERILOG_glbl}")
+
+file(WRITE ${PS_TEST_PRJ_FILE}
+    ${PS_TEST_TOP_PRJ}
+    ${PS_TB_TOP}
+    ${XILINX_VERILOG_glbl_PRJ}
+    )
+
+make_Timing_testbench(${PS_TEST_EXECUTABLE}
+    ${PS_TEST_PRJ_FILE}
+    ${PS_NETLIST_DIR}
+    tb_top
+    ${SDF_FILE}
+    "${TESTBENCH_INCLUDE}"
+    )
+add_dependencies(tb.top_timing mk_ps_netgen)
+
+#----------------------------/post-syntesis sim---------------------------------
+
 #----------------------------------programm-------------------------------------
 
 set(IMPACT_BATCH_FILE_CHIP_IN	${CMAKE_CURRENT_SOURCE_DIR}/programm_chip.cmd.in)

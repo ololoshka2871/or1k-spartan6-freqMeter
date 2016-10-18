@@ -148,19 +148,6 @@ void microudp_service(void) {
 #endif
         miniMAC_reset_rx_slot(slot);
     }
-
-    /*
-    if(ethmac_sram_writer_ev_pending_read() & ETHMAC_EV_SRAM_WRITER) {
-        rxslot = ethmac_sram_writer_slot_read();
-        rxlen = ethmac_sram_writer_length_read();
-        if (rxslot)
-            rxbuffer = rxbuffer1;
-        else
-            rxbuffer = rxbuffer0;
-        process_frame();
-        ethmac_sram_writer_ev_pending_write(ETHMAC_EV_SRAM_WRITER);
-    }
-    */
 }
 
 
@@ -228,54 +215,6 @@ static void send_packet(void)
 	else
 		txbuffer = txbuffer0;
 }
-
-static unsigned char my_mac[6];
-
-static void process_arp(void)
-{
-	const struct arp_frame *rx_arp = &rxbuffer->frame.contents.arp;
-	struct arp_frame *tx_arp = &txbuffer->frame.contents.arp;
-
-	if(rxlen < ARP_PACKET_LENGTH) return;
-	if(rx_arp->hwtype != ARP_HWTYPE_ETHERNET) return;
-	if(rx_arp->proto != ARP_PROTO_IP) return;
-	if(rx_arp->hwsize != 6) return;
-	if(rx_arp->protosize != 4) return;
-	if(rx_arp->opcode == ARP_OPCODE_REPLY) {
-		if(rx_arp->sender_ip == cached_ip) {
-			int i;
-			for(i=0;i<6;i++)
-				cached_mac[i] = rx_arp->sender_mac[i];
-		}
-		return;
-	}
-	if(rx_arp->opcode == ARP_OPCODE_REQUEST) {
-		if(rx_arp->target_ip == my_ip) {
-			int i;
-
-			fill_eth_header(&txbuffer->frame.eth_header,
-				rx_arp->sender_mac,
-				my_mac,
-				ETHERTYPE_ARP);
-			txlen = ARP_PACKET_LENGTH;
-			tx_arp->hwtype = ARP_HWTYPE_ETHERNET;
-			tx_arp->proto = ARP_PROTO_IP;
-			tx_arp->hwsize = 6;
-			tx_arp->protosize = 4;
-			tx_arp->opcode = ARP_OPCODE_REPLY;
-			tx_arp->sender_ip = my_ip;
-			for(i=0;i<6;i++)
-				tx_arp->sender_mac[i] = my_mac[i];
-			tx_arp->target_ip = rx_arp->sender_ip;
-			for(i=0;i<6;i++)
-				tx_arp->target_mac[i] = rx_arp->sender_mac[i];
-			send_packet();
-		}
-		return;
-	}
-}
-
-static const unsigned char broadcast[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 int microudp_arp_resolve(unsigned int ip)
 {

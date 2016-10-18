@@ -48,7 +48,7 @@ module wb_dma_ram
 
     // port B (RAW)
     input  wire                         rawp_clk,
-    input  wire [WB_ADDR_WIDTH-1:0]     rawp_adr_i,  // address
+    input  wire [WB_ADDR_WIDTH-1:2]     rawp_adr_i,  // address
     input  wire [31:0]                  rawp_dat_i,  // data in
     output reg  [31:0]                  rawp_dat_o,  // data out
     input  wire                         rawp_we_i,   // write enable input
@@ -69,10 +69,10 @@ reg [31:0] rawp_dat_o_reg;
 reg [31:0] mem[MEMORY_CELLS_NUMBER - 1:0];
 
 wire [WB_ADDR_WIDTH-3:0] wb_adr_i_valid = wb_adr_i[WB_ADDR_WIDTH-1:2];
-wire [WB_ADDR_WIDTH-3:0] rawp_adr_i_valid = rawp_adr_i[WB_ADDR_WIDTH-1:2];
+wire [WB_ADDR_WIDTH-3:0] rawp_adr_i_valid = rawp_adr_i;
 
-wire wb_incorrect_addr = wb_adr_i_valid > MEMORY_CELLS_NUMBER;
-wire rawp_incorrect_addr = rawp_adr_i_valid > MEMORY_CELLS_NUMBER;
+wire wb_incorrect_addr = wb_adr_i_valid >= MEMORY_CELLS_NUMBER;
+wire rawp_incorrect_addr = rawp_adr_i_valid >= MEMORY_CELLS_NUMBER;
 
 //------------------------------------------------------------------------------
 

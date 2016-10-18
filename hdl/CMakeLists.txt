@@ -31,15 +31,6 @@
 
 cmake_minimum_required(VERSION 3.0.2)
 
-function(build_prj resultvar pattern filelist)
-    set(result)
-    foreach(f ${filelist})
-	string(REPLACE "%f" ${f} line ${pattern})
-	list(APPEND result ${line})
-    endforeach(f)
-    set(${resultvar} ${result} PARENT_SCOPE)
-endfunction(build_prj)
-
 set(TOP_MODULE_NAME	top)
 
 add_subdirectory(scripts)
@@ -184,7 +175,7 @@ foreach(testfile ${TESTBENCH_HDL_V})
             "Refreshing ${testname}.prj"
 	)
 
-    make_fuse(
+    make_Behavioral_testbench(
 	"${testlibs_list}"
 	${test_executable}
 	${test_prj_file}
@@ -218,3 +209,6 @@ set(MAC_CTL_BASE            ${MAC_CTL_BASE}             PARENT_SCOPE)
 set(MTU                     ${MTU}                      PARENT_SCOPE)
 set(MEMORY_UNIT_SIZE        ${_MEMORY_UNIT_SIZE}        PARENT_SCOPE)
 set(FREQMETERS_BASE         ${FREQMETERS_BASE}          PARENT_SCOPE)
+
+set(TESTBENCH_TOP           ${TESTBENCH_TOP}            PARENT_SCOPE)
+set(TESTBENCH_INCLUDE       ${test_include_path}        PARENT_SCOPE)
