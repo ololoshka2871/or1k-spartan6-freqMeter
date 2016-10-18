@@ -98,23 +98,29 @@ always @(posedge wb_clk) begin
     for (i = 0; i < WORD_WIDTH; i = i + 1) begin
         if (wb_cyc_i & wb_stb_i & ~wb_ack_o & ~wb_incorrect_addr) begin
             if (wb_we_i & wb_sel_i[i]) begin
-                mem[wb_adr_i_valid][WORD_SIZE*i +: WORD_SIZE] <= wb_dat_i[WORD_SIZE*i +: WORD_SIZE];
+                mem[wb_adr_i_valid][WORD_SIZE*i +: WORD_SIZE] <=
+                    wb_dat_i[WORD_SIZE*i +: WORD_SIZE];
+                wb_dat_o_reg[WORD_SIZE*i +: WORD_SIZE] <=
+                    wb_dat_i[WORD_SIZE*i +: WORD_SIZE];
+            end else begin
+                wb_dat_o_reg[WORD_SIZE*i +: WORD_SIZE] <=
+                    mem[wb_adr_i_valid][WORD_SIZE*i +: WORD_SIZE];
             end
-            wb_dat_o_reg[WORD_SIZE*i +: WORD_SIZE] <= mem[wb_adr_i_valid][WORD_SIZE*i +: WORD_SIZE];
             wb_ack_o_reg <= 1'b1;
         end
     end
 end
 
 // port RAW
-always @(posedge rawp_clk)
-    begin
+always @(posedge rawp_clk) begin
     rawp_stall_o <= rawp_incorrect_addr;
     if (~rawp_incorrect_addr) begin
         if (rawp_we_i) begin
             mem[rawp_adr_i_valid] <= rawp_dat_i;
+            rawp_dat_o <= rawp_dat_i;
+        end else begin
+            rawp_dat_o <= mem[rawp_adr_i_valid];
         end
-        rawp_dat_o <= mem[rawp_adr_i_valid];
     end
 end
 

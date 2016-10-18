@@ -107,9 +107,14 @@ always @(posedge a_clk) begin
     for (i = 0; i < WORD_WIDTH; i = i + 1) begin
 	if (a_cyc_i & a_stb_i & ~a_ack_o & ~a_incorrect_addr) begin
             if (a_we_i & a_sel_i[i]) begin
-                mem[a_adr_i_valid][WORD_SIZE*i +: WORD_SIZE] <= a_dat_i[WORD_SIZE*i +: WORD_SIZE];
+                mem[a_adr_i_valid][WORD_SIZE*i +: WORD_SIZE] <=
+                    a_dat_i[WORD_SIZE*i +: WORD_SIZE];
+                a_dat_o_reg[WORD_SIZE*i +: WORD_SIZE] <=
+                    a_dat_i[WORD_SIZE*i +: WORD_SIZE];
+            end else begin
+                a_dat_o_reg[WORD_SIZE*i +: WORD_SIZE] <=
+                    mem[a_adr_i_valid][WORD_SIZE*i +: WORD_SIZE];
             end
-            a_dat_o_reg[WORD_SIZE*i +: WORD_SIZE] <= mem[a_adr_i_valid][WORD_SIZE*i +: WORD_SIZE];
             a_ack_o_reg <= 1'b1;
         end
     end
@@ -122,9 +127,14 @@ always @(posedge b_clk) begin
     for (j = 0; j < WORD_WIDTH; j = j + 1) begin
 	if (b_cyc_i & b_stb_i & ~b_ack_o & ~b_incorrect_addr) begin
 	    if (b_we_i & b_sel_i[j]) begin
-		mem[b_adr_i_valid][WORD_SIZE*j +: WORD_SIZE] <= b_dat_i[WORD_SIZE*j +: WORD_SIZE];
+                mem[b_adr_i_valid][WORD_SIZE*j +: WORD_SIZE] <=
+                    b_dat_i[WORD_SIZE*j +: WORD_SIZE];
+                b_dat_o_reg[WORD_SIZE*j +: WORD_SIZE] <=
+                    b_dat_i[WORD_SIZE*j +: WORD_SIZE];
+            end else begin
+                b_dat_o_reg[WORD_SIZE*j +: WORD_SIZE] <=
+                    mem[b_adr_i_valid][WORD_SIZE*j +: WORD_SIZE];
             end
-	    b_dat_o_reg[WORD_SIZE*j +: WORD_SIZE] <= mem[b_adr_i_valid][WORD_SIZE*j +: WORD_SIZE];
             b_ack_o_reg <= 1'b1;
         end
     end
