@@ -81,8 +81,6 @@ reg ressiving_frame;
 reg rx_byte_error;
 reg crs_want_stop;
 
-reg test_wr;
-
 wire [1:0] shift_selector = ressive_counter[COUNTER_WIDTH-1 -:2];
 
 wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory =
@@ -103,7 +101,7 @@ wire wr_request = write_trigger & rx_valid & ressiving_frame;
 wire [MEMORY_DATA_WIDTH - 1:0] data_to_write_memory_norm =
     ether_bitorder_convert32(data_to_write_memory);
 
-wb_dma_ram
+wb_dma_ram_primitive
 #(
     .NUM_OF_MEM_UNITS_TO_USE(MEM_UNITS_TO_ALLOC),
     .INIT_FILE_NAME(`COUNT_TEST_MEMORY_IMAGE)
@@ -123,12 +121,11 @@ wb_dma_ram
     .rawp_adr_i(write_adr),
     .rawp_dat_i(data_to_write_memory_norm),
     .rawp_dat_o(/* open */),
-    .rawp_we_i(wr_request | test_wr),
+    .rawp_we_i(wr_request),
     .rawp_stall_o(memory_error)
 );
 
 always @(posedge phy_rmii_clk) begin
-`ifdef NORMAL
     if (sys_rst | rx_rst) begin
         // reset
         input_data <= 0;
@@ -139,31 +136,6 @@ always @(posedge phy_rmii_clk) begin
         rx_endframe <= 1'b0;
         write_adr <= 0;
         crs_want_stop <= 1'b1;
-`else
-    test_wr <= rx_rst;
-    if (sys_rst) begin
-        // reset
-        input_data <= 0;
-        ressive_counter <= 0;
-        ressiving_frame <= 1'b0;
-        rx_resetcount <= 1'b0;
-        rx_byte_error <= 1'b0;
-        rx_endframe <= 1'b0;
-        write_adr <= 0;
-        crs_want_stop <= 1'b1;
-    end else if (rx_rst) begin
-        if (ressive_counter == 0) begin
-            ressive_counter <= 1;
-            write_adr <= 0;
-        end else begin
-            input_data <= ressive_counter;
-            write_adr <= write_adr + 1'b1;
-            if (write_adr == {ADDR_LEN{1'b1}})
-                ressive_counter <= 0;
-            else
-                ressive_counter <= ressive_counter == 15 ? 1 : ressive_counter + 1;
-        end
-`endif
     end else begin
         rx_endframe <= 1'b0;
         rx_byte_error <= 1'b0;

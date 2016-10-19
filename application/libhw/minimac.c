@@ -240,6 +240,10 @@ void miniMAC_control(bool rx_enable, bool tx_enable) {
         for (uint8_t i = 0; i < 4; ++i)
             miniMAC_rx_static_slot_allocate();
 
+#ifndef NDEBUG
+    memset(MINIMAC_SLOT_ADDR(0), 0x77, 66);
+#endif
+
 #ifndef SIM
     if (rx_enable) {
         set_irq_handler(IS_MINIMAC_RX, miniMAC_rx_isr);
@@ -275,9 +279,6 @@ void miniMAC_reset_rx_slot(enum enMiniMACRxSlots slot) {
     assert(slot < MINIMAC_RX_SLOT_COUNT);
     MINIMAC_SLOT_ADDR(slot) = align32(MAC_RX_MEM_BASE + MTU * (int)slot);
     MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
-#ifndef NDEBUG
-    memset(MINIMAC_SLOT_ADDR(slot), 0xff, align32(MTU));
-#endif
 }
 
 enum enMiniMACErrorCodes miniMAC_getpointerRxDatarRxData(

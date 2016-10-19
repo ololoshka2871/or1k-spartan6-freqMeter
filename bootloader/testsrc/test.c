@@ -68,9 +68,7 @@ static void GDB_STUB_SECTION_TEXT test_mdio() {
 }
 
 static void GDB_STUB_SECTION_TEXT test_minmac() {
-    for (uint8_t i = 0; i < 4; ++i) {
-        miniMAC_rx_static_slot_allocate();
-    }
+    memcpy(0x11300000, 0x11300100, 0x100);
 
     miniMAC_control(true, true);
 
