@@ -92,6 +92,7 @@ add_custom_target(mkldscript DEPENDS ${LD_SCRIPT_FILE})
 add_subdirectory(libbase)
 add_subdirectory(libhw)
 add_subdirectory(libnet)
+add_subdirectory(lwip)
 
 include_directories(libhw libbase libnet)
 
