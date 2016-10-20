@@ -29,11 +29,15 @@
 #*
 #****************************************************************************/
 
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 3.0.0)
+
+find_package(Git REQUIRED)
+include(ExternalProject)
 
 ############################## fill variables ##################################
 
-set(LWIPDIR                     ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(LWIP_STORE_DIR              ${CMAKE_CURRENT_SOURCE_DIR}/lwip_submodule)
+set(LWIPDIR                     ${LWIP_STORE_DIR}/src)
 set(VARS_MAKEHALPER             ${CMAKE_CURRENT_SOURCE_DIR}/makehalper.mk)
 set(Filelists_mk_file           ${LWIPDIR}/Filelists.mk)
 
@@ -47,7 +51,6 @@ function(extract_lwip_variable_value OUTVAR VARIABLE_NAME)
     string(REPLACE " " ";" res ${res}) # make a list
     set(${OUTVAR}   ${res}  PARENT_SCOPE)
 endfunction(extract_lwip_variable_value)
-
 
 set(LWIP_VARIABLES
         COREFILES
@@ -67,6 +70,7 @@ set(LWIP_VARIABLES
 
 foreach(lwip_var ${LWIP_VARIABLES})
     extract_lwip_variable_value(LWIP_VAR_${lwip_var} ${lwip_var})
+    message(STATUS "${LWIP_VAR_${lwip_var}}")
 endforeach()
 
 ################################## DIFFENITIONS ################################
