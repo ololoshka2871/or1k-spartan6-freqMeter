@@ -8,65 +8,20 @@
 
 #include "minimac.h"
 #include "cache.h"
+#include "arp.h"
+#include "udp.h"
+#include "icmp.h"
+#include "cksum.h"
 
-#include "microudp.h"
-
-#define ARP_HWTYPE_ETHERNET 0x0001
-#define ARP_PROTO_IP        0x0800
-#define ARP_PACKET_LENGTH   (sizeof(struct arp_frame) + sizeof(struct ethernet_header))
-
-#define ARP_OPCODE_REQUEST  0x0001
-#define ARP_OPCODE_REPLY    0x0002
-
-#define IP_IPV4             0x45
-#define IP_DONT_FRAGMENT	0x4000
-#define IP_TTL              64
-#define IP_PROTO_UDP		0x11
-
-struct arp_frame {
-    unsigned short hwtype;
-    unsigned short proto;
-    unsigned char hwsize;
-    unsigned char protosize;
-    unsigned short opcode;
-    unsigned char sender_mac[6];
-    unsigned int sender_ip;
-    unsigned char target_mac[6];
-    unsigned int target_ip;
-    unsigned char padding[18];
-} __attribute__((packed));
-
-struct ip_header {
-    unsigned char version;
-    unsigned char diff_services;
-    unsigned short total_length;
-    unsigned short identification;
-    unsigned short fragment_offset;
-    unsigned char ttl;
-    unsigned char proto;
-    unsigned short checksum;
-    unsigned int src_ip;
-    unsigned int dst_ip;
-} __attribute__((packed));
-
-struct udp_header {
-    unsigned short src_port;
-    unsigned short dst_port;
-    unsigned short length;
-    unsigned short checksum;
-} __attribute__((packed));
-
-struct udp_frame {
-    struct ip_header ip;
-    struct udp_header udp;
-    char payload[];
-} __attribute__((packed));
+#include "microip.h"
 
 struct ethernet_frame {
     struct ethernet_header eth_header;
     union {
         struct arp_frame arp;
         struct udp_frame udp;
+        struct icmp_frame icmp;
+        struct ip_header ip_hader;
     } contents;
 } __attribute__((packed));
 
@@ -77,45 +32,16 @@ typedef union {
 
 //------------------------------------------------------------------------------
 
-static unsigned int my_ip;
-
-static udp_callback rx_callback;
+unsigned int my_ip;
 
 //------------------------------------------------------------------------------
 
-/* ARP cache - one entry only */
-static unsigned char cached_mac[6];
-static unsigned int cached_ip;
+uint32_t ntohl(uint32_t net32) {
+    return net32;
+}
 
-static void process_arp(const struct arp_frame *rx_arp) {
-    if(rx_arp->hwtype != ARP_HWTYPE_ETHERNET) return;
-    if(rx_arp->proto != ARP_PROTO_IP) return;
-    if(rx_arp->hwsize != 6) return;
-    if(rx_arp->protosize != 4) return;
-    if ((rx_arp->opcode == ARP_OPCODE_REPLY) &&
-        (rx_arp->sender_ip == cached_ip)) {
-        memcpy(cached_mac, rx_arp->sender_mac, sizeof(cached_mac));
-        return;
-    }
-    if ((rx_arp->opcode == ARP_OPCODE_REQUEST) && (rx_arp->target_ip == my_ip)) {
-        uint8_t* tx_slot = miniMAC_tx_slot_allocate(sizeof(struct arp_frame));
-        if (!tx_slot)
-            return; // E_NOMEM
-
-        struct arp_frame *tx_arp = (struct arp_frame*)
-                miniMAC_slot_prepare(rx_arp->sender_mac, ETHERTYPE_ARP, tx_slot);
-
-        tx_arp->hwtype = ARP_HWTYPE_ETHERNET;
-        tx_arp->proto = ARP_PROTO_IP;
-        tx_arp->hwsize = 6;
-        tx_arp->protosize = 4;
-        tx_arp->opcode = ARP_OPCODE_REPLY;
-        tx_arp->sender_ip = my_ip;
-        memcpy(tx_arp->sender_mac, myMAC, MAC_ADDR_SIZE);
-        tx_arp->target_ip = rx_arp->sender_ip;
-        memcpy(tx_arp->target_mac, rx_arp->sender_mac, MAC_ADDR_SIZE);
-        miniMAC_slot_complite_and_send(tx_slot);
-    }
+uint16_t ntohs(uint16_t net16) {
+    return net16;
 }
 
 //------------------------------------------------------------------------------
@@ -124,10 +50,32 @@ static void process_frame(ethernet_buffer * rxbuffer, uint16_t rxlen) {
     cache_dflush();
 
     if((rxbuffer->frame.eth_header.ethertype == ETHERTYPE_ARP) &&
-            (rxlen == ARP_PACKET_LENGTH))
+            (rxlen == ARP_PACKET_LENGTH)) {
         process_arp(&rxbuffer->frame.contents.arp);
-//    else if(rxbuffer->frame.eth_header.ethertype == ETHERTYPE_IP)
-//        process_ip();
+        return;
+    }
+
+    if(rxbuffer->frame.eth_header.ethertype == ETHERTYPE_IP) {
+        struct ip_header* ip = &rxbuffer->frame.contents.ip_hader;
+
+        if(ip->Version != IP_IPV4) return;
+        if(ip->FragmentOffset != IP_DONT_FRAGMENT) return;
+        if(ntohl(ip->DestinationIP) != my_ip) return;
+
+        if(ip->IHL > 5) return; // drop options
+
+        uint16_t calculed_cksumm = cksum((uint16_t*)ip, ip->IHL * sizeof(uint32_t));
+        if (calculed_cksumm != 0xffff) return; // mast be 0xffff
+
+        switch (ip->Protocol) {
+        case IP_ICMP_PROTO_CODE:
+            return;
+        case IP_UDP_PROTO_CODE:
+            if (rxlen >= UDP_PACKET_LENGTH)
+                process_udp(&rxbuffer->frame.contents.udp);
+            return;
+        }
+    }
 }
 
 void microudp_service(void) {
@@ -140,12 +88,7 @@ void microudp_service(void) {
     err = miniMAC_getpointerRxDatarRxData(
                 &slot, (union uethernet_buffer**)&pyload, &size);
     if (err == MINIMAC_OK) {
-#if 1
         process_frame(pyload, size);
-#else
-        if (miniMAC_tx_slot_allocate(sizeof(struct arp_frame)) == NULL)
-            asm volatile ("l.trap 0");
-#endif
         miniMAC_reset_rx_slot(slot);
     }
 }
@@ -153,8 +96,6 @@ void microudp_service(void) {
 
 void microudp_start(unsigned int ip) {
     my_ip = ip;
-    rx_callback = (udp_callback)0;
-
     miniMAC_control(true, true);
 }
 
@@ -350,23 +291,7 @@ int microudp_send(unsigned short src_port, unsigned short dst_port, unsigned int
 
 static udp_callback rx_callback;
 
-static void process_ip(void)
-{
-	if(rxlen < (sizeof(struct ethernet_header)+sizeof(struct udp_frame))) return;
-	/* We don't verify UDP and IP checksums and rely on the Ethernet checksum solely */
-	if(rxbuffer->frame.contents.udp.ip.version != IP_IPV4) return;
-	// check disabled for QEMU compatibility
-	//if(rxbuffer->frame.contents.udp.ip.diff_services != 0) return;
-	if(rxbuffer->frame.contents.udp.ip.total_length < sizeof(struct udp_frame)) return;
-	// check disabled for QEMU compatibility
-	//if(rxbuffer->frame.contents.udp.ip.fragment_offset != IP_DONT_FRAGMENT) return;
-	if(rxbuffer->frame.contents.udp.ip.proto != IP_PROTO_UDP) return;
-	if(rxbuffer->frame.contents.udp.ip.dst_ip != my_ip) return;
-	if(rxbuffer->frame.contents.udp.udp.length < sizeof(struct udp_header)) return;
 
-	if(rx_callback)
-		rx_callback(rxbuffer->frame.contents.udp.ip.src_ip, rxbuffer->frame.contents.udp.udp.src_port, rxbuffer->frame.contents.udp.udp.dst_port, rxbuffer->frame.contents.udp.payload, rxbuffer->frame.contents.udp.udp.length-sizeof(struct udp_header));
-}
 
 void microudp_set_callback(udp_callback callback)
 {

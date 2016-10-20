@@ -37,7 +37,7 @@
 #include "serial.h"
 #include "minimac.h"
 #include "mdio.h"
-#include "microudp.h"
+#include "microip.h"
 
 static uint32_t irqCountes[FREQMETERS_COUNT];
 

@@ -204,7 +204,7 @@ static void miniMAC_tx_isr(unsigned int * registers) {
         MINIMAC_TX_SLOT_ADDR = (uint32_t)next_data;
         MINIMAC_TX_REMAINING = next_alloc_unit->queue_info.this_pocket_size;
     }
-#ifndef NDEBUG
+#ifdef VERBOSE_DEBUG
     memset(sent_mem_block, 0, sizeof(struct tx_slot_queue_item));
 #endif
     free_mac_tx(sent_mem_block);
@@ -240,7 +240,7 @@ void miniMAC_control(bool rx_enable, bool tx_enable) {
         for (uint8_t i = 0; i < 4; ++i)
             miniMAC_rx_static_slot_allocate();
 
-#ifndef NDEBUG
+#ifdef VERBOSE_DEBUG
     memset(MINIMAC_SLOT_ADDR(0), 0x77, 66);
 #endif
 
@@ -370,7 +370,7 @@ uint8_t* miniMAC_tx_slot_allocate(size_t pyload_size) {
     if (res) {
         res->queue_info.next_data = NULL;
         res->queue_info.this_pocket_size = pocket_size;
-#ifndef NDEBUG
+#ifdef VERBOSE_DEBUG
         memset(&res->data, 0xAA, sizeof(struct ethernet_header)); // header
         memset(&(((uint8_t*)(&res->data))[sizeof(struct ethernet_header)]),
                 0x00, pyload_size); // pyload

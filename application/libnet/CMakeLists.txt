@@ -32,7 +32,11 @@
 cmake_minimum_required(VERSION 2.8.5)
 
 SET(LIBNET_SOURCES
-    microudp.c
+    microip.c
+    arp.c
+    udp.c
+    icmp.c
+    cksum.c
     )
 
 include_directories(. ${LIBHW_INCLUDE_DIR})
