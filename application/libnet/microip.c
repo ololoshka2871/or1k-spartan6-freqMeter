@@ -65,7 +65,7 @@ static void process_frame(ethernet_buffer * rxbuffer, uint16_t rxlen) {
         if(ip->IHL > 5) return; // drop options
 
         uint16_t calculed_cksumm = cksum((uint16_t*)ip, ip->IHL * sizeof(uint32_t));
-        if (calculed_cksumm != 0xffff) return; // mast be 0xffff
+        if (calculed_cksumm) return; // mast be 0
 
         switch (ip->Protocol) {
         case IP_ICMP_PROTO_CODE:
