@@ -72,6 +72,7 @@ SET(COMMON_FLAGS "-msoft-float -std=gnu99 -mno-delay")
 
 SET(CMAKE_C_FLAGS_COMMON "\
     -Wall \
+    -Wno-attributes \
     -pipe \
     -ffunction-sections -fdata-sections \
     -msoft-div -msoft-mul -mno-ror -mno-cmov -mno-sext \

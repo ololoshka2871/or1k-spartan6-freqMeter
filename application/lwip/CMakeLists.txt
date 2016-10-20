@@ -41,6 +41,9 @@ set(LWIPDIR                     ${LWIP_STORE_DIR}/src)
 set(VARS_MAKEHALPER             ${CMAKE_CURRENT_SOURCE_DIR}/makehalper.mk)
 set(Filelists_mk_file           ${LWIPDIR}/Filelists.mk)
 
+add_subdirectory(port)
+set(LWIP_INCLUDE_DIRS           ${LWIPDIR}/include ${LWIP_PORT_INCLUDE_DIRS})
+
 function(extract_lwip_variable_value OUTVAR VARIABLE_NAME)
     execute_process(
         COMMAND
@@ -48,6 +51,7 @@ function(extract_lwip_variable_value OUTVAR VARIABLE_NAME)
             print-${VARIABLE_NAME} LWIPDIR=${LWIPDIR} FILELIST_MK=${Filelists_mk_file}
         OUTPUT_VARIABLE res
         )
+    string(REPLACE "\n" "" res ${res}) # remove \n
     string(REPLACE " " ";" res ${res}) # make a list
     set(${OUTVAR}   ${res}  PARENT_SCOPE)
 endfunction(extract_lwip_variable_value)
@@ -70,19 +74,28 @@ set(LWIP_VARIABLES
 
 foreach(lwip_var ${LWIP_VARIABLES})
     extract_lwip_variable_value(LWIP_VAR_${lwip_var} ${lwip_var})
-    message(STATUS "${LWIP_VAR_${lwip_var}}")
 endforeach()
 
 ################################## DIFFENITIONS ################################
 
+include_directories(${LWIP_INCLUDE_DIRS})
 
 ################################## BUILD TARGETS ###############################
 
-
+add_library(lwip
+    ${LWIP_VAR_COREFILES}
+    ${LWIP_VAR_CORE4FILES}
+#    ${LWIP_VAR_CORE6FILES}
+    ${LWIP_VAR_APIFILES}
+    )
 
 ################################################################################
 
 add_custom_target(LWIP_BUILD_HALPERS
     SOURCES
-        ${VARS_MAKEHALPER}
+        ${VARS_MAKEHALPER} ${LWIP_CONFIG_FILE_TEMPLATE}
     )
+
+################################################################################
+
+set(LWIP_INCLUDE_DIRS           ${LWIP_INCLUDE_DIRS}             PARENT_SCOPE)

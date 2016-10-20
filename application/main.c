@@ -31,6 +31,7 @@
  ****************************************************************************/
 
 #include <string.h>
+#include <assert.h>
 
 #include "irq.h"
 #include "freqmeters.h"
@@ -38,6 +39,13 @@
 #include "minimac.h"
 #include "mdio.h"
 #include "microudp.h"
+
+/***********/
+#include "lwip/opt.h"
+#include "lwip/debug.h"
+#include "lwip/stats.h"
+#include "lwip/udp.h"
+/***********/
 
 static uint32_t irqCountes[FREQMETERS_COUNT];
 
@@ -67,6 +75,19 @@ void Send_Data() {
     }
 }
 
+void
+udpecho_raw_recv(void *arg, struct udp_pcb *upcb, struct pbuf *p,
+                 const ip_addr_t *addr, u16_t port)
+{
+    LWIP_UNUSED_ARG(arg);
+    if (p != NULL) {
+        /* send received packet back to sender */
+        udp_sendto(upcb, p, addr, port);
+        /* free the pbuf */
+        pbuf_free(p);
+    }
+}
+
 void main(void)
 {
     interrupts_init();
@@ -90,7 +111,29 @@ void main(void)
         }
     }
 
-    microudp_start(IPTOINT(192, 168, 1, 99));
+    //microudp_start(IPTOINT(192, 168, 1, 99));
+
+    /*****/
+    struct udp_pcb * udpecho_raw_pcb = udp_new_ip_type(IPADDR_TYPE_ANY);
+    if (udpecho_raw_pcb != NULL)
+    {
+        err_t err;
+
+        err = udp_bind(udpecho_raw_pcb, IP_ANY_TYPE, 7);
+        if (err == ERR_OK)
+        {
+            udp_recv(udpecho_raw_pcb, udpecho_raw_recv, NULL);
+        }
+        else
+        {
+            assert(0);
+        }
+    }
+    else
+    {
+        assert(0);
+    }
+    /*****/
 
     irq_enable(IS_FREQMETERS);
 
@@ -98,6 +141,6 @@ void main(void)
 
     while(1) {
         Send_Data();
-        microudp_service();
+        //microudp_service();
     }
 }
