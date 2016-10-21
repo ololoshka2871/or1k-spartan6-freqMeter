@@ -13,12 +13,13 @@ typedef unsigned int* (*irq_handler)(unsigned int * registers); // global interr
 typedef void (*isr_handler)(unsigned int * registers); // user interrupt
 
 enum InterruptSources {
-    IS_UART0 = IRQ_UART_RX,
+    IS_UART0 = IRQ_UART0,
     IS_TIMER_SYSTICK = IRQ_TIMER_SYSTICK,
     IS_TIMER_HIRES = IRQ_TIMER_HIRES,
     IS_BOOT_SPI = IRQ_BOOT_SPI,
     IS_GPIO = IRQ_GPIO,
     IS_MDIO = IRQ_MDIO,
+    IS_UART1 = IRQ_UART1,
 
     // ext
     IS_FREQMETERS = IRQ_FREQMETERS,

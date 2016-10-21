@@ -28,12 +28,13 @@
 //-----------------------------------------------------------------
 // Interrupts
 //-----------------------------------------------------------------
-#define IRQ_UART_RX             0
+#define IRQ_UART0               0
 #define IRQ_TIMER_SYSTICK       1
 #define IRQ_TIMER_HIRES         2
 #define IRQ_BOOT_SPI		3
 #define IRQ_GPIO		4
 #define IRQ_MDIO                5
+#define IRQ_UART1               7
 
 #define IRQ_FREQMETERS          8
 #define IRQ_MINIMAC_TX          9
