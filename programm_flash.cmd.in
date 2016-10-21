@@ -9,5 +9,5 @@ assignFile -p 1 -file "@BIT_FILE@"
 attachflash -position 1 -spi "@SPI_FLASH_CHIP@"
 assignfiletoattachedflash -position 1 -file "@MCS_FIRMWARE_IMAGE@"
 attachflash -position 1 -spi "@SPI_FLASH_CHIP@"
-Program -p 1 -dataWidth 1 -spionly -e -v -loadfpga
+Program -p 1 -dataWidth 1 -spionly -e -loadfpga
 quit
