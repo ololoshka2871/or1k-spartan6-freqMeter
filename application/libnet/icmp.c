@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <errno.h>
 
 #include "microip.h"
 #include "cksum.h"
@@ -16,9 +17,6 @@
 void process_icmp(struct icmp_frame *packet, size_t size)
 {
     icmp_t *icmp_packet = &packet->icmp;
-    //int size = ntohs(packet->ip_len) - (packet->ip_hdr_len)*sizeof(uint32_t);
-    //icmp_t *icmp_packet = (icmp_t *)((void *)packet + (packet->ip_hdr_len)*sizeof(uint32_t));
-    //
     if( icmp_packet->icmp_type == ICMP_ECHO) {
         send_icmp_packet(packet->ip.SourceIP,
                          ICMP_ECHOREPLY,
@@ -28,21 +26,16 @@ void process_icmp(struct icmp_frame *packet, size_t size)
     }
 }
 
-#if 1
-//! \brief Send an ICMP packet.
-//! \param ip_to The IP destination address (in network format).
-//! \param message The ICMP message to send.
-//! \param data The data buffer to send into the ICMP packet.
-//! \param len The size of the data buffer.
-//! \return
-//!     \li The number of bytes sent in case of success;
-//!     \li a negative value if an error occurs.
 int send_icmp_packet(uint32_t ip_to, uint8_t message, uint8_t *data, size_t len)
 {
     icmp_t* icmp_packet;
     struct ip_header* ip_packet =
             microip_allocate_ip_pocket((uint8_t**)&icmp_packet,
                                        ip_to, sizeof(icmp_t) + len);
+
+    if (!ip_packet) {
+        return -ENOMEM;
+    }
 
     // Create the ICMP header                                       //
     icmp_packet->icmp_type = message;
@@ -61,4 +54,3 @@ int send_icmp_packet(uint32_t ip_to, uint8_t message, uint8_t *data, size_t len)
     return(len);
 }
 
-#endif

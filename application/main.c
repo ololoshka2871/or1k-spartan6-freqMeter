@@ -97,7 +97,7 @@ void main(void)
     EXIT_CRITICAL();
 
     while(1) {
-        Send_Data();
+        //Send_Data();
         microip_service();
     }
 }

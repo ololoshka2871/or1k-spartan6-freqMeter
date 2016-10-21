@@ -37,7 +37,7 @@ void microip_set_callback(udp_callback callback);
 void microip_service(void);
 
 struct ip_header *microip_allocate_ip_pocket(uint8_t **ppyload, uint32_t destIP, size_t ip_pyload_size);
-size_t microudp_send_ip_packet(struct ip_header* packet, size_t paylod_size, uint8_t TTL, uint8_t protocol);
+uint32_t microudp_send_ip_packet(struct ip_header* packet, size_t paylod_size, uint8_t TTL, uint8_t protocol);
 
 void eth_init(void);
 void eth_mode(void);

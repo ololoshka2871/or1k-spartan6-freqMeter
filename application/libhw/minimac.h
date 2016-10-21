@@ -100,7 +100,7 @@ enum enMiniMACRxSlots miniMAC_rx_static_slot_allocate();
 uint8_t* miniMAC_tx_slot_allocate(size_t pyload_size);
 uint8_t* miniMAC_slot_prepare(const uint8_t *dest_mac,
                               uint16_t ether_type, uint8_t* slot);
-void miniMAC_slot_complite_and_send(uint8_t* slot_data);
+uint32_t miniMAC_slot_complite_and_send(uint8_t* slot_data);
 enum enMiniMACRxSlots miniMAC_findSlotWithState(enum enMiniMACSlotStates state);
 enum enMiniMACErrorCodes miniMAC_getpointerRxDatarRxData(
         enum enMiniMACRxSlots *pslot, union uethernet_buffer** ppayload,

@@ -378,7 +378,7 @@ microip_allocate_ip_pocket(uint8_t **ppyload, uint32_t destIP, size_t ip_pyload_
     return packet_hader;
 }
 
-size_t microudp_send_ip_packet(struct ip_header *packet,
+uint32_t microudp_send_ip_packet(struct ip_header *packet,
                       size_t paylod_size, uint8_t TTL, uint8_t protocol)
 {
     packet->Protocol = protocol;
@@ -387,5 +387,5 @@ size_t microudp_send_ip_packet(struct ip_header *packet,
 
     uint8_t* tx_slot = ((uint8_t*)packet) - sizeof(struct ethernet_header);
 
-    miniMAC_slot_complite_and_send(tx_slot);
+    return miniMAC_slot_complite_and_send(tx_slot);
 }

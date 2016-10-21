@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
 
 #include "minimac.h"
 #include "microip.h"
