@@ -86,7 +86,8 @@
 //! Fragment Reass Time exceeeded.
 #define ICMP_EXC_FRAGTIME       1
 
-#define IP_ICMP_PROTO_CODE      1
+#define IPPROTO_ICMP            1
+#define ICMP_PACKET_LENGTH      (sizeof(struct ethernet_header)+sizeof(struct icmp_frame))
 
 //! ICMP packet structure.
 typedef struct icmp
@@ -111,15 +112,13 @@ typedef struct icmp_ping
 } __attribute__ ((packed)) icmp_ping_t;
 
 struct icmp_frame {
-
-};
-
+    struct ip_header ip;
+    icmp_t icmp;
+} __attribute__((packed));
 // --- Prototypes ----------------------------------------------------- //
 
-#if 0
-void to_icmp_layer(ip_t *packet);
-int send_icmp_packet(in_addr_t ip_to, uint8_t message, uint8_t *data, size_t len);
-#endif
+void process_icmp(struct icmp_frame *packet, size_t size);
+int send_icmp_packet(uint32_t ip_to, uint8_t message, uint8_t *data, size_t len);
 
 /** @} */ // end of NetICMP
 

@@ -2,12 +2,13 @@
 #define __MICROUDP_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #define IPTOINT(a, b, c, d) ((a << 24)|(b << 16)|(c << 8)|d)
 
-#define IP_IPV4             0x4
-#define IP_DONT_FRAGMENT	0x4000
-#define IP_TTL              64
+#define IP_IPV4                     0x4
+#define IP_DONT_FRAGMENT            0x4000
+#define IP_DEFAULT_TTL              64
 
 // http://stackoverflow.com/questions/30158919/dissecting-a-binary-file-in-c
 
@@ -28,12 +29,15 @@ struct ip_header {
 
 typedef void (*udp_callback)(unsigned int src_ip, unsigned short src_port, unsigned short dst_port, void *data, unsigned int length);
 
-void microudp_start(unsigned int ip);
+void microip_start(unsigned int ip);
 int microudp_arp_resolve(unsigned int ip);
 void *microudp_get_tx_buffer(void);
 int microudp_send(unsigned short src_port, unsigned short dst_port, unsigned int length);
-void microudp_set_callback(udp_callback callback);
-void microudp_service(void);
+void microip_set_callback(udp_callback callback);
+void microip_service(void);
+
+struct ip_header *microip_allocate_ip_pocket(uint8_t **ppyload, uint32_t destIP, size_t ip_pyload_size);
+size_t microudp_send_ip_packet(struct ip_header* packet, size_t paylod_size, uint8_t TTL, uint8_t protocol);
 
 void eth_init(void);
 void eth_mode(void);

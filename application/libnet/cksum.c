@@ -31,18 +31,18 @@
  * SUCH DAMAGE.
  */
 
-unsigned short cksum(unsigned short *ip, int len){
+unsigned short cksum(unsigned short *data, int len){
    long sum = 0;  /* assume 32 bit long, 16 bit short */
 
    while(len > 1){
-     sum += *ip++;
+     sum += *data++;
      if(sum & 0x80000000)   /* if high order bit set, fold */
        sum = (sum & 0xFFFF) + (sum >> 16);
      len -= 2;
    }
 
    if(len)       /* take care of left over byte */
-     sum += (unsigned short) *(unsigned char *)ip;
+     sum += (unsigned short) *(unsigned char *)data;
 
    while(sum>>16)
      sum = (sum & 0xFFFF) + (sum >> 16);

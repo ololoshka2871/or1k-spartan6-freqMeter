@@ -4,7 +4,7 @@
 #include "microip.h"
 
 #define UDP_PACKET_LENGTH   (sizeof(struct ethernet_header)+sizeof(struct udp_frame))
-#define IP_UDP_PROTO_CODE   17
+#define IPPROTO_UDP         17
 
 struct udp_header {
     unsigned short src_port;

@@ -90,7 +90,7 @@ void main(void)
         }
     }
 
-    microudp_start(IPTOINT(192, 168, 1, 99));
+    microip_start(IPTOINT(192, 168, 1, 99));
 
     irq_enable(IS_FREQMETERS);
 
@@ -98,6 +98,6 @@ void main(void)
 
     while(1) {
         Send_Data();
-        microudp_service();
+        microip_service();
     }
 }
