@@ -120,7 +120,7 @@
 struct stx_slot_alloc_unit {
     struct tx_slot_queue_item {
         uint8_t* next_data;
-        uint32_t this_pocket_size;
+        size_t this_pocket_size;
     } queue_info;
     uint8_t data[MTU];
 };
@@ -196,18 +196,7 @@ static void miniMAC_tx_isr(unsigned int * registers) {
     (void)registers;
     struct stx_slot_alloc_unit* sent_mem_block = (struct stx_slot_alloc_unit*)(
         MINIMAC_TX_SLOT_ADDR - sizeof(struct tx_slot_queue_item));
-    uint8_t* next_data = sent_mem_block->queue_info.next_data;
-
-    if (next_data) {
-        struct stx_slot_alloc_unit* next_alloc_unit = (struct stx_slot_alloc_unit*)(
-                next_data - sizeof(struct tx_slot_queue_item));
-        MINIMAC_TX_SLOT_ADDR = (uint32_t)next_data;
-        MINIMAC_TX_REMAINING = next_alloc_unit->queue_info.this_pocket_size;
-    }
-#ifdef VERBOSE_DEBUG
-    memset(sent_mem_block, 0, sizeof(struct tx_slot_queue_item));
-#endif
-    free_mac_tx(sent_mem_block);
+    sent_mem_block->queue_info.this_pocket_size = -1;
 }
 
 static uint32_t align32(uint32_t x) {
@@ -256,7 +245,7 @@ void miniMAC_control(bool rx_enable, bool tx_enable) {
     if (tx_enable) {
         set_irq_handler(IS_MINIMAC_TX, miniMAC_tx_isr);
         irq_acknowledge(IS_MINIMAC_TX);
-        irq_enable(IS_MINIMAC_TX);
+        //irq_enable(IS_MINIMAC_TX);
     } else {
         irq_disable(IS_MINIMAC_TX);
     }
@@ -408,24 +397,17 @@ uint32_t miniMAC_slot_complite_and_send(uint8_t *slot_data) {
     slot_data[data_size++] = (crc >> 16) & 0xff;
     slot_data[data_size  ] = (crc >> 24) & 0xff;
 #if 1
-    irq_disable(IS_MINIMAC_TX);
-    if (!MINIMAC_TX_REMAINING) {
-        // send now
-        MINIMAC_TX_SLOT_ADDR = (uint32_t)slot_data;
-        MINIMAC_TX_REMAINING = pocket_size;
-        slot_alloc_unit->queue_info.next_data = NULL;
-    } else {
-        // add to queue
-        struct stx_slot_alloc_unit* send_queue_pointer = (struct stx_slot_alloc_unit*)(
-                MINIMAC_TX_SLOT_ADDR - sizeof(struct tx_slot_queue_item));
-        while(send_queue_pointer->queue_info.next_data != NULL) {
-            send_queue_pointer = (struct stx_slot_alloc_unit*)(
-                    send_queue_pointer->queue_info.next_data -
-                        sizeof(struct tx_slot_queue_item));
-        }
-        send_queue_pointer->queue_info.next_data = slot_data;
-    }
-    irq_enable(IS_MINIMAC_TX);
+    struct stx_slot_alloc_unit* sending_mem_block = (struct stx_slot_alloc_unit*)(
+        MINIMAC_TX_SLOT_ADDR - sizeof(struct tx_slot_queue_item));
+
+    while (MINIMAC_TX_REMAINING);
+    if (sending_mem_block > MAC_TX_MEM_BASE)
+        free_mac_tx(sending_mem_block);
+
+    // send now
+    MINIMAC_TX_SLOT_ADDR = (uint32_t)slot_data;
+    MINIMAC_TX_REMAINING = pocket_size;
+
 #else
     free_mac_tx(slot_alloc_unit);
 #endif

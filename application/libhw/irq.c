@@ -59,8 +59,8 @@ int irq_check(int interrupt)
 
 static unsigned int* default_ISR(unsigned int * registers) {
     // check irq source
-    uint32_t interrup_flags = IRQ_STATUS & IRQ_MASK;
     for (int i = 0; i < IS_Count; ++i) {
+        uint32_t interrup_flags = IRQ_STATUS & IRQ_MASK;
         struct src_handler* d = &ISRs[i];
         if (interrup_flags & (1 << d->src) ) {
             if (d->ISR)
