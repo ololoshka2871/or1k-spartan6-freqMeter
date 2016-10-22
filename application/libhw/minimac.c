@@ -119,7 +119,9 @@
 
 struct stx_slot_alloc_unit {
     struct tx_slot_queue_item {
+#if MINIMAC_TX_ALLOC_LINKED_LIST == 1
         uint8_t* next_data;
+#endif
         size_t this_pocket_size;
     } queue_info;
     uint8_t data[MTU];
@@ -351,13 +353,17 @@ uint8_t* miniMAC_tx_slot_allocate(size_t pyload_size) {
     }
     struct stx_slot_alloc_unit *res =
             (struct stx_slot_alloc_unit *)MAC_TX_MEM_BASE;
+#if MINIMAC_TX_ALLOC_LINKED_LIST == 1
     res->queue_info.next_data = NULL;
+#endif
     res->queue_info.this_pocket_size = pyload_size;
     return &res->data;
 #else
     struct stx_slot_alloc_unit * res = malloc_mac_tx(alloc_size);
     if (res) {
+#if MINIMAC_TX_ALLOC_LINKED_LIST == 1
         res->queue_info.next_data = NULL;
+#endif
         res->queue_info.this_pocket_size = pocket_size;
 #ifdef VERBOSE_DEBUG
         memset(&res->data, 0xAA, sizeof(struct ethernet_header)); // header
@@ -368,7 +374,6 @@ uint8_t* miniMAC_tx_slot_allocate(size_t pyload_size) {
 #endif
         return (uint8_t*)&res->data;
     } else {
-        get_heap_free_mac_tx();
         return (uint8_t*)res;
     }
 #endif
@@ -407,6 +412,7 @@ uint32_t miniMAC_slot_complite_and_send(uint8_t *slot_data) {
     // send now
     MINIMAC_TX_SLOT_ADDR = (uint32_t)slot_data;
     MINIMAC_TX_REMAINING = pocket_size;
+    ++minimacstat.pocket_tx;
 
 #else
     free_mac_tx(slot_alloc_unit);

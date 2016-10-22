@@ -50,7 +50,7 @@ int send_icmp_packet(uint32_t ip_to, uint8_t message, uint8_t *data, size_t len)
     icmp_packet->icmp_chk = cksum((uint16_t*)icmp_packet, len);
 
     // Send the IP packet                                           //
-    microudp_send_ip_packet(ip_packet, len, IP_DEFAULT_TTL, IPPROTO_ICMP);
+    microip_send_ip_packet(ip_packet, len, IP_DEFAULT_TTL, IPPROTO_ICMP);
     return(len);
 }
 

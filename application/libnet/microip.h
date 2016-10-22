@@ -26,18 +26,14 @@ struct ip_header {
     uint32_t DestinationIP;
     // options size = IHL * sizeof(uint32_t) - 20
 } __attribute__((packed));
-
-typedef void (*udp_callback)(unsigned int src_ip, unsigned short src_port, unsigned short dst_port, void *data, unsigned int length);
-
 void microip_start(unsigned int ip);
 int microudp_arp_resolve(unsigned int ip);
 void *microudp_get_tx_buffer(void);
 int microudp_send(unsigned short src_port, unsigned short dst_port, unsigned int length);
-void microip_set_callback(udp_callback callback);
 void microip_service(void);
 
 struct ip_header *microip_allocate_ip_pocket(uint8_t **ppyload, uint32_t destIP, size_t ip_pyload_size);
-uint32_t microudp_send_ip_packet(struct ip_header* packet, size_t paylod_size, uint8_t TTL, uint8_t protocol);
+uint32_t microip_send_ip_packet(struct ip_header* packet, size_t paylod_size, uint8_t TTL, uint8_t protocol);
 
 void eth_init(void);
 void eth_mode(void);
