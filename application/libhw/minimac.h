@@ -70,7 +70,10 @@ enum enMiniMACErrorCodes {
     MINIMAC_VALUE_ERROR = 3,
     MINIMAC_SLOT_STATE_ERROR = 4,
     MINIMAC_CRC_ERROR = 5,
-    MINIMAC_NO_DATA_AVALABLE = 6
+    MINIMAC_NO_DATA_AVALABLE = 6,
+    MINIMAC_POCKET_DEST_ANOTHER = 7,
+    MINIMAC_UNSUPPORTED_PROTO = 8,
+    MINIMAC_HW_ERROR = 100,
 };
 
 struct sminiMAC_Stat {
@@ -78,6 +81,8 @@ struct sminiMAC_Stat {
     uint32_t pocket_rx_errors;
 
     uint32_t pocket_tx;
+
+     enum enMiniMACErrorCodes last_error;
 };
 
 struct ethernet_header {

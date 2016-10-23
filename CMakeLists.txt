@@ -124,6 +124,8 @@ set(SIM_TEST_MULTIPLICATION OFF
     CACHE BOOL  "Bootloader firmware tests processor multiplication")
 set(SIM_TEST_MINIMAC        OFF
     CACHE BOOL  "Bootloader firmware tests myminimac IP-core")
+set(SIM_TEST_MINIMAC_SLOT_LOGICK OFF
+    CACHE BOOL  "Bootloader firmware tests myminimac IP-core rx logick")
 set(SIM_TEST_MDIO           OFF
     CACHE BOOL  "Bootloader firmware tests myminimac IP-core MDIO interface")
 

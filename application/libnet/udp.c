@@ -30,8 +30,8 @@ void process_udp(struct udp_frame* rx_udp)
     char buff[256];
     struct sminiMAC_Stat stat;
     minMAC_stat(&stat);
-    sprintf(buff, "rx: %d\ttx: %d\trx_drop: %d\t pyload_size: %d\n", stat.pocket_rx,
-            stat.pocket_tx, stat.pocket_rx_errors, rx_udp->udp.length - sizeof(struct udp_header));
+    sprintf(buff, "rx: %d\ttx: %d\trx_drop: %d\tLE: %d\tpyload_size: %d\n", stat.pocket_rx,
+            stat.pocket_tx, stat.pocket_rx_errors, stat.last_error, rx_udp->udp.length - sizeof(struct udp_header));
 
     send_udp_packet(rx_udp->ip.SourceIP, 4998, rx_udp->udp.dst_port,
                      buff, strlen(buff));

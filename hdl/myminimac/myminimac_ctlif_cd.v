@@ -147,6 +147,8 @@ generate
     end
 endgenerate
 
+reg [3:0] active_slot_state;
+
 /* RX Address registers: Wishbone RW, ctl RO */
 reg [RX_ADDR_WIDTH - 1:2]           slot_adr [3:0];
 
@@ -292,6 +294,7 @@ always @(posedge rmii_clk_i) begin
         tx_remaining_ctl_wr <= 0;
         rst_ctl_ctl_i <= 2'b0;
         rst_ctl_ctl_wr <= 1'b0;
+        active_slot_state <= 4'b0;
     end else begin
         for (j = 0; j < 4; j = j + 1) begin
             slot_state_ctl_i[j] <= 2'b00;
@@ -309,6 +312,7 @@ always @(posedge rmii_clk_i) begin
 
 
         if(rx_resetcount) begin
+            active_slot_state <= {select3, select2, select1, select0};
             case(1'b1)
                 select0: begin
                     slot_count_ctl_i[0] <= 0;
@@ -331,19 +335,19 @@ always @(posedge rmii_clk_i) begin
 
         if(rx_incrcount) begin
             case(1'b1)
-                select0: begin
+                active_slot_state[0]: begin
                     slot_count_ctl_i[0] <= slot_count_ctl_o[0] + 1;
                     slot_count_ctl_act[0] <= 1'b1;
                     end
-                select1: begin
+                active_slot_state[1]: begin
                     slot_count_ctl_i[1] <= slot_count_ctl_o[1] + 1;
                     slot_count_ctl_act[1] <= 1'b1;
                     end
-                select2: begin
+                active_slot_state[2]: begin
                     slot_count_ctl_i[2] <= slot_count_ctl_o[2] + 1;
                     slot_count_ctl_act[2] <= 1'b1;
                     end
-                select3: begin
+                active_slot_state[3]: begin
                     slot_count_ctl_i[3] <= slot_count_ctl_o[3] + 1;
                     slot_count_ctl_act[3] <= 1'b1;
                     end
@@ -352,19 +356,19 @@ always @(posedge rmii_clk_i) begin
 
         if(rx_endframe) begin
             case(1'b1)
-                select0: begin
+                active_slot_state[0]: begin
                     slot_state_ctl_i[0] <= 2'b10;
                     slot_write_ctl_act[0] <= 1'b1;
                     end
-                select1: begin
+                active_slot_state[1]: begin
                     slot_state_ctl_i[1] <= 2'b10;
                     slot_write_ctl_act[1] <= 1'b1;
                     end
-                select2: begin
+                active_slot_state[2]: begin
                     slot_state_ctl_i[2] <= 2'b10;
                     slot_write_ctl_act[2] <= 1'b1;
                     end
-                select3: begin
+                active_slot_state[3]: begin
                     slot_state_ctl_i[3] <= 2'b10;
                     slot_write_ctl_act[3] <= 1'b1;
                     end

@@ -52,6 +52,10 @@ if (SIM_TEST_MULTIPLICATION)
     add_definitions(-DSIM_TEST_MULTIPLICATION)
 endif()
 
+if (SIM_TEST_MINIMAC_SLOT_LOGICK)
+    add_definitions(-DSIM_TEST_MINIMAC_SLOT_LOGICK)
+endif()
+
 if (SIM_TEST_MINIMAC)
     add_definitions(-DSIM_TEST_MINIMAC)
 endif()

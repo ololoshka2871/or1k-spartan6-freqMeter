@@ -203,7 +203,7 @@ for(i = 0; i < NUM_OF_MEM_UNITS_TO_USE; i = i + 1) begin
         .INIT_3E ( 256'h000001F7000001F6000001F5000001F4000001F3000001F2000001F1000001F0 ),
         .INIT_3F ( 256'h000001FF000001FE000001FD000001FC000001FB000001FA000001F9000001F8 )
     ) mem_inst  (
-        .CLKA(rawp_clk),
+        .CLKA(~rawp_clk),
         .CLKB(wb_clk),
         .ENA(1'b1),
         .ENB(1'b1),

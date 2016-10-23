@@ -82,6 +82,17 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
     }
 }
 
+static void GDB_STUB_SECTION_TEXT test_minmac_slotlogick() {
+    miniMAC_control(true, true);
+
+    uint8_t* ptx_slot = miniMAC_tx_slot_allocate((12 * sizeof(uint32_t) - 2));
+    miniMAC_slot_complite_and_send(ptx_slot);
+    miniMAC_reset_rx_slot(MINIMAC_RX_SLOT0);
+    while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_TX)));
+    miniMAC_slot_complite_and_send(ptx_slot);
+    miniMAC_reset_rx_slot(MINIMAC_RX_SLOT0);
+}
+
 void GDB_STUB_SECTION_TEXT start_tests() {
 #ifdef SIM_TEST_FREQMETER
     start_freqmeter();
@@ -93,6 +104,10 @@ void GDB_STUB_SECTION_TEXT start_tests() {
 
 #ifdef SIM_TEST_MDIO
     test_mdio();
+#endif
+
+#ifdef SIM_TEST_MINIMAC_SLOT_LOGICK
+    test_minmac_slotlogick();
 #endif
 
 #ifdef SIM_TEST_MINIMAC

@@ -132,27 +132,28 @@ static struct sminiMAC_Stat minimacstat;
 uint8_t myMAC[6] = {ETHERNET_MAC};
 const uint8_t broadcastMAC[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
-static bool rx_quick_verify(enum enMiniMACRxSlots slot) {
+static int rx_quick_verify(enum enMiniMACRxSlots slot) {
     struct ethernet_header *pocket_data = (struct ethernet_header *)MINIMAC_SLOT_ADDR(slot);
     uint32_t ressived_size = MINIMAC_SLOT_COUNT(slot);
     if (memcmp(pocket_data->destmac, myMAC, sizeof(myMAC)))
         if (memcmp(pocket_data->destmac, broadcastMAC, sizeof(myMAC)))
-            return false;
+            return MINIMAC_POCKET_DEST_ANOTHER;
 
     if (pocket_data->ethertype != ETHERTYPE_ARP)
         if (pocket_data->ethertype != ETHERTYPE_IP)
-            return false;
+            return MINIMAC_UNSUPPORTED_PROTO;
 
     if (ressived_size >= ETHERNET_FRAME_SIZE_MIN)
         if (ressived_size <= MTU)
-            return true;
+            return 0;
 
-    return false;
+    return MINIMAC_MTU_ERROR;
 }
 
 // interrupt handlers
 static void miniMAC_rx_isr(unsigned int * registers) {
     (void)registers;
+    int last_error;
     enum enMiniMACSlotStates slot_state;
     enum enMiniMACRxSlots slot;
     if (MINIMAC_RST_CTL & MINIMAC_RST_RX) {
@@ -165,6 +166,7 @@ static void miniMAC_rx_isr(unsigned int * registers) {
             if (count && (slot_state == MINIMAC_SLOT_STATE_READY)) {
                 miniMAC_reset_rx_slot(slot);
                 minimacstat.pocket_rx_errors++;
+                minimacstat.last_error = MINIMAC_SLOT_STATE_ERROR;
             }
         }
         MINIMAC_ENABLE_RX(true);
@@ -177,19 +179,23 @@ static void miniMAC_rx_isr(unsigned int * registers) {
         case MINIMAC_SLOT_STATE_DISABLED:
         case MINIMAC_SLOT_STATE_READY:
             // no action
-            break;
+            continue;
         case MINIMAC_SLOT_STATE_DATA_RESSIVED:
             // valid data ressived, quick verify
-            if (rx_quick_verify(slot)) {
+            last_error = rx_quick_verify(slot);
+            if (!last_error) {
                 MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_DISABLED;
                 continue;
+            } else {
+                minimacstat.last_error = last_error;
             }
-            // drop down
+            break;
         default:
-            miniMAC_reset_rx_slot(slot);
-            minimacstat.pocket_rx_errors++;
+            minimacstat.last_error = MINIMAC_HW_ERROR;
             break;
         }
+        miniMAC_reset_rx_slot(slot);
+        minimacstat.pocket_rx_errors++;
     }
 }
 
@@ -270,6 +276,9 @@ void miniMAC_reset_rx_slot(enum enMiniMACRxSlots slot) {
     assert(slot < MINIMAC_RX_SLOT_COUNT);
     MINIMAC_SLOT_ADDR(slot) = align32(MAC_RX_MEM_BASE + MTU * (int)slot);
     MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
+#if 1
+    memset(MINIMAC_SLOT_ADDR(slot), 0, MTU);
+#endif
 }
 
 enum enMiniMACErrorCodes miniMAC_getpointerRxDatarRxData(
@@ -302,6 +311,7 @@ enum enMiniMACErrorCodes miniMAC_getpointerRxDatarRxData(
         } else {
             ret = MINIMAC_CRC_ERROR;
             minimacstat.pocket_rx_errors++;
+            minimacstat.last_error = MINIMAC_CRC_ERROR;
         }
         miniMAC_reset_rx_slot(slot);
     } else {
