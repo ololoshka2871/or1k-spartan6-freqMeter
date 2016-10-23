@@ -40,3 +40,7 @@ int sprintf ( char * str, const char * format, ... )
 
   return ee_vsprintf(str, format, args);
 }
+
+//#define HAS_FLOAT
+
+#include "ee_printf.c"

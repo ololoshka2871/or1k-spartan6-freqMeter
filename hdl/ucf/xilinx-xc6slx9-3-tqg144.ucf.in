@@ -4,7 +4,7 @@
 #
 # USER_CODE_FLASH_OFFSET=0x80000
 #
-# USE_PHISICAL_INPUTS=1
+# USE_PHISICAL_INPUTS=0
 # MEMORY_UNIT_SIZE=(16*1024)
 #
 
@@ -39,13 +39,13 @@ NET "phy_mdclk"                 LOC = P58 | IOSTANDARD = "LVCMOS33";            
 NET "phy_mdio"                  LOC = P57 | IOSTANDARD = "LVCMOS33" | PULLUP;       # EXT-
 
 # Freqmeter inputs
-NET "Fin[0]"                    LOC = P24 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # PS2_CLK
-NET "Fin[1]"                    LOC = P30 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VB1
-NET "Fin[2]"                    LOC = P33 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VB3
-NET "Fin[3]"                    LOC = P35 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VG0
-NET "Fin[4]"                    LOC = P34 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VB4
-NET "Fin[5]"                    LOC = P41 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VG2
-NET "Fin[6]"                    LOC = P40 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VG1
+# NET "Fin[0]"                    LOC = P24 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # PS2_CLK
+# NET "Fin[1]"                    LOC = P30 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VB1
+# NET "Fin[2]"                    LOC = P33 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VB3
+# NET "Fin[3]"                    LOC = P35 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VG0
+# NET "Fin[4]"                    LOC = P34 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VB4
+# NET "Fin[5]"                    LOC = P41 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VG2
+# NET "Fin[6]"                    LOC = P40 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VG1
 # NET "Fin[1]"                    LOC = P29 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VB0
 # NET "Fin[1]"                    LOC = P27 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # VSYNC
 # NET "Fin[2]"                    LOC = P26 | IOSTANDARD = LVCMOS33 | PULLDOWN;       # HSYNC

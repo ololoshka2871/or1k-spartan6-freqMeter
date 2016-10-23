@@ -35,7 +35,7 @@ SET(LIBBASE_SOURCES
     crc32.c
     heap.c
     assert_trap.c
-    ee_printf.c
+#    ee_printf.c
     printf-warper.c
     )
 

@@ -41,6 +41,8 @@ set(LD_SCRIPT_FILE     "${CMAKE_CURRENT_BINARY_DIR}/link.ld")
 math(EXPR MAIN_MEMORY_SIZE_B "${FPGA_DP_MEMORY_USE} * (16*1024) / 8")
 configure_file(${LD_SCRIPT_FILE_IN} ${LD_SCRIPT_FILE} @ONLY)
 
+message(STATUS "System memory size: ${MAIN_MEMORY_SIZE_B} B")
+
 INCLUDE("or1k_toolchain")
 
 include_directories(${TOOLCHAIN_INCLUDE_PATH})

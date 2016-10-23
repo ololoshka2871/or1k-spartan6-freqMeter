@@ -88,7 +88,7 @@ void fm_updateChanel(uint8_t chanel) {
     }
     if (freqmeters[chanel].enabled) { // update/restart
         reload_cycle(chanel);
-        FM_IE |= 1 << chanel;
+        FM_IE |= chanel_mask;
     }
 }
 

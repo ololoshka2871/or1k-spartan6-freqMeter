@@ -64,6 +64,7 @@ add_custom_target(tools.editor
         calc_best_signal_test_devider.py
         decodeDoubleDump.py
         decodeChanels.py
+        test_data_querryer.py
     )
 
 set(tools_DIR       ${CMAKE_CURRENT_SOURCE_DIR}         PARENT_SCOPE)

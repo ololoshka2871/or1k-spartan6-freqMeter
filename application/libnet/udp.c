@@ -10,7 +10,10 @@
 
 #include "minimac.h"
 
+#ifdef STATS_PORT
+#include <stdio.h>
 #include "microip.h"
+#endif
 
 #include "udp.h"
 
@@ -21,7 +24,7 @@ void process_udp(struct udp_frame* rx_udp)
     if(rx_udp->udp.length < sizeof(struct udp_header)) return;
     // ignore checksumm
 
-#if 0
+#ifndef STATS_PORT
     if(rx_callback)
         rx_callback(rx_udp->ip.SourceIP, rx_udp->udp.src_port,
                     rx_udp->udp.dst_port, rx_udp->payload,
@@ -33,7 +36,7 @@ void process_udp(struct udp_frame* rx_udp)
     sprintf(buff, "rx: %d\ttx: %d\trx_drop: %d\tLE: %d\tpyload_size: %d\n", stat.pocket_rx,
             stat.pocket_tx, stat.pocket_rx_errors, stat.last_error, rx_udp->udp.length - sizeof(struct udp_header));
 
-    send_udp_packet(rx_udp->ip.SourceIP, 4998, rx_udp->udp.dst_port,
+    send_udp_packet(rx_udp->ip.SourceIP, STATS_PORT, rx_udp->udp.dst_port,
                      buff, strlen(buff));
 #endif
 }
