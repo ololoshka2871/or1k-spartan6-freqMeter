@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import socket
@@ -26,6 +26,7 @@ def listener(x, sock):
             try:
                 v = struct.unpack_from('>Id', conn[pos:pos+12])
                 sys.stdout.write("{};{:.2f};".format(v[0], v[1]))
+                #sys.stdout.write("{:.2f};".format(v[1]))
                 pos = pos + 12
             except Exception as e:
                 sys.stdout.write('\n')

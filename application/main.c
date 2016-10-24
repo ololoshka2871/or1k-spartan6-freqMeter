@@ -46,7 +46,7 @@ void DELAY() {
 }
 
 static const uint16_t measure_time_ms = 10;
-/*
+#if 0
 static uint32_t irqCountes[FREQMETERS_COUNT];
 
 void Send_Data() {
@@ -66,10 +66,18 @@ void Send_Data() {
             irq_enable(IRQ_FREQMETERS);
         }
     }
-}*/
+}
+#endif
 
-static uint32_t timestamps[FREQMETERS_COUNT];
-static double Fs[FREQMETERS_COUNT];
+void Send_Data(double F, uint32_t per) {
+    char buff[(sizeof(uint32_t) + sizeof(double))];
+    memcpy(buff, &per, sizeof(uint32_t));
+    memcpy(&buff[sizeof(uint32_t)], &F, sizeof(double));
+    send_udp_packet(IPTOINT(192, 168, 1, 25), 4999, 4998, buff, sizeof(buff));
+}
+
+static volatile uint32_t timestamps[FREQMETERS_COUNT];
+static volatile double Fs[FREQMETERS_COUNT];
 
 static void Process_freqmeters() {
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
@@ -83,10 +91,13 @@ static void Process_freqmeters() {
             double F = (double)periods / (double)value * F_REF;
             Fs[i] = F;
             //recalc new reload value
+            /*
             uint32_t reload_val = (uint32_t)(F * measure_time_ms / 1000);
             if (!reload_val)
                 reload_val = 1;
             fm_setChanelReloadValue(i, reload_val, false); // set new reload val
+            */
+            //Send_Data(F, value);
         }
     }
 }
@@ -124,8 +135,8 @@ static void configure_ethernet_PHY() {
         // set elastic bufer max len
         uint8_t v;
         v = MDIO_ReadREG_sync(phy_addr, PHY_RBR);
-        MDIO_WriteREG(phy_addr, PHY_RBR, (v & ~(PHY_RBR_ELAST_BUF_MSK)) | (0b00 << PHY_RBR_ELAST_BUF_SH));
-
+        MDIO_WriteREG(phy_addr, PHY_RBR, (v & ~(PHY_RBR_ELAST_BUF_MSK)) |
+                      (0b00 << PHY_RBR_ELAST_BUF_SH));
     }
 }
 

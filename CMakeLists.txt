@@ -60,6 +60,8 @@ find_package(Xilinx REQUIRED)
 
 set(PART_NAME               "xc6slx9-3-tqg144"
     CACHE STRING "Xilinx FPGA model to synthesis")
+set(BOARD_NAME               "ZR-Tech_v2.00"
+    CACHE STRING "Board name")
 set(INPUT_CLOCK_HZ          48000000
     CACHE STRING "FPGA main clock source (Hz)")
 set(SPI_FLASH_CHIP          "W25Q32BV"

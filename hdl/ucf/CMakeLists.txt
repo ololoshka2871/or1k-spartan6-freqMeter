@@ -33,8 +33,8 @@ cmake_minimum_required(VERSION 3.0.2)
 
 #-------------------------------------ucf---------------------------------------
 
-set(UCF_FILE_NAME_IN    "${CMAKE_CURRENT_SOURCE_DIR}/xilinx-${PART_NAME}.ucf.in")
-set(UCF_FILE_NAME       "${CMAKE_CURRENT_BINARY_DIR}/xilinx-${PART_NAME}.ucf")
+set(UCF_FILE_NAME_IN    "${CMAKE_CURRENT_SOURCE_DIR}/xilinx-${PART_NAME}-${BOARD_NAME}.ucf.in")
+set(UCF_FILE_NAME       "${CMAKE_CURRENT_BINARY_DIR}/xilinx-${PART_NAME}-${BOARD_NAME}.ucf")
 
 configure_file(${UCF_FILE_NAME_IN} ${UCF_FILE_NAME} @ONLY)
 
@@ -61,7 +61,7 @@ file(STRINGS ${ucp_filename} USE_PHISICAL_INPUTS
     REGEX "USE_PHISICAL_INPUTS=.*"
     )
 string(REGEX REPLACE ".*USE_PHISICAL_INPUTS=(.*)" "\\1" USE_PHISICAL_INPUTS ${USE_PHISICAL_INPUTS})
-if (USE_PHISICAL_INPUTS EQUAL 0)
+if (USE_PHISICAL_INPUTS EQUAL 0 OR F_INPUTS_COUNT EQUAL 0)
     set(F_INPUTS_COUNT  24)
     set(USE_PHISICAL_INPUTS "// Macro USE_PHISICAL_INPUTS is not defined")
     message(STATUS "Using test signals as inputs: 24")
