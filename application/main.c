@@ -130,7 +130,8 @@ static void cb_udp_callback(uint32_t src_ip, uint16_t src_port,
     uint32_t buff[FREQMETERS_COUNT];
     //memcpy(buff, irqCountes, sizeof(irqCountes));
     for (uint32_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        buff[i] = fm_getIRQCount(i);
+        buff[i] = fm_getActualMeasureTime(i);
+        fm_updateChanel(i);
     }
 #endif
     send_udp_packet(src_ip, src_port, dst_port, buff, sizeof(buff));
@@ -175,7 +176,7 @@ void main(void)
 
     while(1) {
         //Send_Data();
-        Process_freqmeters();
+        //Process_freqmeters();
         microip_service();
     }
 }

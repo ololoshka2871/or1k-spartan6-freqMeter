@@ -49,6 +49,8 @@ NET "Fin[6]"                    LOC = P43 | IOSTANDARD = LVCMOS33 | PULLDOWN;
 NET "Fin[7]"                    LOC = P44 | IOSTANDARD = LVCMOS33 | PULLDOWN;
 NET "Fin[8]"                    LOC = P45 | IOSTANDARD = LVCMOS33 | PULLDOWN;
 NET "Fin[9]"                    LOC = P46 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+#NET "Fin[10]"                    LOC = P47 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+#NET "Fin[11]"                    LOC = P48 | IOSTANDARD = LVCMOS33 | PULLDOWN;
 
 ## RMII
 ### Clock source 50 MHz/20 ns ###

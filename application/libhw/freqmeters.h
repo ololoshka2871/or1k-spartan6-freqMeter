@@ -16,6 +16,11 @@
 #warning "Macro FREQMETERS_COUNT not defined! Assuming 24"
 #endif
 
+#ifndef FREQMETERS_MASTER_COUNT_LEN
+#define FREQMETERS_MASTER_COUNT_LEN    30
+#warning "Macro FREQMETERS_MASTER_COUNT_LEN not defined! Assuming 30"
+#endif
+
 #ifndef F_REF
 #error "Macro F_REF not defined!"
 #endif

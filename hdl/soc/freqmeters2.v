@@ -82,6 +82,8 @@ reg  [MASER_FREQ_COUNTER_LEN-1:0] STOP_vals [INPUTS_COUNT-1:0];
 
 reg  [INPUT_FREQ_COUNTER_LEN - 1:0] reload_value;
 reg  [INPUTS_COUNT - 1:0]         restarts;
+reg                               restarts_accepted;
+reg                               restarts_changed;
 
 wire [INPUTS_COUNT - 1:0]         freqmeter_selector;
 
@@ -240,9 +242,12 @@ end
 always @(posedge F_master) begin
     if (rst_i) begin
         irq_flags <= 0;
+        restarts_accepted <= 1'b0;
     end else begin
+        restarts_accepted <= restarts_changed;
+
         for (j = 0; j < INPUTS_COUNT; j = j + 1) begin
-            if (restarts[j] | stop_requests[j]) begin
+            if ((restarts[j] & restarts_changed) | stop_requests[j]) begin
                 irq_flags[j] <= stop_requests[j];
             end
             if (start_requests[j])
@@ -268,8 +273,12 @@ always @(posedge clk_i) begin
     if (rst_i) begin
         restarts <= 0;
         irq_enable <= 0;
+        restarts_changed <= 1'b0;
     end else begin
-        restarts <= 0;
+        if (restarts_accepted) begin
+            restarts <= 0;
+            restarts_changed <= 1'b0;
+        end
         // write
         if (freqmeter_ctl_we) begin
             case (addr_valid)
@@ -278,6 +287,7 @@ always @(posedge clk_i) begin
                 default:
                     if (addr_valid[5]) begin
                         reload_value <= freqmeter_ctl_di[INPUT_FREQ_COUNTER_LEN-1:0];
+                        restarts_changed <= 1'b1;
                         restarts <= freqmeter_selector;
                     end
             endcase
