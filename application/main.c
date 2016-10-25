@@ -69,18 +69,24 @@ void Send_Data() {
 }
 #endif
 
-void Send_Data(double F, uint32_t per) {
-    char buff[(sizeof(uint32_t) + sizeof(double))];
-    memcpy(buff, &per, sizeof(uint32_t));
-    memcpy(&buff[sizeof(uint32_t)], &F, sizeof(double));
-    send_udp_packet(IPTOINT(192, 168, 1, 25), 4999, 4998, buff, sizeof(buff));
+void Send_Data(uint32_t chanel, double F, uint32_t per) {
+    struct p {
+        uint32_t ch;
+        uint32_t per;
+        double F;
+    } _p = {chanel, per, F};
+
+    send_udp_packet(IPTOINT(192, 168, 1, 25), 4999, 4998, &_p, sizeof(_p));
 }
 
-static volatile uint32_t timestamps[FREQMETERS_COUNT];
-static volatile double Fs[FREQMETERS_COUNT];
+static uint32_t timestamps[FREQMETERS_COUNT];
+static double Fs[FREQMETERS_COUNT];
+static uint32_t irqCountes[FREQMETERS_COUNT];
 
 static void Process_freqmeters() {
+#if 0
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
+#if 0
         uint32_t ts = fm_getMeasureTimestamp(i);
         if (ts != timestamps[i]) {
             timestamps[i] = ts;
@@ -89,7 +95,7 @@ static void Process_freqmeters() {
             if ((!value) || (!periods))
                 continue;
             double F = (double)periods / (double)value * F_REF;
-            Fs[i] = F;
+            Fs[i] += 0.1;
             //recalc new reload value
             /*
             uint32_t reload_val = (uint32_t)(F * measure_time_ms / 1000);
@@ -97,32 +103,37 @@ static void Process_freqmeters() {
                 reload_val = 1;
             fm_setChanelReloadValue(i, reload_val, false); // set new reload val
             */
-            //Send_Data(F, value);
+            //Send_Data(i, F, value); // not working, until arp request done
+#else
+        irq_disable(IRQ_FREQMETERS);
+        uint32_t irqs = fm_getIRQCount(i);
+        if (irqs != irqCountes[i]) {
+            irq_enable(IRQ_FREQMETERS);
+            irqCountes[i] = irqs;
+        } else {
+            irq_enable(IRQ_FREQMETERS);
         }
+#endif
     }
+#endif
 }
 
 static void cb_udp_callback(uint32_t src_ip, uint16_t src_port,
                             uint16_t dst_port, void *data,
                             uint32_t length) {
     assert(data);
+#if 0
     char buff[(sizeof(uint32_t) + sizeof(double)) * FREQMETERS_COUNT];
-    char *p = buff;
-    for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-#if 0
-        p += sprintf(p, "%d%f;", timestamps[i], Fs[i]);
+    memcpy(buff, timestamps, sizeof(timestamps));
+    memcpy(buff + sizeof(timestamps), Fs, sizeof(Fs));
 #else
-        memcpy(p, &timestamps[i], sizeof(uint32_t));
-        p += sizeof(uint32_t);
-        memcpy(p, &Fs[i], sizeof(double));
-        p += sizeof(double);
-#endif
+    uint32_t buff[FREQMETERS_COUNT];
+    //memcpy(buff, irqCountes, sizeof(irqCountes));
+    for (uint32_t i = 0; i < FREQMETERS_COUNT; ++i) {
+        buff[i] = fm_getIRQCount(i);
     }
-#if 0
-    p += sprintf(p, "\n");
 #endif
-
-    send_udp_packet(src_ip, src_port, dst_port, buff, p - buff);
+    send_udp_packet(src_ip, src_port, dst_port, buff, sizeof(buff));
 }
 
 static void configure_ethernet_PHY() {
@@ -130,13 +141,15 @@ static void configure_ethernet_PHY() {
     int8_t phy_addr = MDIO_DetectPHY(0);
     if (phy_addr > 0) {
         // force 100 Mb/s FD
+
         MDIO_WriteREG(phy_addr, PHY_BMCR, PHY_BMCR_SPEED100MB | PHY_BMCR_FULL_DUPLEX);
 
         // set elastic bufer max len
         uint8_t v;
         v = MDIO_ReadREG_sync(phy_addr, PHY_RBR);
-        MDIO_WriteREG(phy_addr, PHY_RBR, (v & ~(PHY_RBR_ELAST_BUF_MSK)) |
-                      (0b00 << PHY_RBR_ELAST_BUF_SH));
+        MDIO_WriteREG(phy_addr, PHY_RBR, (v & ~(PHY_RBR_ELAST_BUF_MSK))
+                      | PHY_RBR_RMII_REV1_0
+                      | (0b00 << PHY_RBR_ELAST_BUF_SH));
     }
 }
 
@@ -147,7 +160,7 @@ void main(void)
     fm_init();
 
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        fm_setChanelReloadValue(i, 100, false);
+        fm_setChanelReloadValue(i, 10, false);
         fm_enableChanel(i, true);
     }
 

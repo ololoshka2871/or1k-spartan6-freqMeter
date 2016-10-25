@@ -22,6 +22,7 @@
 
 #define ALIGNMENT_SHIFT(x)              (x + 2)
 
+#if 1
 #define FREQMETERS_START_SELECTOR       (1 << ALIGNMENT_SHIFT(5))
 #define FREQMETERS_MEMORY_SELECTOR      (1 << ALIGNMENT_SHIFT(6))
 
@@ -35,13 +36,30 @@
 #define FM_IE                   (*(REG32(FREQMETERS_BASE + 0)))
 // 0x11000004
 #define FM_IF                   (*(REG32(FREQMETERS_BASE + sizeof(uint32_t))))
+#else
+#define FREQMETERS_START_SELECTOR       (1 << ALIGNMENT_SHIFT(5))
+
+#define FM_START_VALS_BASE      (FREQMETERS_BASE + 0x100)
+// 0x11000100
+#define FM_STOP_VALS_BASE       (FREQMETERS_BASE + 0x200)
+// 0x11000080
+#define FM_RELOADINGS_BASE      (FREQMETERS_BASE | FREQMETERS_START_SELECTOR)
+// 0x11000000
+#define FM_IE                   (*(REG32(FREQMETERS_BASE + 0)))
+// 0x11000004
+#define FM_IF                   (*(REG32(FREQMETERS_BASE + sizeof(uint32_t))))
+#endif
 
 #define FM_START_VAL_CH(chanel) (*(REG32(FM_START_VALS_BASE + (chanel) * sizeof(uint32_t))))
 #define FM_STOP_VAL_CH(chanel)  (*(REG32(FM_STOP_VALS_BASE + (chanel) * sizeof(uint32_t))))
 #define FM_RELOAD_CH(chanel, v) (*(REG32(FM_RELOADINGS_BASE + (chanel) * sizeof(uint32_t))) = (v))
 
 struct freqmeter_chanel {
-    uint32_t newReload_vals[3]; // 0 - new, 1 - in_work, 2 - ready
+    struct {
+        uint32_t newReload_val;
+        uint32_t inWorkReload_val;
+        uint32_t readyReload_val;
+    } reloadVals;
     uint32_t res_start_v;
     uint32_t res_stop_v;
     uint32_t irq_count;

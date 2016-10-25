@@ -95,7 +95,7 @@ static void GDB_STUB_SECTION_TEXT test_minmac_slotlogick() {
 
 void GDB_STUB_SECTION_TEXT start_tests() {
 #ifdef SIM_TEST_FREQMETER
-    start_freqmeter();
+    test_freqmeter();
 #endif
 
 #ifdef SIM_TEST_MULTIPLICATION

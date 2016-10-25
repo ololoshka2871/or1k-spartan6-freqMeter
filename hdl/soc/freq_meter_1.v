@@ -127,11 +127,9 @@ always @(posedge clk_i or posedge rst_i) begin
             w_await_start & w_input_front_detector :
             ~zero_detector;
 
-        r_write_start_req <= r_write_start_req ?
-            ~write_start_req:
+        r_write_start_req <= write_start_req ? 1'b0 :
             w_await_start & w_input_front_detector;
-        r_write_stop_req  <= r_write_stop_req ?
-            ~write_stop_req:
+        r_write_stop_req  <= write_stop_req ? 1'b0  :
             input_enable & w_input_front_detector & one_detector;
     end
 end

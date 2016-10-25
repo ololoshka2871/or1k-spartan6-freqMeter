@@ -21,16 +21,10 @@ def listener(x, sock):
         except:
             return
 
-        pos = 0
-        while not exitapp:
-            try:
-                v = struct.unpack_from('>Id', conn[pos:pos+12])
-                sys.stdout.write("{};{:.2f};".format(v[0], v[1]))
-                #sys.stdout.write("{:.2f};".format(v[1]))
-                pos = pos + 12
-            except Exception as e:
-                sys.stdout.write('\n')
-                break
+        #v = struct.unpack_from('>IIIIIIIIIIdddddddddd', conn)
+        #sys.stdout.write(";".join(map(str, v[10:20])) + '\n')
+        v = struct.unpack_from('>IIIIIIIIII', conn);
+        sys.stdout.write(";".join(map(str, v)) + '\n')
 
 def main():
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -41,7 +35,7 @@ def main():
 
     while True:
         try:
-            time.sleep(0.01)
+            time.sleep(0.001)
         except :
             exitapp = True
             print ('Exiting...')
