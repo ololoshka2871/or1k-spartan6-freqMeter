@@ -27,7 +27,7 @@
 
 #define ALIGNMENT_SHIFT(x)              (x + 2)
 
-#if 0
+#if 1
 #define FREQMETERS_START_SELECTOR       (1 << ALIGNMENT_SHIFT(5))
 #define FREQMETERS_MEMORY_SELECTOR      (1 << ALIGNMENT_SHIFT(6))
 
