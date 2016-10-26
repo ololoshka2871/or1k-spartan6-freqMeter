@@ -121,20 +121,28 @@ static void Process_freqmeters() {
 static void cb_udp_callback(uint32_t src_ip, uint16_t src_port,
                             uint16_t dst_port, void *data,
                             uint32_t length) {
+    static int c = 0;
+
     assert(data);
 #if 0
     char buff[(sizeof(uint32_t) + sizeof(double)) * FREQMETERS_COUNT];
     memcpy(buff, timestamps, sizeof(timestamps));
     memcpy(buff + sizeof(timestamps), Fs, sizeof(Fs));
 #else
-    uint32_t buff[FREQMETERS_COUNT];
+    uint32_t buff[FREQMETERS_COUNT + 1];
     //memcpy(buff, irqCountes, sizeof(irqCountes));
     for (uint32_t i = 0; i < FREQMETERS_COUNT; ++i) {
         buff[i] = fm_getActualMeasureTime(i);
-        fm_updateChanel(i);
+        //fm_updateChanel(i);
     }
 #endif
+    buff[FREQMETERS_COUNT] = fm_getoveralIRQCount();
     send_udp_packet(src_ip, src_port, dst_port, buff, sizeof(buff));
+#if 0
+    c++;
+    if (c == 1000)
+        asm volatile ("l.trap 0");
+#endif
 }
 
 static void configure_ethernet_PHY() {

@@ -71,7 +71,7 @@ reg  [MASER_FREQ_COUNTER_LEN-1:0] mester_freq_counter;
 //--------------------------------registers-------------------------------------
 
 reg  [INPUTS_COUNT-1:0]           irq_enable; // разрешить прерывания на этих каналах (RW)
-reg  [INPUTS_COUNT-1:0]           irq_flags; // Флаги готовности каналов
+wire [INPUTS_COUNT-1:0]           irq_flags; // Флаги готовности каналов
 
 //--------------------------------memory----------------------------------------
 
@@ -82,8 +82,6 @@ reg  [MASER_FREQ_COUNTER_LEN-1:0] STOP_vals [INPUTS_COUNT-1:0];
 
 reg  [INPUT_FREQ_COUNTER_LEN - 1:0] reload_value;
 reg  [INPUTS_COUNT - 1:0]         restarts;
-reg                               restarts_accepted;
-reg                               restarts_changed;
 
 wire [INPUTS_COUNT - 1:0]         freqmeter_selector;
 
@@ -134,12 +132,11 @@ generate
             .restart(restarts[i]),
 
             .write_start_req(start_requests[i]),
-            .write_start_enable_i(1'b1),
-
             .write_stop_req(stop_requests[i]),
-            .write_stop_enable_i(1'b1),
 
-            .Fin_unsync(F_in[i])
+            .Fin_unsync(F_in[i]),
+
+            .ready_o(irq_flags[i])
         );
     end
 
@@ -240,21 +237,11 @@ initial begin
 end
 
 always @(posedge F_master) begin
-    if (rst_i) begin
-        irq_flags <= 0;
-        restarts_accepted <= 1'b0;
-    end else begin
-        restarts_accepted <= restarts_changed;
-
-        for (j = 0; j < INPUTS_COUNT; j = j + 1) begin
-            if ((restarts[j] & restarts_changed) | stop_requests[j]) begin
-                irq_flags[j] <= stop_requests[j];
-            end
-            if (start_requests[j])
-                START_vals[j] <= mester_freq_counter;
-            if (stop_requests[j])
-                STOP_vals[j] <= mester_freq_counter;
-        end
+    for (j = 0; j < INPUTS_COUNT; j = j + 1) begin
+        if (start_requests[j])
+            START_vals[j] <= mester_freq_counter;
+        if (stop_requests[j])
+            STOP_vals[j] <= mester_freq_counter;
     end
 end
 
@@ -273,12 +260,8 @@ always @(posedge clk_i) begin
     if (rst_i) begin
         restarts <= 0;
         irq_enable <= 0;
-        restarts_changed <= 1'b0;
     end else begin
-        if (restarts_accepted) begin
-            restarts <= 0;
-            restarts_changed <= 1'b0;
-        end
+        restarts <= 0;
         // write
         if (freqmeter_ctl_we) begin
             case (addr_valid)
@@ -287,7 +270,6 @@ always @(posedge clk_i) begin
                 default:
                     if (addr_valid[5]) begin
                         reload_value <= freqmeter_ctl_di[INPUT_FREQ_COUNTER_LEN-1:0];
-                        restarts_changed <= 1'b1;
                         restarts <= freqmeter_selector;
                     end
             endcase

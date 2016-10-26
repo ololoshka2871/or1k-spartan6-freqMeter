@@ -40,6 +40,7 @@
 
 static struct freqmeter_chanel freqmeters[FREQMETERS_COUNT];
 static uint32_t alive_flags;
+static uint32_t irq_count;
 
 static void reload_cycle(uint8_t chanel_num) {
     struct freqmeter_chanel* chanel = &freqmeters[chanel_num];
@@ -54,16 +55,19 @@ static void reload_cycle(uint8_t chanel_num) {
 static void fm_isr_handler(unsigned int *registers) {
     (void)registers;
     uint32_t chanels_to_scan = FM_IE & FM_IF;
+    ++irq_count;
+#if VERBOSE_DEBUG
     if (!chanels_to_scan)
         asm volatile("l.trap 0");
+#endif
     alive_flags |= chanels_to_scan;
     for (uint8_t ch = 0; ch < FREQMETERS_COUNT; ++ch) {
         if (chanels_to_scan & 1) {
             freqmeters[ch].res_start_v = FM_START_VAL_CH(ch);
             freqmeters[ch].res_stop_v = FM_STOP_VAL_CH(ch);
             ++freqmeters[ch].irq_count;
-            //reload_cycle(ch);
-            FM_IE &= ~(1 << ch);
+            reload_cycle(ch);
+            //FM_IE &= ~(1 << ch);
         }
 
         chanels_to_scan >>= 1;
@@ -115,7 +119,9 @@ uint32_t fm_getActualMeasureTime(uint8_t chanel) {
     if (freqmeters[chanel].res_stop_v > freqmeters[chanel].res_start_v)
         return freqmeters[chanel].res_stop_v - freqmeters[chanel].res_start_v;
     else
-        return freqmeters[chanel].res_start_v - freqmeters[chanel].res_stop_v;
+        return ((1ul << (FREQMETERS_MASTER_COUNT_LEN + 1)) - 1) -
+                freqmeters[chanel].res_start_v +
+                freqmeters[chanel].res_stop_v;
 }
 
 uint32_t fm_getMeasureTimestamp(uint8_t chanel) {
@@ -134,4 +140,8 @@ uint32_t fm_getActualReloadValue(uint8_t chanel) {
 
 uint32_t fm_getIRQCount(uint8_t chanel) {
     return freqmeters[chanel].irq_count;
+}
+
+uint32_t fm_getoveralIRQCount() {
+    return irq_count;
 }

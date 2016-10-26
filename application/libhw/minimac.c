@@ -276,7 +276,7 @@ void miniMAC_reset_rx_slot(enum enMiniMACRxSlots slot) {
     assert(slot < MINIMAC_RX_SLOT_COUNT);
     MINIMAC_SLOT_ADDR(slot) = align32(MAC_RX_MEM_BASE + MTU * (int)slot);
     MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
-#if 1
+#if VERBOSE_DEBUG
     memset(MINIMAC_SLOT_ADDR(slot), 0, MTU);
 #endif
 }

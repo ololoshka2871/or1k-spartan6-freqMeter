@@ -27,7 +27,7 @@
 
 #define ALIGNMENT_SHIFT(x)              (x + 2)
 
-#if 1
+#if 0
 #define FREQMETERS_START_SELECTOR       (1 << ALIGNMENT_SHIFT(5))
 #define FREQMETERS_MEMORY_SELECTOR      (1 << ALIGNMENT_SHIFT(6))
 
@@ -82,6 +82,7 @@ uint32_t fm_getActualMeasureTime(uint8_t chanel);
 uint32_t fm_getActualReloadValue(uint8_t chanel);
 uint32_t fm_getMeasureTimestamp(uint8_t chanel);
 uint32_t fm_getIRQCount(uint8_t chanel);
+uint32_t fm_getoveralIRQCount();
 bool     fm_checkAlive(uint8_t chanel);
 
 #endif // FREQMETERS_H

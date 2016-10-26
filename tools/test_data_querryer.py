@@ -23,8 +23,8 @@ def listener(x, sock):
 
         #v = struct.unpack_from('>IIIIIIIIIIdddddddddd', conn)
         #sys.stdout.write(";".join(map(str, v[10:20])) + '\n')
-        v = struct.unpack_from('>IIIIIIIIII', conn);
-        sys.stdout.write(";".join(map(str, v)) + '\n')
+        v = struct.unpack_from('>IIIIIIIIIII', conn);
+        sys.stdout.write(str(round(time.time() * 1000)) + ';' + ";".join(map(str, v)) + '\n')
 
 def main():
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -35,7 +35,7 @@ def main():
 
     while True:
         try:
-            time.sleep(0.01)
+            time.sleep(0.001)
         except :
             exitapp = True
             print ('Exiting...')

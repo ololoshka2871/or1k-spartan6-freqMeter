@@ -44,13 +44,12 @@ module freq_meter_1
 
     // запрос на сохранение метки начала
     output  wire                                    write_start_req,
-    input   wire                                    write_start_enable_i,
-
     // запрос на сохранение метки конца
     output  wire                                    write_stop_req,
-    input   wire                                    write_stop_enable_i,
 
-    input   wire                                    Fin_unsync
+    input   wire                                    Fin_unsync,
+
+    output  wire                                    ready_o
 );
 
 //------------------------------------------------------------------------------
@@ -83,8 +82,10 @@ wire input_enable_rst_detector = (~input_enable & p_input_enable);
 
 //------------------------------------------------------------------------------
 
-assign write_start_req  = r_write_start_req & write_start_enable_i;
-assign write_stop_req   = r_write_stop_req  & write_stop_enable_i;
+assign write_start_req  = r_write_start_req;
+assign write_stop_req   = r_write_stop_req;
+
+assign ready_o = zero_detector;
 
 //------------------------------------------------------------------------------
 
@@ -114,23 +115,24 @@ always @(posedge clk_i or posedge rst_i) begin
         p_input_enable <= 1'b0;
         r_write_start_req <= 1'b0;
         r_write_stop_req <= 1'b0;
+        input_counter <= 0;
     end else begin
         p_input_enable <= input_enable;
 
         if (restart) begin
             input_counter <= reload_val;
         end else begin
-            input_counter <= input_counter - (input_enable & w_input_front_detector);
+            if (input_enable & w_input_front_detector)
+                input_counter <= input_counter -
+                    {{(INPUT_FREQ_COUNTER_LEN-1){1'b0}}, 1'b1};
         end
 
-        input_enable <= ~input_enable ?
-            w_await_start & w_input_front_detector :
-            ~zero_detector;
-
-        r_write_start_req <= write_start_req ? 1'b0 :
+        input_enable <= input_enable ?
+            ~zero_detector :
             w_await_start & w_input_front_detector;
-        r_write_stop_req  <= write_stop_req ? 1'b0  :
-            input_enable & w_input_front_detector & one_detector;
+
+        r_write_start_req <= w_await_start & w_input_front_detector;
+        r_write_stop_req  <= input_enable & w_input_front_detector & one_detector;
     end
 end
 
