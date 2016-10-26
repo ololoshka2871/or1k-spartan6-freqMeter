@@ -21,10 +21,10 @@ def listener(x, sock):
         except:
             return
 
-        #v = struct.unpack_from('>IIIIIIIIIIdddddddddd', conn)
+        v = struct.unpack_from('>IIIIIIIIIIdddddddddd', conn)
         #sys.stdout.write(";".join(map(str, v[10:20])) + '\n')
-        v = struct.unpack_from('>IIIIIIIIIII', conn);
-        sys.stdout.write(str(round(time.time() * 1000)) + ';' + ";".join(map(str, v)) + '\n')
+        #v = struct.unpack_from('>IIIIIIIIIIIIIIIIIIII', conn);
+        sys.stdout.write(str(round(time.time() * 1000)) + ';' + ";".join(map("{:02f}".format, v[10:20])) + '\n')
 
 def main():
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

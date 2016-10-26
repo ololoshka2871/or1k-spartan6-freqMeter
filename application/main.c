@@ -84,9 +84,7 @@ static double Fs[FREQMETERS_COUNT];
 static uint32_t irqCountes[FREQMETERS_COUNT];
 
 static void Process_freqmeters() {
-#if 0
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-#if 0
         uint32_t ts = fm_getMeasureTimestamp(i);
         if (ts != timestamps[i]) {
             timestamps[i] = ts;
@@ -95,54 +93,35 @@ static void Process_freqmeters() {
             if ((!value) || (!periods))
                 continue;
             double F = (double)periods / (double)value * F_REF;
-            Fs[i] += 0.1;
+            Fs[i] = F;
+#if 1
             //recalc new reload value
-            /*
             uint32_t reload_val = (uint32_t)(F * measure_time_ms / 1000);
             if (!reload_val)
                 reload_val = 1;
             fm_setChanelReloadValue(i, reload_val, false); // set new reload val
-            */
-            //Send_Data(i, F, value); // not working, until arp request done
-#else
-        irq_disable(IRQ_FREQMETERS);
-        uint32_t irqs = fm_getIRQCount(i);
-        if (irqs != irqCountes[i]) {
-            irq_enable(IRQ_FREQMETERS);
-            irqCountes[i] = irqs;
-        } else {
-            irq_enable(IRQ_FREQMETERS);
+#endif
         }
-#endif
     }
-#endif
 }
 
 static void cb_udp_callback(uint32_t src_ip, uint16_t src_port,
                             uint16_t dst_port, void *data,
                             uint32_t length) {
-    static int c = 0;
-
     assert(data);
-#if 0
+#if 1
     char buff[(sizeof(uint32_t) + sizeof(double)) * FREQMETERS_COUNT];
     memcpy(buff, timestamps, sizeof(timestamps));
     memcpy(buff + sizeof(timestamps), Fs, sizeof(Fs));
 #else
-    uint32_t buff[FREQMETERS_COUNT + 1];
+    uint32_t buff[FREQMETERS_COUNT * 2];
     //memcpy(buff, irqCountes, sizeof(irqCountes));
     for (uint32_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        buff[i] = fm_getActualMeasureTime(i);
-        //fm_updateChanel(i);
+        buff[i * 2] = fm_getMeasureStart_pos(i);
+        buff[(i * 2) + 1] = fm_getActualMeasureTime(i);
     }
 #endif
-    buff[FREQMETERS_COUNT] = fm_getoveralIRQCount();
     send_udp_packet(src_ip, src_port, dst_port, buff, sizeof(buff));
-#if 0
-    c++;
-    if (c == 1000)
-        asm volatile ("l.trap 0");
-#endif
 }
 
 static void configure_ethernet_PHY() {
@@ -169,7 +148,7 @@ void main(void)
     fm_init();
 
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        fm_setChanelReloadValue(i, 10, false);
+        fm_setChanelReloadValue(i, 100, false);
         fm_enableChanel(i, true);
     }
 
@@ -184,7 +163,7 @@ void main(void)
 
     while(1) {
         //Send_Data();
-        //Process_freqmeters();
+        Process_freqmeters();
         microip_service();
     }
 }

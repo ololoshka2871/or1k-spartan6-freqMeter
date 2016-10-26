@@ -109,7 +109,7 @@ srff r_await_start(
 
 //------------------------------------------------------------------------------
 
-always @(posedge clk_i or posedge rst_i) begin
+always @(posedge clk_i) begin
     if (rst_i) begin
         input_enable <= 1'b0;
         p_input_enable <= 1'b0;

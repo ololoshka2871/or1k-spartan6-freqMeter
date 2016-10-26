@@ -81,6 +81,7 @@ void fm_setChanelReloadValue(uint8_t chanel, uint32_t reload_value,
 uint32_t fm_getActualMeasureTime(uint8_t chanel);
 uint32_t fm_getActualReloadValue(uint8_t chanel);
 uint32_t fm_getMeasureTimestamp(uint8_t chanel);
+uint32_t fm_getMeasureStart_pos(uint8_t chanel);
 uint32_t fm_getIRQCount(uint8_t chanel);
 uint32_t fm_getoveralIRQCount();
 bool     fm_checkAlive(uint8_t chanel);

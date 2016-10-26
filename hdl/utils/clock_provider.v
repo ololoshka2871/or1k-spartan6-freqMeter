@@ -47,8 +47,8 @@ module clock_provider
 // reference clock gen clk_ref = clk_i * `FREF_PLL_MULTIPLYER / `FREF_CLOCK_DEVIDER
 DCM_CLKGEN #(
    .CLKFXDV_DIVIDE(2),       // CLKFXDV divide value (2, 4, 8, 16, 32)
-   .CLKFX_DIVIDE(`FREF_PLL_MULTIPLYER),         // Divide value - D - (1-256)
-   .CLKFX_MD_MAX(`FREF_PLL_MULTIPLYER * 2 / `FREF_PLL_MULTIPLYER),       // Specify maximum M/D ratio for timing anlysis
+   .CLKFX_DIVIDE(`FREF_CLOCK_DEVIDER),         // Divide value - D - (1-256)
+   .CLKFX_MD_MAX(`FREF_PLL_MULTIPLYER * 2 / `FREF_CLOCK_DEVIDER),       // Specify maximum M/D ratio for timing anlysis
    .CLKFX_MULTIPLY(`FREF_PLL_MULTIPLYER * 2),       // Multiply value - M - (2-256)
    .CLKIN_PERIOD(`INPUT_CLOCK_PERIOD_NS_F),       // Input clock period specified in nS
    .SPREAD_SPECTRUM("NONE"), // Spread Spectrum mode "NONE", "CENTER_LOW_SPREAD", "CENTER_HIGH_SPREAD",

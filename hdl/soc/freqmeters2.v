@@ -247,7 +247,7 @@ end
 
 //------------------------------------------------------------------------------
 
-always @(posedge F_master or posedge rst_i) begin
+always @(posedge F_master) begin
     if (rst_i)
         mester_freq_counter <= {MASER_FREQ_COUNTER_LEN{1'b0}};
     else
