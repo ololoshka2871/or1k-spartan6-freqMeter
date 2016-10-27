@@ -40,7 +40,6 @@
 
 static struct freqmeter_chanel freqmeters[FREQMETERS_COUNT];
 static uint32_t alive_flags;
-static uint32_t irq_count;
 
 static void reload_cycle(uint8_t chanel_num) {
     struct freqmeter_chanel* chanel = &freqmeters[chanel_num];
@@ -55,7 +54,6 @@ static void reload_cycle(uint8_t chanel_num) {
 static void fm_isr_handler(unsigned int *registers) {
     (void)registers;
     uint32_t chanels_to_scan = FM_IE & FM_IF;
-    ++irq_count;
 #if VERBOSE_DEBUG
     if (!chanels_to_scan)
         asm volatile("l.trap 0");
@@ -143,8 +141,4 @@ uint32_t fm_getActualReloadValue(uint8_t chanel) {
 
 uint32_t fm_getIRQCount(uint8_t chanel) {
     return freqmeters[chanel].irq_count;
-}
-
-uint32_t fm_getoveralIRQCount() {
-    return irq_count;
 }

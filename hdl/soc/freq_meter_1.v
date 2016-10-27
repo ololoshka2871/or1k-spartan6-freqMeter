@@ -57,7 +57,6 @@ module freq_meter_1
 reg [INPUT_FREQ_COUNTER_LEN-1:0]    input_counter;
 
 reg input_enable;
-reg p_input_enable;
 
 reg r_write_start_req;
 reg r_write_stop_req;
@@ -77,8 +76,6 @@ wire one_detector = _zero_detector & input_counter[0];
 wire w_await_start;
 
 wire w_input_front_detector = ~Fin & pFin;
-
-wire input_enable_rst_detector = (~input_enable & p_input_enable);
 
 //------------------------------------------------------------------------------
 
@@ -112,13 +109,10 @@ srff r_await_start(
 always @(posedge clk_i) begin
     if (rst_i) begin
         input_enable <= 1'b0;
-        p_input_enable <= 1'b0;
         r_write_start_req <= 1'b0;
         r_write_stop_req <= 1'b0;
         input_counter <= 0;
     end else begin
-        p_input_enable <= input_enable;
-
         if (restart) begin
             input_counter <= reload_val;
         end else begin

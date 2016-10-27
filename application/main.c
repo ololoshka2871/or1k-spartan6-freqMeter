@@ -80,16 +80,21 @@ void Send_Data(uint32_t chanel, double F, uint32_t per) {
 }
 
 static uint32_t timestamps[FREQMETERS_COUNT];
+static uint32_t starts[FREQMETERS_COUNT];
+static uint32_t measure_time[FREQMETERS_COUNT];
 static double Fs[FREQMETERS_COUNT];
-static uint32_t irqCountes[FREQMETERS_COUNT];
 
 static void Process_freqmeters() {
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
         uint32_t ts = fm_getMeasureTimestamp(i);
         if (ts != timestamps[i]) {
             timestamps[i] = ts;
+            irq_disable(IS_FREQMETERS);
             uint32_t periods = fm_getActualReloadValue(i);
             uint32_t value   = fm_getActualMeasureTime(i);
+            starts[i] = fm_getMeasureStart_pos(i);
+            measure_time[i] = fm_getActualReloadValue(i);
+            irq_enable(IS_FREQMETERS);
             if ((!value) || (!periods))
                 continue;
             double F = (double)periods / (double)value * F_REF;
@@ -109,19 +114,25 @@ static void cb_udp_callback(uint32_t src_ip, uint16_t src_port,
                             uint16_t dst_port, void *data,
                             uint32_t length) {
     assert(data);
-#if 1
+#if 0
     char buff[(sizeof(uint32_t) + sizeof(double)) * FREQMETERS_COUNT];
     memcpy(buff, timestamps, sizeof(timestamps));
     memcpy(buff + sizeof(timestamps), Fs, sizeof(Fs));
 #else
-    uint32_t buff[FREQMETERS_COUNT * 2];
-    //memcpy(buff, irqCountes, sizeof(irqCountes));
+    struct {
+        uint32_t start;
+        uint32_t stop;
+        uint32_t mt;
+        double res;
+    } r[FREQMETERS_COUNT];
     for (uint32_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        buff[i * 2] = fm_getMeasureStart_pos(i);
-        buff[(i * 2) + 1] = fm_getActualMeasureTime(i);
+        r[i].start = starts[i];
+        r[i].stop = timestamps[i];
+        r[i].mt = measure_time[i];
+        r[i].res = Fs[i];
     }
 #endif
-    send_udp_packet(src_ip, src_port, dst_port, buff, sizeof(buff));
+    send_udp_packet(src_ip, src_port, dst_port, r, sizeof(r));
 }
 
 static void configure_ethernet_PHY() {
