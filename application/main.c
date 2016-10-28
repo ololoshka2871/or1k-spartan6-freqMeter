@@ -99,7 +99,7 @@ static void Process_freqmeters() {
                 continue;
             double F = (double)periods / (double)value * F_REF;
             Fs[i] = F;
-#if 1
+#if 0
             //recalc new reload value
             uint32_t reload_val = (uint32_t)(F * measure_time_ms / 1000);
             if (!reload_val)
