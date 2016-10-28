@@ -37,7 +37,7 @@ def main():
 
     while True:
         try:
-            time.sleep(0.001)
+            time.sleep(0.005)
         except :
             exitapp = True
             print ('Exiting...')

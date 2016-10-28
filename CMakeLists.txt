@@ -111,10 +111,10 @@ set(FREF_CLOCK_DEVIDER      10
     CACHE STRING "Reference clock devider")
 
 set(CPU_PLL_MULTIPLYER      25
-    CACHE STRING "Input clock to RMII and CPU 50MHz multiplier")
+    CACHE STRING "Input clock to CPU multiplier")
 
 set(CPU_CLOCK_DEVIDER       24
-    CACHE STRING "Input clock to RMII and CPU 50MHz devider")
+    CACHE STRING "Input clock to CPU devider")
 
 set(SYSTEM_HEAP_SIZE        256
     CACHE STRING "System memory heap size")
@@ -168,13 +168,9 @@ floterise(TEST_SIGNAL_HZ ${TEST_SIGNAL_HZ10} 10)
 message(STATUS "Actual test input signal freq: ${TEST_SIGNAL_HZ}Hz (/ ${TEST_SIGNAL_DEVIDER})")
 
 # check if RMII clock == 50 MHz
-math(EXPR RMII_CLOCK_HZ
+math(EXPR CPU_CLOCK_HZ
     "${INPUT_CLOCK_HZ} * ${CPU_PLL_MULTIPLYER} / ${CPU_CLOCK_DEVIDER}")
-if (${RMII_CLOCK_HZ} EQUAL 50000000)
-    message(STATUS "RMII clock set ok")
-else()
-    message(FATAL_ERROR "RMII/CPU clock not equal 50MHz (${RMII_CLOCK_HZ}), select prpper multiplier/devider first!")
-endif()
+message(STATUS "CPU clock is ${CPU_CLOCK_HZ}")
 
 #-------------------------------/Calculable-------------------------------------
 
