@@ -33,7 +33,7 @@
 `define WB_DATA_WIDTH 32 // только для 32 битной шмны WishBone
 `define MAX_FREQMETERS 32 // Максимальный размер модуля
 
-module freqmeters2
+module freqmeters3
 #(
     parameter   INPUTS_COUNT            = 24, // количество входов (1 - 32)
     parameter   MASER_FREQ_COUNTER_LEN  = 30, // длина регистра, считающего опорную частоту
@@ -59,10 +59,6 @@ module freqmeters2
 
 //------------------------------------------------------------------------------
 
-assign ack_o = 1'b1;
-
-//------------------------------------------------------------------------------
-
 parameter REGFILE_ADDR_WIDTH = $clog2(INPUTS_COUNT);
 
 // Счетчик опорной частоты
@@ -81,11 +77,6 @@ hybrid_counter
 
 reg  [INPUTS_COUNT-1:0]           irq_enable; // разрешить прерывания на этих каналах (RW)
 wire [INPUTS_COUNT-1:0]           irq_flags; // Флаги готовности каналов
-
-//--------------------------------memory----------------------------------------
-
-reg  [MASER_FREQ_COUNTER_LEN-1:0] START_vals [INPUTS_COUNT-1:0];
-reg  [MASER_FREQ_COUNTER_LEN-1:0] STOP_vals [INPUTS_COUNT-1:0];
 
 //------------------------------------------------------------------------------
 
@@ -110,10 +101,14 @@ wire                              freqmeter_ctl_we;
 // RO
 wire [REGFILE_ADDR_WIDTH-1+2:0]   Start_vals_addr;
 wire [MASER_FREQ_COUNTER_LEN-1:0] Start_vals_do;
+wire                              Start_vals_cyc;
+wire                              Start_vals_ack;
 
 // RO
 wire [REGFILE_ADDR_WIDTH-1+2:0]   Stop_vals_addr;
 wire [MASER_FREQ_COUNTER_LEN-1:0] Stop_vals_do;
+wire                              Stop_vals_cyc;
+wire                              Stop_vals_ack;
 
 //------------------------------------------------------------------------------
 
@@ -165,6 +160,40 @@ endgenerate
 
 //------------------------------------------------------------------------------
 
+catcher
+#(
+    .INPUT_COUNT(INPUTS_COUNT),
+    .VALUE_WIDTH(MASER_FREQ_COUNTER_LEN)
+)  start_catcher (
+    .clk_i(F_master),
+    .rst_i(rst_i),
+
+    .value2catch_i(mester_freq_counter),
+    .catch_requests_i(start_requests),
+
+    .read_clk_i(clk_i),
+    .read_addr_i(Start_vals_addr >> 2),
+    .read_do_o(Start_vals_do),
+
+    .cyc_i(Start_vals_cyc),
+    .ack_o(Start_vals_ack)
+) ,stop_catcher  (
+    .clk_i(F_master),
+    .rst_i(rst_i),
+
+    .value2catch_i(mester_freq_counter),
+    .catch_requests_i(stop_requests),
+
+    .read_clk_i(clk_i),
+    .read_addr_i(Stop_vals_addr >> 2),
+    .read_do_o(Stop_vals_do),
+
+    .cyc_i(Stop_vals_cyc),
+    .ack_o(Stop_vals_ack)
+);
+
+//------------------------------------------------------------------------------
+
 dmem_mux4
 #(
     .ADDR_MUX_START(8)
@@ -188,10 +217,10 @@ dmem_mux4
     .out1_data_i({{(32-MASER_FREQ_COUNTER_LEN){1'b0}}, Start_vals_do}),
     .out1_sel_o(/*open*/),
     .out1_we_o( /*open*/ ),
-    .out1_stb_o(/*open*/),
-    .out1_cyc_o(/*open*/),
+    .out1_stb_o(/* open */),
+    .out1_cyc_o(Start_vals_cyc),
     .out1_cti_o(/*open*/),
-    .out1_ack_i(1'b1),
+    .out1_ack_i(Start_vals_ack),
     .out1_stall_i(1'b0),
 
     // 0x11000200 - 0x110002FF (stop vals)
@@ -201,9 +230,9 @@ dmem_mux4
     .out2_sel_o(/* open */),
     .out2_we_o(/* open */),
     .out2_stb_o(/* open */),
-    .out2_cyc_o(/* open */),
-    .out2_cti_o(/*open*/),
-    .out2_ack_i(1'b1),
+    .out2_cyc_o(Stop_vals_cyc),
+    .out2_cti_o(/* open */),
+    .out2_ack_i(Stop_vals_ack),
     .out2_stall_i(1'b0),
 
     // 0x11000300 - 0x110003ff
@@ -214,11 +243,11 @@ dmem_mux4
     .out3_we_o(/* open */),
     .out3_stb_o(/* open */),
     .out3_cyc_o(/* open */),
-    .out3_cti_o(/*open*/),
+    .out3_cti_o(/* open */),
     .out3_ack_i(1'b1),
     .out3_stall_i(1'b0),
 
-    // Input 0x11000000 - 0x11FFFFFF
+    // Input 0x11000000 - 0x11000FFF
     .mem_addr_i({23'h0, adr_i}),
     .mem_data_i(dat_i),
     .mem_data_o(dat_o),
@@ -227,32 +256,9 @@ dmem_mux4
     .mem_stb_i(stb_i),
     .mem_cyc_i(cyc_i),
     .mem_cti_i(3'b0),
-    .mem_ack_o(/* open */),
+    .mem_ack_o(ack_o),
     .mem_stall_o(/*open*/)
 );
-
-assign Start_vals_do = START_vals[Start_vals_addr >> 2];
-assign Stop_vals_do  = STOP_vals[Stop_vals_addr >> 2];
-
-//------------------------------------------------------------------------------
-
-integer j;
-
-initial begin
-    for (j = 0; j < INPUTS_COUNT; j = j + 1) begin
-        START_vals[j] <= 0;
-        STOP_vals[j] <= 0;
-    end
-end
-
-always @(posedge F_master) begin
-    for (j = 0; j < INPUTS_COUNT; j = j + 1) begin
-        if (start_requests[j])
-            START_vals[j] <= mester_freq_counter;
-        if (stop_requests[j])
-            STOP_vals[j] <= mester_freq_counter;
-    end
-end
 
 //------------------------------------------------------------------------------
 

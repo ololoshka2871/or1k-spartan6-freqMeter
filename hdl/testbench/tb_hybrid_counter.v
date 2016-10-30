@@ -27,21 +27,34 @@
 //* ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //* POSSIBILITY OF SUCH DAMAGE.
 //*
+//* Based on: http://fpga4fun.com/Counters2.html
 //*
 //****************************************************************************/
 
-module gray_coder
-#(
-    parameter        WIDTH = 2
-) (
-    input wire                     rst,             // reset.
-    input wire                     Clk,             // clock
 
-    output reg      [WIDTH-1:0]    GrayCount_out,   //'Gray' code count output.
-    input  wire     [WIDTH-1:0]    binary_input     //'Gray' code count output.
+module tb_hybrid_counter;
+
+reg             clk;
+reg             rst;
+wire    [9:0]   cnt;
+
+hybrid_counter tm
+(
+    .clk(clk),
+    .rst(rst),
+    .result_o(cnt)
 );
 
-always @(posedge Clk) begin
+initial begin
+    clk = 1'b0;
+    rst = 1'b1;
+    #20
+    rst = 1'b0;
+
+    #3400;
+    $finish();
 end
+
+always #10 clk = ~clk;
 
 endmodule

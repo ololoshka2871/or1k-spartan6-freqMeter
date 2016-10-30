@@ -36,6 +36,7 @@
 
 #ifndef BOOTLOADER
 #include "irq.h"
+#include "graycode.h"
 #endif
 
 static struct freqmeter_chanel freqmeters[FREQMETERS_COUNT];
@@ -113,20 +114,38 @@ void fm_setChanelReloadValue(uint8_t chanel, uint32_t reload_value,
 }
 
 uint32_t fm_getActualMeasureTime(uint8_t chanel) {
-    uint32_t v = freqmeters[chanel].res_stop_v - freqmeters[chanel].res_start_v;
+    uint32_t v = fm_getMeasureTimestamp(chanel) - fm_getMeasureStart_pos(chanel);
     if (v & (1 << 31))
         v = ((1ul << (FREQMETERS_MASTER_COUNT_LEN)) - 1) -
-            freqmeters[chanel].res_start_v +
-            freqmeters[chanel].res_stop_v;
+            fm_getMeasureStart_pos(chanel) +
+            fm_getMeasureTimestamp(chanel);
         return v;
 }
 
+
+#ifndef BOOTLOADER
+static uint32_t hybrid2bin(uint32_t v) {
+    uint32_t binary = v & ~0b1111;
+    uint32_t gray = v & 0b1111;
+    return binary | gray2bin(gray);
+}
+
+#endif
+
 uint32_t fm_getMeasureTimestamp(uint8_t chanel) {
+#ifdef BOOTLOADER
     return freqmeters[chanel].res_stop_v;
+#else
+    return hybrid2bin(freqmeters[chanel].res_stop_v);
+#endif
 }
 
 uint32_t fm_getMeasureStart_pos(uint8_t chanel) {
+#ifdef BOOTLOADER
     return freqmeters[chanel].res_start_v;
+#else
+    return hybrid2bin(freqmeters[chanel].res_start_v);
+#endif
 }
 
 bool fm_checkAlive(uint8_t chanel) {

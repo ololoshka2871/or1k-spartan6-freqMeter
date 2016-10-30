@@ -98,7 +98,8 @@ function(make_map MAP_FILE PCF_FILE PART_NAME NGD_FILE)
 		-register_duplication off
 		-global_opt off
 		-mt off -ir off
-		-pr off -lc off
+                -pr off
+                -lc auto
 		-power off
 		-o ${MAP_FILE}
 		${NGD_FILE}

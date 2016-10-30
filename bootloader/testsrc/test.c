@@ -41,7 +41,6 @@
 static void GDB_STUB_SECTION_TEXT test_freqmeter() {
     fm_init();
 
-    FM_IF = 0xFFFFFFFF;
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
         FM_START_VAL_CH(i);
         FM_STOP_VAL_CH(i);

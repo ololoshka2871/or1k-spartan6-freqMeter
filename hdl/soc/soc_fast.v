@@ -196,7 +196,7 @@ dmem_mux4
 );
 
 // Freq meter
-freqmeters2
+freqmeters3
 #(
     .INPUTS_COUNT(INPUTS_COUNT),
     .MASER_FREQ_COUNTER_LEN(MASER_FREQ_COUNTER_LEN),

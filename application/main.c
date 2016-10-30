@@ -147,7 +147,7 @@ static void configure_ethernet_PHY() {
         uint8_t v;
         v = MDIO_ReadREG_sync(phy_addr, PHY_RBR);
         MDIO_WriteREG(phy_addr, PHY_RBR, (v & ~(PHY_RBR_ELAST_BUF_MSK))
-                      | PHY_RBR_RMII_REV1_0
+                      /*| PHY_RBR_RMII_REV1_0*/
                       | (0b00 << PHY_RBR_ELAST_BUF_SH));
     }
 }

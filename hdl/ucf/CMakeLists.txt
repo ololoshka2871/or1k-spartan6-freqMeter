@@ -65,6 +65,10 @@ if (USE_PHISICAL_INPUTS EQUAL 0 OR F_INPUTS_COUNT EQUAL 0)
     set(F_INPUTS_COUNT  24)
     set(USE_PHISICAL_INPUTS "// Macro USE_PHISICAL_INPUTS is not defined")
     message(STATUS "Using test signals as inputs: 24")
+    execute_process(
+        COMMAND
+            sed -i "s|^\\(NET.*Fin\\[.*\\].*LOC = \\)|# \\1|" ${UCF_FILE_NAME}
+        )
 else()
     set(USE_PHISICAL_INPUTS "`define     USE_PHISICAL_INPUTS")
     message(STATUS "Using physical inputs: ${F_INPUTS_COUNT}")
