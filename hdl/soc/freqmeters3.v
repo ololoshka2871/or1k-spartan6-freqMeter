@@ -30,6 +30,8 @@
 //*
 //****************************************************************************/
 
+`include "config.v"
+
 `define WB_DATA_WIDTH 32 // только для 32 битной шмны WishBone
 `define MAX_FREQMETERS 32 // Максимальный размер модуля
 
@@ -62,8 +64,8 @@ module freqmeters3
 parameter REGFILE_ADDR_WIDTH = $clog2(INPUTS_COUNT);
 
 // Счетчик опорной частоты
+`ifdef MASTER_HYBRID_COUNTER
 wire  [MASER_FREQ_COUNTER_LEN-1:0] mester_freq_counter;
-
 hybrid_counter
 #(
     .WIDTH(MASER_FREQ_COUNTER_LEN)
@@ -72,6 +74,16 @@ hybrid_counter
     .rst(rst_i),
     .result_o(mester_freq_counter)
 );
+`else
+reg   [MASER_FREQ_COUNTER_LEN-1:0] mester_freq_counter;
+
+always @(posedge F_master) begin
+    if (rst_i)
+        mester_freq_counter <= 0;
+    else
+        mester_freq_counter <= mester_freq_counter + 1;
+end
+`endif
 
 //----------------------------------------- -------------------------------------
 

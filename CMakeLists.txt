@@ -97,8 +97,10 @@ set(MDIO_BAUD               2500000
     CACHE STRING "MDIO speed")
 #--- /UARTs ---
 
-set(MASER_FREQ_COUNTER_LEN  30
+set(MASTER_FREQ_COUNTER_LEN  30
     CACHE STRING "Master clock counter length (in bits)")
+set(MASTER_HYBRID_COUNTER   ON
+    CACHE BOOL "Use hybrid binary+gray counter for Master clock")
 set(INPUT_FREQ_COUNTER_LEN  24
     CACHE STRING "Input clock counter length (in bits)")
 set(TEST_SIGNAL_EVERY_MS    1000
@@ -157,7 +159,7 @@ execute_process(
     COMMAND
         ${PYTHON_EXECUTABLE} ${calc_best_signal_test_devider}
             --mindev=1
-            --maxdev=${MASER_FREQ_COUNTER_LEN}
+            --maxdev=${MASTER_FREQ_COUNTER_LEN}
             --freq=${REFERENCE_CLOCK_HZ}
             --target=${TEST_SIGNAL_EVERY_MS}
     OUTPUT_VARIABLE TEST_SIGNAL_DEVIDER)

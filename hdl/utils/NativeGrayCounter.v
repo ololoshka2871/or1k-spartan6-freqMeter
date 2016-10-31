@@ -47,7 +47,7 @@ always @(posedge clk) begin
         carry_o <= 1'b0;
     end else begin
         cnt_gray <= cnt_gray ^ cnt_cc ^ cnt_cc[3:1];
-        carry_o <= cnt_gray == 4'b1000;
+        carry_o <= cnt_gray == 4'b1001;
     end
 end
 

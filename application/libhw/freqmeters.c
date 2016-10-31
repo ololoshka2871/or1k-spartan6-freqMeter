@@ -123,29 +123,23 @@ uint32_t fm_getActualMeasureTime(uint8_t chanel) {
 }
 
 
-#ifndef BOOTLOADER
+
 static uint32_t hybrid2bin(uint32_t v) {
+#if defined(BOOTLOADER) || !defined(MASTER_HYBRID_COUNTER)
+    return v;
+#else
     uint32_t binary = v & ~0b1111;
     uint32_t gray = v & 0b1111;
     return binary | gray2bin(gray);
+#endif
 }
 
-#endif
-
 uint32_t fm_getMeasureTimestamp(uint8_t chanel) {
-#ifdef BOOTLOADER
-    return freqmeters[chanel].res_stop_v;
-#else
     return hybrid2bin(freqmeters[chanel].res_stop_v);
-#endif
 }
 
 uint32_t fm_getMeasureStart_pos(uint8_t chanel) {
-#ifdef BOOTLOADER
-    return freqmeters[chanel].res_start_v;
-#else
     return hybrid2bin(freqmeters[chanel].res_start_v);
-#endif
 }
 
 bool fm_checkAlive(uint8_t chanel) {
