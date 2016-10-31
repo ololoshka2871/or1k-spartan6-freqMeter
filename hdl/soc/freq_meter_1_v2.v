@@ -120,14 +120,13 @@ always @(posedge clk_i) begin
             r_write_start_req <= 1'b0;
             r_write_stop_req <= 1'b0;
             state <= STATE_COUNTING;
-            input_counter <= input_counter - 1;
         end
         STATE_COUNTING: begin
             ready_o <= 1'b0;
             r_write_start_req <= 1'b0;
             r_write_stop_req <= 1'b0;
             if (front_detector) begin
-                if (input_counter == 0)
+                if (input_counter == {INPUT_FREQ_COUNTER_LEN{1'b1}})
                     state <= STATE_STOP;
                 else
                     input_counter <= input_counter - 1;

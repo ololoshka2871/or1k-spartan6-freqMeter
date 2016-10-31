@@ -73,7 +73,7 @@ hybrid_counter
     .result_o(mester_freq_counter)
 );
 
-//--------------------------------registers-------------------------------------
+//----------------------------------------- -------------------------------------
 
 reg  [INPUTS_COUNT-1:0]           irq_enable; // разрешить прерывания на этих каналах (RW)
 wire [INPUTS_COUNT-1:0]           irq_flags; // Флаги готовности каналов
@@ -129,7 +129,7 @@ genvar i;
 
 generate
     for (i = 0; i < INPUTS_COUNT; i = i + 1) begin : gen_freqmeters
-        freq_meter_1//_v2
+        freq_meter_1
         #(
             .INPUT_FREQ_COUNTER_LEN(INPUT_FREQ_COUNTER_LEN)
         ) fm_inst (
