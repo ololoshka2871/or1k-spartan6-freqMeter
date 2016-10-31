@@ -87,6 +87,11 @@ wire [INPUTS_COUNT - 1:0]         freqmeter_selector;
 
 //------------------------------------------------------------------------------
 
+reg  [INPUT_FREQ_COUNTER_LEN - 1:0] reload_value_sync;
+reg  [INPUTS_COUNT - 1:0]         restarts_sync;
+
+//------------------------------------------------------------------------------
+
 wire [INPUTS_COUNT - 1:0]         start_requests;
 wire [INPUTS_COUNT - 1:0]         stop_requests;
 
@@ -124,16 +129,16 @@ genvar i;
 
 generate
     for (i = 0; i < INPUTS_COUNT; i = i + 1) begin : gen_freqmeters
-        freq_meter_1
+        freq_meter_1//_v2
         #(
             .INPUT_FREQ_COUNTER_LEN(INPUT_FREQ_COUNTER_LEN)
         ) fm_inst (
             .rst_i(rst_i),
             .clk_i(F_master),
 
-            .reload_val(reload_value),
+            .reload_val(reload_value_sync),
 
-            .restart(restarts[i]),
+            .restart(restarts_sync[i]),
 
             .write_start_req(start_requests[i]),
             .write_stop_req(stop_requests[i]),
@@ -259,6 +264,13 @@ dmem_mux4
     .mem_ack_o(ack_o),
     .mem_stall_o(/*open*/)
 );
+
+//------------------------------------------------------------------------------
+
+always @(posedge F_master) begin
+    reload_value_sync <= reload_value;
+    restarts_sync <= restarts;
+end
 
 //------------------------------------------------------------------------------
 

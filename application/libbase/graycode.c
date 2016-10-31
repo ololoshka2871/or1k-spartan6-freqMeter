@@ -29,7 +29,7 @@
  *
  ****************************************************************************/
 
-#include "graycode.h
+#include "graycode.h"
 
 unsigned int bin2gray(unsigned int g) {
     return g ^ (g >> 1);
