@@ -32,8 +32,11 @@
 
 extern void main(void);
 
-void __attribute__((used)) entry(void)
+void __attribute__((used,noreturn)) entry(void)
 {
+    // set stack pointer to add ram
+    asm volatile ("l.movhi r4,hi(_add_ram_sp)\n"
+                  "l.ori r1,r4,lo(_add_ram_sp)\n");
 #ifndef NDEBUG
     asm volatile ("l.trap 0");
     asm volatile ("l.trap 0");

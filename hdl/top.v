@@ -121,6 +121,16 @@ wire                imem_cyc;
 wire                imem_ack;
 wire                imem_stall;
 
+wire[31:0]          add_mem_addr;
+wire[31:0]          add_mem_data_w;
+wire[31:0]          add_mem_data_r;
+wire[3:0]           add_mem_sel;
+wire                add_mem_we;
+wire                add_mem_stb;
+wire                add_mem_cyc;
+wire                add_mem_ack;
+wire                add_mem_stall;
+
 wire[31:0]          sf_addr;
 wire[31:0]          sf_data_r;
 wire[31:0]          sf_data_w;
@@ -155,20 +165,23 @@ wire                rmii_clk;
 //-----------------------------------------------------------------
 // Instantiation
 //-----------------------------------------------------------------
-parameter FPGA_RAM_SIZE_BYTES   = `NUM_OF_SYS_MEM_UNITS * `MEMORY_UNIT_SIZE / 8;
-parameter RAM_ADDRESS_LEN	= $clog2(FPGA_RAM_SIZE_BYTES);
+parameter FPGA_MAIN_RAM_SIZE_BYTES   = `NUM_OF_SYS_MEM_UNITS * `MEMORY_UNIT_SIZE / 8;
+parameter MAIN_RAM_ADDRESS_LEN       = $clog2(FPGA_MAIN_RAM_SIZE_BYTES);
 
-//RAM
+parameter FPGA_ADD_RAM_SIZE_BYTES    = `NUM_OF_ADD_MEM_UNITS * `MEMORY_UNIT_SIZE / 8;
+parameter ADD_RAM_ADDRESS_LEN        = $clog2(FPGA_ADD_RAM_SIZE_BYTES);
+
+// Main RAM
 wb_dp_ram
 #(
     .LOAD_IMAGE(1),
     .NUM_OF_MEM_UNITS_TO_USE(`NUM_OF_SYS_MEM_UNITS),
     .DATA_WIDTH(32)
 )
-ram
+main_ram
 (
     .a_clk(clk),
-    .a_adr_i(imem_addr[RAM_ADDRESS_LEN-1:0]),
+    .a_adr_i(imem_addr[MAIN_RAM_ADDRESS_LEN-1:0]),
     .a_dat_i(32'b0),
     .a_dat_o(imem_data),
     .a_we_i(1'b0),
@@ -179,7 +192,7 @@ ram
     .a_stall_o(imem_stall),
     
     .b_clk(clk),
-    .b_adr_i(dmem_addr[RAM_ADDRESS_LEN-1:0]),
+    .b_adr_i(dmem_addr[MAIN_RAM_ADDRESS_LEN-1:0]),
     .b_dat_i(dmem_data_w),
     .b_dat_o(dmem_data_r),
     .b_we_i(dmem_we),
@@ -188,6 +201,26 @@ ram
     .b_ack_o(dmem_ack),
     .b_cyc_i(dmem_cyc),
     .b_stall_o(dmem_stall)
+);
+
+// Add RAM
+wb_sp_ram
+#(
+    .NUM_OF_MEM_UNITS_TO_USE(`NUM_OF_ADD_MEM_UNITS),
+    .DATA_WIDTH(32)
+)
+add_ram
+(
+    .clk(clk),
+    .adr_i(add_mem_addr[ADD_RAM_ADDRESS_LEN-1:0]),
+    .dat_i(add_mem_data_w),
+    .dat_o(add_mem_data_r),
+    .we_i(add_mem_we),
+    .sel_i(add_mem_sel),
+    .stb_i(add_mem_stb),
+    .ack_o(add_mem_ack),
+    .cyc_i(add_mem_cyc),
+    .stall_o(add_mem_stall)
 );
 
 // CPU
@@ -254,7 +287,19 @@ u_cpu
     .dmem2_cyc_o(soc_cyc),
     .dmem2_cti_o(/*open*/),
     .dmem2_stall_i(1'b0),
-    .dmem2_ack_i(soc_ack)
+    .dmem2_ack_i(soc_ack),
+
+    // Data Memory 3 (0x13000000 - 0x13FFFFFF)
+    .dmem3_addr_o(add_mem_addr),
+    .dmem3_data_o(add_mem_data_w),
+    .dmem3_data_i(add_mem_data_r),
+    .dmem3_sel_o(add_mem_sel),
+    .dmem3_we_o(add_mem_we),
+    .dmem3_stb_o(add_mem_stb),
+    .dmem3_cyc_o(add_mem_cyc),
+    .dmem3_cti_o(/*open*/),
+    .dmem3_stall_i(add_mem_stall),
+    .dmem3_ack_i(add_mem_ack)
 );
 
 // clocking provider

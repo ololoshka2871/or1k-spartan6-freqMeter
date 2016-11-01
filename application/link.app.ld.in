@@ -4,6 +4,8 @@ MEMORY
   sram  (rwx) : ORIGIN = @APP_START@, LENGTH = @APP_SIZE@
   mactx (rw)  : ORIGIN = @MAC_TX_MEM_BASE@, LENGTH = @MAC_TX_MEM_SIZE@
   macrx (rw)  : ORIGIN = @MAC_RX_MEM_BASE@, LENGTH = @MAC_RX_MEM_SIZE@
+  addram (rw) : ORIGIN = @ADD_MEM_BASE@, LENGTH = @ADD_MEM_SIZE@
+  spcalc (rw) : ORIGIN = @ADD_MEM_BASE@ + @ADD_MEM_SIZE@ - 4, LENGTH = 4
 }
 
 SECTIONS
@@ -50,31 +52,8 @@ SECTIONS
     . = ALIGN (8);
     PROVIDE(_edata = .);
     PROVIDE(_data_end = .);
-  } > sram
+  } > addram
    
-  .bss : 
-  {
-    . = ALIGN(4);
-    PROVIDE(_bss_start = .);
-    *(.bss*)
-    *(COMMON)
-    . = ALIGN(4);
-    PROVIDE(_bss_end = .);
-
-
-  } > sram
-
-  .heap :
-  {
-    __heap_start__ = .;
-    end = __heap_start__;
-    _end = end;
-    __end = end;
-    KEEP(*(*.heap))
-    __heap_end__ = .;
-    __HeapLimit = __heap_end__;
-  } > sram
-
   .mac_tx_ram (NOLOAD) :
   {
     PROVIDE(mac_tx_ram_start = .);
@@ -88,4 +67,31 @@ SECTIONS
     . += @MAC_RX_MEM_SIZE@;
     PROVIDE(mac_rx_ram_end = .);
   } > macrx
+
+    .bss :
+    {
+        . = ALIGN(4);
+        PROVIDE(_bss_start = .);
+        *(.bss*)
+        *(COMMON)
+        . = ALIGN(4);
+        PROVIDE(_bss_end = .);
+    } > addram
+
+    .heap :
+    {
+        __heap_start__ = .;
+        end = __heap_start__;
+        _end = end;
+        __end = end;
+        KEEP(*(*.heap))
+        __heap_end__ = .;
+        __HeapLimit = __heap_end__;
+    } > addram
+
+    .stackcalc :
+    {
+        PROVIDE(_add_ram_sp = .);
+        LONG(0xDEADBEAF);
+    } > spcalc
 }

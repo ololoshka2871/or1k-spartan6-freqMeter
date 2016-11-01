@@ -36,9 +36,9 @@ project(or1k-spartan6-platform_bootloader ASM C)
 set(LD_SCRIPT_FILE_IN  "${CMAKE_CURRENT_SOURCE_DIR}/link.ld.in")
 set(LD_SCRIPT_FILE     "${CMAKE_CURRENT_BINARY_DIR}/link.ld")
 
-# TODO cyclical dependency there ${MEMORY_UNIT_SIZE} not refined
+# TODO cryclical dependency there ${MEMORY_UNIT_SIZE} not defined yet
 #math(EXPR MAIN_MEMORY_SIZE_B "${FPGA_DP_MEMORY_USE} * ${MEMORY_UNIT_SIZE} / 8")
-math(EXPR MAIN_MEMORY_SIZE_B "${FPGA_DP_MEMORY_USE} * (16*1024) / 8")
+math(EXPR MAIN_MEMORY_SIZE_B "${NUM_OF_SYS_MEM_UNITS} * (16*1024) / 8")
 configure_file(${LD_SCRIPT_FILE_IN} ${LD_SCRIPT_FILE} @ONLY)
 
 message(STATUS "System memory size: ${MAIN_MEMORY_SIZE_B} B")

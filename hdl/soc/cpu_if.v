@@ -90,6 +90,19 @@ module cpu_if
     input               dmem2_ack_i,
     input               dmem2_stall_i,
 
+    // Data Memory 2 (0x12000000 - 0x13FFFFFF)
+    output [31:0]       dmem3_addr_o,
+    output [31:0]       dmem3_data_o,
+    input [31:0]        dmem3_data_i,
+    output [3:0]        dmem3_sel_o,
+    output              dmem3_we_o,
+    output              dmem3_stb_o,
+    output              dmem3_cyc_o,
+    output [2:0]        dmem3_cti_o,
+    input               dmem3_ack_i,
+    input               dmem3_stall_i,
+
+
     output              fault_o,
     output              break_o,
     input               intr_i,
@@ -234,16 +247,16 @@ u_dmux
     .out2_stall_i(dmem2_stall_i),
 
     // 0x13000000 - 0x13FFFFFF
-    .out3_addr_o(/*open*/),
-    .out3_data_o(/*open*/),
-    .out3_data_i(32'h00000000),
-    .out3_sel_o(/*open*/),
-    .out3_we_o(/*open*/),
-    .out3_stb_o(/*open*/),
-    .out3_cyc_o(/*open*/),
-    .out3_cti_o(/*open*/),
-    .out3_ack_i(1'b0),
-    .out3_stall_i(1'b1),
+    .out3_addr_o(dmem3_addr_o),
+    .out3_data_o(dmem3_data_o),
+    .out3_data_i(dmem3_data_i),
+    .out3_sel_o(dmem3_sel_o),
+    .out3_we_o(dmem3_we_o),
+    .out3_stb_o(dmem3_stb_o),
+    .out3_cyc_o(dmem3_cyc_o),
+    .out3_cti_o(dmem3_cti_o),
+    .out3_ack_i(dmem3_ack_i),
+    .out3_stall_i(dmem3_stall_i),
 
     // Input - CPU core bus
     .mem_addr_i(dmem_addr),

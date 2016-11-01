@@ -54,6 +54,9 @@ endfunction()
 calc_mac_memory_size(MAC_TX_MEM_SIZE ${MYMINMAC_TX_SLOTS})
 calc_mac_memory_size(MAC_RX_MEM_SIZE ${MYMINMAC_RX_SLOTS})
 
+math(EXPR ADD_MEMORY_SIZE_B "${NUM_OF_ADD_MEM_UNITS} * ${MEMORY_UNIT_SIZE} / 8")
+message(STATUS "Additional memory size: ${ADD_MEMORY_SIZE_B} B")
+
 add_custom_target(mkldscript.files
     SOURCES
         ${LD_SCRIPT_FILE_IN}
@@ -73,6 +76,8 @@ add_custom_command(
             ${MAC_RX_MEM_BASE}
             ${MAC_RX_MEM_SIZE}
             ${MAC_TX_MEM_SIZE}
+            ${ADD_MEM_BASE}
+            ${ADD_MEMORY_SIZE_B}
             ${TOOLCHAIN_PREFIX} > ${LD_SCRIPT_FILE}
     DEPENDS
         ${BOOTLOADER_IMAGE_ELF} ${LD_SCRIPT_FILE_IN}

@@ -64,38 +64,53 @@ print_str "Section" "START" "SIZE" "USAGE"
 print_str "====================" "============" "============" "========"
 
 # get bootloader elf summary
-SYS_MEMORY_START=`$get_section_info $BOOTLOADER_IMAGE_ELF "LOAD.*RWE" 3 ${TOOLCHAIN_PREFIX}readelf`
-BL_TEXT_SIZE=`$get_section_info $BOOTLOADER_IMAGE_ELF "LOAD.*RWE" 6 ${TOOLCHAIN_PREFIX}readelf`
-SYS_MEMORY_END=`$get_section_info $BOOTLOADER_IMAGE_ELF "LOAD.*RW " 3 ${TOOLCHAIN_PREFIX}readelf`
+MAIN_MEMORY_START=`$get_section_info $BOOTLOADER_IMAGE_ELF "LOAD.*RWE" 3 1 ${TOOLCHAIN_PREFIX}readelf`
+BL_TEXT_SIZE=`$get_section_info $BOOTLOADER_IMAGE_ELF "LOAD.*RWE" 6 1 ${TOOLCHAIN_PREFIX}readelf`
+MAIN_MEMORY_END=`$get_section_info $BOOTLOADER_IMAGE_ELF "LOAD.*RW " 3 1 ${TOOLCHAIN_PREFIX}readelf`
 
-SYS_MEMORY_SIZE=`calc_len ${SYS_MEMORY_END} ${SYS_MEMORY_START}`
-BL_TEXT_USAGE=`calc_percentage ${BL_TEXT_SIZE} ${SYS_MEMORY_SIZE}`
+MAIN_MEMORY_SIZE=`calc_len ${MAIN_MEMORY_END} ${MAIN_MEMORY_START}`
+BL_TEXT_USAGE=`calc_percentage ${BL_TEXT_SIZE} ${MAIN_MEMORY_SIZE}`
 
-print_str "bootloader.text" ${SYS_MEMORY_START} ${BL_TEXT_SIZE} ${BL_TEXT_USAGE}
+print_str "Main_memory_size" ${MAIN_MEMORY_START} ${MAIN_MEMORY_SIZE} "--------"
+print_str "====================" "============" "============" "========"
+
+print_str "bootloader.text" ${MAIN_MEMORY_START} ${BL_TEXT_SIZE} ${BL_TEXT_USAGE}
 
 TOTAL_USED=$BL_TEXT_SIZE
 
 TOTAL_USED=`section_summary $BOOTLOADER_IMAGE_ELF "bootloader.bss" \
-    "_bss_start" "_bss_end" ${SYS_MEMORY_SIZE} ${TOTAL_USED}`
+    "_bss_start" "_bss_end" ${MAIN_MEMORY_SIZE} ${TOTAL_USED}`
 TOTAL_USED=`section_summary $BOOTLOADER_IMAGE_ELF "bootloader.heap" \
-    "__heap_start__" "__heap_end__" ${SYS_MEMORY_SIZE} ${TOTAL_USED}`
+    "__heap_start__" "__heap_end__" ${MAIN_MEMORY_SIZE} ${TOTAL_USED}`
 
 print_str "--------------------" "------------" "------------" "--------"
 
 TOTAL_USED=`section_summary $APPLICATION_ELF_NAME "application.text" \
-    "hader_start" "_text_end" ${SYS_MEMORY_SIZE} ${TOTAL_USED}`
-TOTAL_USED=`section_summary $APPLICATION_ELF_NAME "application.bss" \
-    "_bss_start" "_bss_end" ${SYS_MEMORY_SIZE} ${TOTAL_USED}`
-TOTAL_USED=`section_summary $APPLICATION_ELF_NAME "application.heap" \
-    "__heap_start__" "__heap_end__" ${SYS_MEMORY_SIZE} ${TOTAL_USED}`
+    "hader_start" "_text_end" ${MAIN_MEMORY_SIZE} ${TOTAL_USED}`
 
 print_str "--------------------" "------------" "------------" "--------"
+TEXT_USAGE=`$PYTHON_EXECUTABLE -c "print('0x{:08X}'.format(${MAIN_MEMORY_SIZE} - $TOTAL_USED))"`
+TEXT_USAGE_PR=`calc_percentage ${TOTAL_USED} ${MAIN_MEMORY_SIZE}`
+print_str "TOTAL_Main_memory" "------------" ${TOTAL_USED} ${TEXT_USAGE_PR}
+print_str "====================" "============" "============" "========"
+
+ADD_MEMORY_START=`$get_section_info $APPLICATION_ELF_NAME "LOAD.*RW" 3 4 ${TOOLCHAIN_PREFIX}readelf`
+ADD_MEMORY_END=`$get_section_info $APPLICATION_ELF_NAME "LOAD.*RW " 3 4 ${TOOLCHAIN_PREFIX}readelf`
+ADD_MEMORY_SIZE=`calc_len ${ADD_MEMORY_END} ${ADD_MEMORY_START}`
+
+print_str "ADD_memory_size" ${ADD_MEMORY_START} ${ADD_MEMORY_SIZE} "--------"
+print_str "====================" "============" "============" "========"
+
+TOTAL_USED=`section_summary $APPLICATION_ELF_NAME "application.bss" \
+    "_bss_start" "_bss_end" ${ADD_MEMORY_SIZE} 0`
+TOTAL_USED=`section_summary $APPLICATION_ELF_NAME "application.heap" \
+    "__heap_start__" "__heap_end__" ${ADD_MEMORY_SIZE} ${TOTAL_USED}`
 
 # stack info
-STACK_SIZE=`$PYTHON_EXECUTABLE -c "print('0x{:08X}'.format(${SYS_MEMORY_SIZE} - $TOTAL_USED))"`
-STACK_USAGE=`calc_percentage ${STACK_SIZE} ${SYS_MEMORY_SIZE}`
+STACK_SIZE=`$PYTHON_EXECUTABLE -c "print('0x{:08X}'.format(${MAIN_MEMORY_SIZE} - $TOTAL_USED))"`
+STACK_USAGE=`calc_percentage ${STACK_SIZE} ${MAIN_MEMORY_SIZE}`
 
-print_str "Stack" ${SYS_MEMORY_END} ${STACK_SIZE} ${STACK_USAGE}
+print_str "Stack" ${MAIN_MEMORY_END} ${STACK_SIZE} ${STACK_USAGE}
 
 echo "#############################################################" >> ${SUMMARY_FILE_NAME}
 

@@ -66,8 +66,10 @@ set(INPUT_CLOCK_HZ          48000000
     CACHE STRING "FPGA main clock source (Hz)")
 set(SPI_FLASH_CHIP          "W25Q32BV"
     CACHE STRING "SPI flash memory part name")
-set(FPGA_DP_MEMORY_USE      32
+set(NUM_OF_SYS_MEM_UNITS    16
     CACHE STRING "Number of RAMB16BWERs to use as main memory")
+set(NUM_OF_ADD_MEM_UNITS    10
+    CACHE STRING "Number of RAMB16BWERs to use as additional data memory")
 
 set(HEADER_W1               0x03030303
     CACHE STRING "Application syncronisation word 1")
@@ -169,14 +171,14 @@ math(EXPR TEST_SIGNAL_HZ10 "${REFERENCE_CLOCK_HZ} * 10 / (1 << ${TEST_SIGNAL_DEV
 floterise(TEST_SIGNAL_HZ ${TEST_SIGNAL_HZ10} 10)
 message(STATUS "Actual test input signal freq: ${TEST_SIGNAL_HZ}Hz (/ ${TEST_SIGNAL_DEVIDER})")
 
-# check if RMII clock == 50 MHz
 math(EXPR CPU_CLOCK_HZ
     "${INPUT_CLOCK_HZ} * ${CPU_PLL_MULTIPLYER} / ${CPU_CLOCK_DEVIDER}")
 message(STATUS "CPU clock is ${CPU_CLOCK_HZ}")
 
 #-------------------------------/Calculable-------------------------------------
 
-set(MAIN_MEMORY_BASE        0x10000000) # memory base address
+set(MAIN_MEMORY_BASE        0x10000000) # main memory base address
+set(ADD_MEM_BASE            0x13000000) # add memory base address
 
 #---------------------------------bootloader------------------------------------
 add_subdirectory(bootloader)
