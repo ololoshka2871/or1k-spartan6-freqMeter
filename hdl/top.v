@@ -159,9 +159,9 @@ parameter FPGA_RAM_SIZE_BYTES   = `NUM_OF_SYS_MEM_UNITS * `MEMORY_UNIT_SIZE / 8;
 parameter RAM_ADDRESS_LEN	= $clog2(FPGA_RAM_SIZE_BYTES);
 
 //RAM
-wb_dp_ram
+wb_dp_ram_primitive
 #(
-    .LOAD_IMAGE(1),
+    //.LOAD_IMAGE(1),
     .NUM_OF_MEM_UNITS_TO_USE(`NUM_OF_SYS_MEM_UNITS),
     .DATA_WIDTH(32)
 )

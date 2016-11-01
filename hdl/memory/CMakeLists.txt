@@ -37,7 +37,7 @@ file(GLOB_RECURSE
     "*.v"
     )
 
-SET(SYSTEM_MEMORY_FILE_NAME	wb_dp_ram.v)
+SET(SYSTEM_MEMORY_FILE_NAME	wb_dp_ram_primitive.v)
 
 list(REMOVE_ITEM RAM_HDL_V      ${CMAKE_CURRENT_SOURCE_DIR}/${SYSTEM_MEMORY_FILE_NAME})
 
@@ -79,6 +79,32 @@ add_custom_command(
     OUTPUT ${COUNT_TEST_MEMORY_IMAGE}
     COMMAND
         ${MKKOUNT_SCRIPT} 2048 > ${COUNT_TEST_MEMORY_IMAGE}
+    )
+
+# split ${BOOTLOADER_IMAGE} for ${FPGA_DP_MEMORY_USE} parts with
+# ${MEMORY_UNIT_SIZE} bytes and convert to 32bit hex pre line append zeros at end
+add_custom_target(generate_system_memory_image_parts
+    COMMAND
+        ${MK_SPLITED_IMAGE}
+            ${BOOTLOADER_IMAGE}
+            ${FPGA_DP_MEMORY_USE}
+            ${MEMORY_UNIT_SIZE}
+    DEPENDS
+        bootloader
+        ${SYSTEM_MEMORY_MODULE}.tmp
+    )
+
+# split ${BOOTLOADER_SIM_IMAGE} for ${FPGA_DP_MEMORY_USE} parts with
+# ${MEMORY_UNIT_SIZE} bytes and convert to 32bit hex pre line append zeros at end
+add_custom_target(sim_generate_system_memory_image_parts
+    COMMAND
+        ${MK_SPLITED_IMAGE}
+            ${BOOTLOADER_IMAGE}
+            ${FPGA_DP_MEMORY_USE}
+            ${MEMORY_UNIT_SIZE}
+    DEPENDS
+        bootloader
+        ${SYSTEM_MEMORY_MODULE}.tmp
     )
 
 #force rebuild, if bootloader changed
