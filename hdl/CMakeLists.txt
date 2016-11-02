@@ -61,13 +61,13 @@ Verilog_GenControlMacro(MASTER_HYBRID_COUNTER_STR "MASTER_HYBRID_COUNTER" ${MAST
 
 #---------------------------------files-----------------------------------------
 
+add_subdirectory(ucf)
 add_subdirectory(altor32)
 add_subdirectory(soc)
 add_subdirectory(memory)
 add_subdirectory(mdio)
 add_subdirectory(myminimac)
 add_subdirectory(utils)
-add_subdirectory(ucf)
 
 #-------------------------------top module--------------------------------------
 

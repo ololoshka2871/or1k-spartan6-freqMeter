@@ -167,6 +167,8 @@ wb_dp_ram_primitive
 )
 ram
 (
+    .rst_i(reset),
+
     .a_clk(clk),
     .a_adr_i(imem_addr[RAM_ADDRESS_LEN-1:0]),
     .a_dat_i(32'b0),

@@ -73,7 +73,7 @@ target_link_libraries(${PROJECT_NAME}_sim.elf
     testsrc
     )
 
-function(elf2hex ELF_FILE HEX_FILE)
+function(elf2hex ELF_FILE BIN_FILE HEX_FILE)
     # make listing
     add_custom_command(
 	OUTPUT  ${ELF_FILE}.lst
@@ -83,17 +83,17 @@ function(elf2hex ELF_FILE HEX_FILE)
 
     # make binary
     add_custom_command(
-	OUTPUT  ${ELF_FILE}.bin
+        OUTPUT  ${BIN_FILE}
 	DEPENDS ${ELF_FILE} ${ELF_FILE}.lst
-	COMMAND ${CMAKE_OBJCOPY} -Obinary ${ELF_FILE} ${ELF_FILE}.bin
+        COMMAND ${CMAKE_OBJCOPY} -Obinary ${ELF_FILE} ${BIN_FILE}
 	)
 
     #product
     add_custom_command(
 	OUTPUT  ${HEX_FILE}
-	DEPENDS ${ELF_FILE}.bin
+        DEPENDS ${BIN_FILE}
 	COMMAND
-	    xxd -ps -c 4 ${ELF_FILE}.bin > ${HEX_FILE}
+            xxd -ps -c 4 ${BIN_FILE} > ${HEX_FILE}
 	)
 
 
@@ -102,11 +102,16 @@ endfunction()
 set(bootloader_HEX	    ${CMAKE_CURRENT_BINARY_DIR}/bootloader.hex)
 set(bootloader_notrap_HEX   ${CMAKE_CURRENT_BINARY_DIR}/bootloader_notrap.hex)
 
-elf2hex(${PROJECT_NAME}.elf ${bootloader_HEX})
-elf2hex(${PROJECT_NAME}_sim.elf ${bootloader_notrap_HEX})
+set(bootloader_BIN          ${CMAKE_CURRENT_BINARY_DIR}/bootloader.bin)
+set(bootloader_notrap_BIN   ${CMAKE_CURRENT_BINARY_DIR}/bootloader_notrap.bin)
+
+elf2hex(${PROJECT_NAME}.elf ${bootloader_BIN} ${bootloader_HEX})
+elf2hex(${PROJECT_NAME}_sim.elf ${bootloader_notrap_BIN} ${bootloader_notrap_HEX})
 
 add_custom_target(bootloader DEPENDS ${bootloader_HEX} ${bootloader_notrap_HEX})
 
 SET(BOOTLOADER_IMAGE_ELF        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.elf         PARENT_SCOPE)
-SET(BOOTLOADER_IMAGE		${bootloader_HEX}	    PARENT_SCOPE)
-SET(BOOTLOADER_SIM_IMAGE	${bootloader_notrap_HEX}    PARENT_SCOPE)
+SET(BOOTLOADER_IMAGE            ${bootloader_BIN}	    PARENT_SCOPE)
+SET(BOOTLOADER_SIM_IMAGE	${bootloader_notrap_BIN}    PARENT_SCOPE)
+SET(BOOTLOADER_IMAGE_HEX	${bootloader_HEX}	    PARENT_SCOPE)
+SET(BOOTLOADER_SIM_IMAGE_HEX	${bootloader_notrap_HEX}    PARENT_SCOPE)

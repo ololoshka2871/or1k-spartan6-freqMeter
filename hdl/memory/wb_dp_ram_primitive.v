@@ -39,6 +39,8 @@ module wb_dp_ram_primitive
     parameter SELECT_WIDTH = (DATA_WIDTH/8)                                                 // width of word select bus (1, 2, 4, or 8)
 )
 (
+    input  wire                    rst_i,    // reset
+
     // port A
     input  wire                    a_clk,
     input  wire [ADDR_WIDTH-1:0]   a_adr_i,   // ADR_I() address
@@ -188,11 +190,11 @@ end
 endgenerate
 
 always @(posedge a_clk) begin
-    a_ack_o_reg <= a_access;
+    a_ack_o_reg <= rst_i ? 1'b0 : a_access;
 end
 
 always @(posedge b_clk) begin
-    b_ack_o_reg <= b_access;
+    b_ack_o_reg <= rst_i ? 1'b0 : b_access;
 end
 
 endmodule

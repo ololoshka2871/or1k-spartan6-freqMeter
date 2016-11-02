@@ -45,9 +45,12 @@ SET(SYSTEM_MEMORY_MODULE	${CMAKE_CURRENT_BINARY_DIR}/${SYSTEM_MEMORY_FILE_NAME})
 SET(SYSTEM_MEMORY_MODULE_SIM	${CMAKE_CURRENT_BINARY_DIR}/sim_${SYSTEM_MEMORY_FILE_NAME})
 SET(SYSTEM_MEMORY_MODULE_IN	${CMAKE_CURRENT_SOURCE_DIR}/${SYSTEM_MEMORY_FILE_NAME})
 
-set(IMAGE   ${BOOTLOADER_IMAGE})
+get_filename_component(BOOTLOADER_IMAGE_PARTS ${BOOTLOADER_IMAGE} NAME_WE)
+get_filename_component(BOOTLOADER_SIM_IMAGE_PARTS ${BOOTLOADER_SIM_IMAGE} NAME_WE)
+
+set(IMAGE   ${CMAKE_CURRENT_BINARY_DIR}/${BOOTLOADER_IMAGE_PARTS})
 configure_file(${SYSTEM_MEMORY_MODULE_IN} ${SYSTEM_MEMORY_MODULE}.tmp @ONLY)
-set(IMAGE   ${BOOTLOADER_SIM_IMAGE})
+set(IMAGE   ${CMAKE_CURRENT_BINARY_DIR}/${BOOTLOADER_SIM_IMAGE_PARTS})
 configure_file(${SYSTEM_MEMORY_MODULE_IN} ${SYSTEM_MEMORY_MODULE_SIM}.tmp @ONLY)
 
 set(TEST_IMAGE_FOR_DMA_MEMORY_NAME  ${CMAKE_CURRENT_BINARY_DIR}/test_image.hex)
@@ -81,6 +84,8 @@ add_custom_command(
         ${MKKOUNT_SCRIPT} 2048 > ${COUNT_TEST_MEMORY_IMAGE}
     )
 
+set(MK_SPLITED_IMAGE              ${SCRIPTS_DIR}/mksplited_image.sh)
+math(EXPR V_MEMORY_UNIT_SIZE      "${MEMORY_UNIT_SIZE} / 8")
 # split ${BOOTLOADER_IMAGE} for ${FPGA_DP_MEMORY_USE} parts with
 # ${MEMORY_UNIT_SIZE} bytes and convert to 32bit hex pre line append zeros at end
 add_custom_target(generate_system_memory_image_parts
@@ -88,10 +93,13 @@ add_custom_target(generate_system_memory_image_parts
         ${MK_SPLITED_IMAGE}
             ${BOOTLOADER_IMAGE}
             ${FPGA_DP_MEMORY_USE}
-            ${MEMORY_UNIT_SIZE}
+            ${V_MEMORY_UNIT_SIZE}
+            ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS
         bootloader
         ${SYSTEM_MEMORY_MODULE}.tmp
+    COMMENT
+        "Making splitted bootloader image"
     )
 
 # split ${BOOTLOADER_SIM_IMAGE} for ${FPGA_DP_MEMORY_USE} parts with
@@ -99,12 +107,15 @@ add_custom_target(generate_system_memory_image_parts
 add_custom_target(sim_generate_system_memory_image_parts
     COMMAND
         ${MK_SPLITED_IMAGE}
-            ${BOOTLOADER_IMAGE}
+            ${BOOTLOADER_SIM_IMAGE}
             ${FPGA_DP_MEMORY_USE}
-            ${MEMORY_UNIT_SIZE}
+            ${V_MEMORY_UNIT_SIZE}
+            ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS
         bootloader
         ${SYSTEM_MEMORY_MODULE}.tmp
+    COMMENT
+        "Making splitted test image"
     )
 
 #force rebuild, if bootloader changed
@@ -114,6 +125,7 @@ add_custom_target(memory_refresh
             ${SYSTEM_MEMORY_MODULE} ${BOOTLOADER_IMAGE}
     DEPENDS
         bootloader
+        generate_system_memory_image_parts
         ${SYSTEM_MEMORY_MODULE}.tmp
         ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
         ${COUNT_TEST_MEMORY_IMAGE}
@@ -126,6 +138,7 @@ add_custom_target(memory_refresh_sim
             ${SYSTEM_MEMORY_MODULE_SIM} ${BOOTLOADER_SIM_IMAGE}
     DEPENDS
         bootloader
+        sim_generate_system_memory_image_parts
         ${SYSTEM_MEMORY_MODULE_SIM}.tmp
         ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
         ${COUNT_TEST_MEMORY_IMAGE}

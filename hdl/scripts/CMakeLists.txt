@@ -34,6 +34,7 @@ add_custom_target(scripts.editor
         checkmemory.sh
         checksrc.sh
         mkcount.sh
+        mksplited_image.sh
     )
 
 set(SCRIPTS_DIR		${CMAKE_CURRENT_SOURCE_DIR}     PARENT_SCOPE)
