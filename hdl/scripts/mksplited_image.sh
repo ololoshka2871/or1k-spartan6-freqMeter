@@ -34,7 +34,7 @@ dd if=/dev/zero bs=$zeros_needed count=1 >> ${TEMPFILE} 2> /dev/null
 
 START_V=`ord A`
 
-OUTFILE_PATTERN=`echo $(basename ${BOOTLOADER_IMAGE}) | sed 's/\..*$/-part%s.hex/'`
+OUTFILE_PATTERN=`echo $(basename ${BOOTLOADER_IMAGE}) | sed 's/\..*$/-part%s.bmm/'`
 
 for((i=0;i<${FPGA_DP_MEMORY_USE};i++)); do
     value=$((${START_V}+${i}))

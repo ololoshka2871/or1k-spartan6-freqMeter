@@ -58,6 +58,8 @@ find_package(Xilinx REQUIRED)
 
 #-----------------------------------config--------------------------------------
 
+set(PART_FAMILY             "SPARTAN6"
+    CACHE STRING "Xilinx FPGA family")
 set(PART_NAME               "xc6slx9-3-tqg144"
     CACHE STRING "Xilinx FPGA model to synthesis")
 set(BOARD_NAME               "ZR-Tech_v2.00"

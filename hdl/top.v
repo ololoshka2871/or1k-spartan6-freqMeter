@@ -165,7 +165,7 @@ wb_dp_ram_primitive
     .NUM_OF_MEM_UNITS_TO_USE(`NUM_OF_SYS_MEM_UNITS),
     .DATA_WIDTH(32)
 )
-ram
+sys_ram
 (
     .rst_i(reset),
 

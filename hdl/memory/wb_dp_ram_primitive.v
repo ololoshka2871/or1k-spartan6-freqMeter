@@ -123,12 +123,12 @@ decoder
 //------------------------------------------------------------------------------
 
 parameter IMAGE_FILE_NAME_PATERN_start        = "@IMAGE@-partA";
-parameter IMAGE_FILE_NAME_PATERN_end          = ".hex";
+parameter IMAGE_FILE_NAME_PATERN_end          = ".bmm";
 
 genvar i;
 generate
 
-for(i = 0; i < NUM_OF_MEM_UNITS_TO_USE; i = i + 1) begin
+for(i = 0; i < NUM_OF_MEM_UNITS_TO_USE; i = i + 1) begin : gen_ram
     RAMB16BWER #(
         .DATA_WIDTH_A ( 36 ),
         .DATA_WIDTH_B ( 36 ),
@@ -146,9 +146,9 @@ for(i = 0; i < NUM_OF_MEM_UNITS_TO_USE; i = i + 1) begin
         .SRVAL_A ( 36'h000000000 ),
         .SRVAL_B ( 36'h000000000 ),
         .SIM_COLLISION_CHECK ( "ALL" ),
-        .SIM_DEVICE ( "SPARTAN6" ),
+        .SIM_DEVICE ( `PART_FAMILY ),
         .INIT_FILE({IMAGE_FILE_NAME_PATERN_start+i, IMAGE_FILE_NAME_PATERN_end})
-    ) mem_inst (
+    ) _mem_inst (
         .CLKA(a_clk),
         .CLKB(b_clk),
         .ENA(1'b1),

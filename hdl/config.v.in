@@ -29,6 +29,8 @@
 //*
 //****************************************************************************/
 
+`define     PART_FAMILY             "@PART_FAMILY@"
+
 `define     MEMORY_UNIT_SIZE        @MEMORY_UNIT_SIZE@
 `define	    NUM_OF_SYS_MEM_UNITS    @FPGA_DP_MEMORY_USE@
 

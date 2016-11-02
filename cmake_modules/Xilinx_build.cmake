@@ -76,6 +76,8 @@ function(make_ngdbuild NGD_FILE NGO_DIR UCF_FILE_NAME NGC_FILE)
 		-nt timestamp
 		-uc ${UCF_FILE_NAME}
 		-p ${PART_NAME}
+                -intstyle ise
+                -verbose
 		${NGC_FILE} ${NGD_FILE}
 	DEPENDS
 	    ${NGC_FILE} ${UCF_FILE_NAME}
