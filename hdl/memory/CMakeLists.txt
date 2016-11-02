@@ -37,21 +37,14 @@ file(GLOB_RECURSE
     "*.v"
     )
 
-SET(SYSTEM_MEMORY_FILE_NAME	wb_dp_ram_primitive.v)
+SET(SYSTEM_MEMORY_FILE_NAME_IN      ${CMAKE_CURRENT_SOURCE_DIR}/wb_dp_ram_primitive.v.in)
+SET(SYSTEM_MEMORY_BLOCK_TEMPLATE    ${CMAKE_CURRENT_SOURCE_DIR}/memory_block_template.v.in)
 
-list(REMOVE_ITEM RAM_HDL_V      ${CMAKE_CURRENT_SOURCE_DIR}/${SYSTEM_MEMORY_FILE_NAME})
-
+SET(SYSTEM_MEMORY_FILE_NAME     wb_dp_ram_primitive.v)
 SET(SYSTEM_MEMORY_MODULE	${CMAKE_CURRENT_BINARY_DIR}/${SYSTEM_MEMORY_FILE_NAME})
 SET(SYSTEM_MEMORY_MODULE_SIM	${CMAKE_CURRENT_BINARY_DIR}/sim_${SYSTEM_MEMORY_FILE_NAME})
-SET(SYSTEM_MEMORY_MODULE_IN	${CMAKE_CURRENT_SOURCE_DIR}/${SYSTEM_MEMORY_FILE_NAME})
 
-get_filename_component(BOOTLOADER_IMAGE_PARTS ${BOOTLOADER_IMAGE} NAME_WE)
-get_filename_component(BOOTLOADER_SIM_IMAGE_PARTS ${BOOTLOADER_SIM_IMAGE} NAME_WE)
-
-set(IMAGE   ${CMAKE_CURRENT_BINARY_DIR}/${BOOTLOADER_IMAGE_PARTS})
-configure_file(${SYSTEM_MEMORY_MODULE_IN} ${SYSTEM_MEMORY_MODULE}.tmp @ONLY)
-set(IMAGE   ${CMAKE_CURRENT_BINARY_DIR}/${BOOTLOADER_SIM_IMAGE_PARTS})
-configure_file(${SYSTEM_MEMORY_MODULE_IN} ${SYSTEM_MEMORY_MODULE_SIM}.tmp @ONLY)
+################################################################################
 
 set(TEST_IMAGE_FOR_DMA_MEMORY_NAME  ${CMAKE_CURRENT_BINARY_DIR}/test_image.hex)
 
@@ -84,74 +77,63 @@ add_custom_command(
         ${MKKOUNT_SCRIPT} 2048 > ${COUNT_TEST_MEMORY_IMAGE}
     )
 
-set(MK_SPLITED_IMAGE              ${SCRIPTS_DIR}/mksplited_image.sh)
-math(EXPR V_MEMORY_UNIT_SIZE      "${MEMORY_UNIT_SIZE} / 8")
-# split ${BOOTLOADER_IMAGE} for ${FPGA_DP_MEMORY_USE} parts with
-# ${MEMORY_UNIT_SIZE} bytes and convert to 32bit hex pre line append zeros at end
-add_custom_target(generate_system_memory_image_parts
-    COMMAND
-        ${MK_SPLITED_IMAGE}
-            ${BOOTLOADER_IMAGE}
-            ${FPGA_DP_MEMORY_USE}
-            ${V_MEMORY_UNIT_SIZE}
-            ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS
-        bootloader
-        ${SYSTEM_MEMORY_MODULE}.tmp
-    COMMENT
-        "Making splitted bootloader image"
-    )
+################################################################################
 
-# split ${BOOTLOADER_SIM_IMAGE} for ${FPGA_DP_MEMORY_USE} parts with
-# ${MEMORY_UNIT_SIZE} bytes and convert to 32bit hex pre line append zeros at end
-add_custom_target(sim_generate_system_memory_image_parts
-    COMMAND
-        ${MK_SPLITED_IMAGE}
-            ${BOOTLOADER_SIM_IMAGE}
-            ${FPGA_DP_MEMORY_USE}
-            ${V_MEMORY_UNIT_SIZE}
-            ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS
-        bootloader
-        ${SYSTEM_MEMORY_MODULE}.tmp
-    COMMENT
-        "Making splitted test image"
-    )
+set(MK_SYSMEM_MODULE            ${SCRIPTS_DIR}/mk_system_memory_module.py)
 
-#force rebuild, if bootloader changed
-add_custom_target(memory_refresh
+add_custom_command(
+    OUTPUT ${SYSTEM_MEMORY_MODULE}
     COMMAND
-        ${SCRIPTS_DIR}/checkmemory.sh ${SYSTEM_MEMORY_MODULE}.tmp
-            ${SYSTEM_MEMORY_MODULE} ${BOOTLOADER_IMAGE}
+        ${PYTHON_EXECUTABLE} ${MK_SYSMEM_MODULE}
+            --templatemodule ${SYSTEM_MEMORY_FILE_NAME_IN}
+            --templateinstance ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
+            --image ${BOOTLOADER_IMAGE}
+            --blocks ${FPGA_DP_MEMORY_USE}
+            --blocksize ${MEMORY_UNIT_SIZE_BYTES} > ${SYSTEM_MEMORY_MODULE}
     DEPENDS
         bootloader
-        generate_system_memory_image_parts
-        ${SYSTEM_MEMORY_MODULE}.tmp
         ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
         ${COUNT_TEST_MEMORY_IMAGE}
+        ${SYSTEM_MEMORY_FILE_NAME_IN}
+        ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
+        ${MK_SYSMEM_MODULE}
     COMMENT
-        "Checking main memory image"
+        "Making system memory image"
     )
-add_custom_target(memory_refresh_sim
+
+add_custom_target(memory_refresh DEPENDS ${SYSTEM_MEMORY_MODULE})
+
+add_custom_command(
+    OUTPUT ${SYSTEM_MEMORY_MODULE_SIM}
     COMMAND
-        ${SCRIPTS_DIR}/checkmemory.sh ${SYSTEM_MEMORY_MODULE_SIM}.tmp
-            ${SYSTEM_MEMORY_MODULE_SIM} ${BOOTLOADER_SIM_IMAGE}
+        ${PYTHON_EXECUTABLE} ${MK_SYSMEM_MODULE}
+            --templatemodule ${SYSTEM_MEMORY_FILE_NAME_IN}
+            --templateinstance ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
+            --image ${BOOTLOADER_SIM_IMAGE}
+            --blocks ${FPGA_DP_MEMORY_USE}
+            --blocksize ${MEMORY_UNIT_SIZE_BYTES} > ${SYSTEM_MEMORY_MODULE_SIM}
     DEPENDS
         bootloader
-        sim_generate_system_memory_image_parts
-        ${SYSTEM_MEMORY_MODULE_SIM}.tmp
         ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
         ${COUNT_TEST_MEMORY_IMAGE}
+        ${SYSTEM_MEMORY_FILE_NAME_IN}
+        ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
+        ${MK_SYSMEM_MODULE}
     COMMENT
-        "Checking sim memory image"
+        "Making test system memory image"
     )
+
+add_custom_target(memory_refresh_sim DEPENDS ${SYSTEM_MEMORY_MODULE_SIM})
+
+################################################################################
 
 SET(MEMORY_HDL_V	${RAM_HDL_V};${SYSTEM_MEMORY_MODULE})
 SET(MEMORY_HDL_SIM_V	${RAM_HDL_V};${SYSTEM_MEMORY_MODULE_SIM})
 
 add_custom_target(memory_sources
     SOURCES
-        ${SYSTEM_MEMORY_MODULE_IN} ${RAM_HDL_V}
+        ${RAM_HDL_V} ${SYSTEM_MEMORY_FILE_NAME_IN}
+        ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
     )
 
 set(MEMORY_HDL_V	${MEMORY_HDL_V}		PARENT_SCOPE)
