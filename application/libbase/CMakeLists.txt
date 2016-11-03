@@ -33,7 +33,7 @@ cmake_minimum_required(VERSION 2.8.5)
 
 SET(LIBBASE_SOURCES
     crc32.c
-    heap.c
+    mem_managment.c
     assert_trap.c
     printf-warper.c
     graycode.c

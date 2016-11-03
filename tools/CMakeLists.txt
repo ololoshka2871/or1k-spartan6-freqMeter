@@ -65,6 +65,7 @@ add_custom_target(tools.editor
         decodeDoubleDump.py
         decodeChanels.py
         test_data_querryer.py
+        gen-callgraph.sh
     )
 
 set(tools_DIR       ${CMAKE_CURRENT_SOURCE_DIR}         PARENT_SCOPE)

@@ -39,7 +39,7 @@
 #ifndef SIM
 #include "irq.h"
 #include "crc32.h"
-#include "heap.h"
+#include "mem_managment.h"
 #endif
 
 #ifndef MAC_CTL_BASE

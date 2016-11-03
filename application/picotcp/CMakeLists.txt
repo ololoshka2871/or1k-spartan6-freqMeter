@@ -35,6 +35,7 @@ include(ExternalProject)
 
 set(PICOTCP_PORT_SRC
     eth_driver.c
+    port.c
     )
 
 set(picotcp_DISTRO          ${CMAKE_CURRENT_SOURCE_DIR}/dist_picotcp)
@@ -47,20 +48,34 @@ find_package(Git REQUIRED)
 ExternalProject_add(build_pico_tcp
     GIT_REPOSITORY ${picotcp_DISTRO}
     GIT_TAG master
-    UPDATE_COMMAND
-        rm -f include/arch/pico_or1k_gcc.h &&
-        ${GIT_EXECUTABLE} reset --hard HEAD &&
-        ${GIT_EXECUTABLE} apply --ignore-whitespace ${picotcp_PARTCH}
-
+    PATCH_COMMAND
+        ${GIT_EXECUTABLE} apply --ignore-whitespace ${picotcp_PARTCH} || true
+    UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND
         ${CMAKE_MAKE_PROGRAM}
             CROSS_COMPILE=${TOOLCHAIN_PREFIX}
             PREFIX=${picotcp_BUILD_DIR}
             ENDIAN=big
-            PLATFORM_CFLAGS=${CMAKE_C_FLAGS_COMMON}
+            "PLATFORM_CFLAGS=${CMAKE_C_FLAGS_COMMON} -I${LIBBASE_INCLUDE_DIR}"
             ADDRESS_SANITIZER=0
             ARCH=or1k
+            PERF=0
+            NAT=0
+            MCAST=0
+            DEVLOOP=0
+            DHCP_SERVER=0
+            DNS_CLIENT=0
+            MDNS=0
+            DNS_SD=0
+            SNTP_CLIENT=0
+            IPFILTER=0
+            SLAACV4=0
+            TFTP=0
+            AODV=0
+            PPP=0
+            IPV6=0
+            MEMORY_MANAGER=0
 
     BUILD_IN_SOURCE 1
     INSTALL_COMMAND ""
@@ -83,7 +98,7 @@ set(PICOTCP_LIBNAME     ${CMAKE_CURRENT_BINARY_DIR}/libpicotcp${CMAKE_STATIC_LIB
 
 add_custom_command(
     OUTPUT ${PICOTCP_LIBNAME}
-    COMMAND ar -rcT ${PICOTCP_LIBNAME}
+    COMMAND ${CMAKE_AR} -rcTu ${PICOTCP_LIBNAME}
         $<TARGET_FILE:picotcp_core> $<TARGET_FILE:picotcp_port>
     DEPENDS picotcp_core picotcp_port
     COMMENT "Combining libpicotcp"

@@ -1,12 +1,13 @@
-From f96fd4665e34317dd1637a35ce0875d19bdf2fa8 Mon Sep 17 00:00:00 2001
-From: ololoshka2871 <SweetTreasure@2ch.hk>
-Date: Thu, 3 Nov 2016 14:16:23 +0300
+From 7736eb0a07b849fa58a9cfaba85b23fdb7e504d7 Mon Sep 17 00:00:00 2001
+From: shiloxyz <shiloxyz@q6600arch>
+Date: Thu, 3 Nov 2016 18:22:07 +0300
 Subject: [PATCH] or1k platform
 
 ---
  Makefile                     |  4 ++
  include/arch/pico_or1k_gcc.h | 97 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 101 insertions(+)
+ include/pico_config.h        |  2 +
+ 3 files changed, 103 insertions(+)
  create mode 100644 include/arch/pico_or1k_gcc.h
 
 diff --git a/Makefile b/Makefile
@@ -26,7 +27,7 @@ index 8ce14e6..75d3a51 100644
  endif
 diff --git a/include/arch/pico_or1k_gcc.h b/include/arch/pico_or1k_gcc.h
 new file mode 100644
-index 0000000..b8fea0a
+index 0000000..3f580b1
 --- /dev/null
 +++ b/include/arch/pico_or1k_gcc.h
 @@ -0,0 +1,97 @@
@@ -43,7 +44,7 @@ index 0000000..b8fea0a
 +#include <string.h>
 +#include "pico_constants.h"
 +
-+#include "heap.h"
++#include "mem_managment.h"
 +
 +/* monotonically increasing tick,
 + * typically incremented every millisecond in a systick interrupt */
@@ -127,6 +128,19 @@ index 0000000..b8fea0a
 +
 +#endif  /* _INCLUDE_PICO_OR1K_GCC */
 +
+diff --git a/include/pico_config.h b/include/pico_config.h
+index 3e5047f..432789b 100644
+--- a/include/pico_config.h
++++ b/include/pico_config.h
+@@ -210,6 +210,8 @@ static inline uint64_t long_long_be(uint64_t le)
+ # include "arch/pico_esp8266.h"
+ #elif defined MT7681
+ # include "arch/pico_generic_gcc.h"
++#elif defined OR1K
++# include "arch/pico_or1k_gcc.h"
+ #elif defined FAULTY
+ # include "../test/pico_faulty.h"
+ #elif defined ARCHNONE
 -- 
-1.9.1
+2.10.1
 

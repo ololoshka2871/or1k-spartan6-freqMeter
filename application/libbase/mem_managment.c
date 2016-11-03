@@ -32,8 +32,9 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <assert.h>
+#include <string.h>
 
-#include "heap.h"
+#include "mem_managment.h"
 
 typedef struct A_BLOCK_LINK
 {
@@ -63,7 +64,7 @@ struct sHeapPools {
 #error "MACTX_HEAP_SIZE mast be defined"
 #endif
 
-static uint8_t heap[ SYSTEM_HEAP_SIZE ] __attribute__((section("system.heap")));
+static volatile uint8_t heap[ SYSTEM_HEAP_SIZE ] __attribute__((section("system.heap")));
 
 struct sHeapPools heap_table[] = {
     { // system
@@ -97,6 +98,13 @@ struct sHeapPools heap_table[] = {
 #define xTaskResumeAll()                    (0)
 #define portBYTE_ALIGNMENT                  (4)
 #define portBYTE_ALIGNMENT_MASK             (0x0003)
+
+void *pvPortZalloc( enum enHeapPools pool, size_t xWantedSize ) {
+    void *r = pvPortMalloc( pool, xWantedSize );
+    if (r)
+        memset(r, 0, xWantedSize);
+    return r;
+}
 
 
 #include "heap_4.c"
