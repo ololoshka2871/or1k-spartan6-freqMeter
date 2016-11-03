@@ -45,24 +45,33 @@ void set_rx_callback(udp_callback callback) {
     rx_callback = callback;
 }
 
-int
-send_udp_packet(uint32_t ip_to, uint16_t port_to,
-                 uint16_t port_src, uint8_t *data, size_t len) {
+uint8_t *allocateUDPpocket(uint32_t ip_to, size_t data_len) {
     struct udp_pocket * udp_packet;
-    size_t pocket_len = len + sizeof(struct udp_header);
+    size_t pocket_len = data_len + sizeof(struct udp_header);
     struct ip_header* ip_packet =
             microip_allocate_ip_pocket((uint8_t**)&udp_packet, ip_to, pocket_len);
     if (!ip_packet) {
-        return -ENOMEM;
+        return NULL;
     }
-
-    udp_packet->hader.checksum = 0; // checksumm not used
-    udp_packet->hader.dst_port = port_to;
     udp_packet->hader.length = pocket_len;
+    udp_packet->hader.checksum = 0; // checksumm not used
+
+    // без этого почему-то возвращается udp_packet
+    uint8_t * res = (uint8_t*)&udp_packet->payload[0];
+    return res;
+}
+
+/// @data - preallocated by alocateUDPpocket()
+uint32_t sendUDPpacket(uint16_t port_to, uint16_t port_src, uint8_t *data) {
+    struct udp_pocket * udp_packet = (struct udp_pocket *)
+            (data - sizeof(struct udp_header));
+    struct ip_header* ip_packet = (struct ip_header*)
+            ((char*)udp_packet - sizeof(struct ip_header));
+
+    udp_packet->hader.dst_port = port_to;
     udp_packet->hader.src_port = port_src;
 
-    memcpy(&udp_packet->payload, data, len);
-
-    microip_send_ip_packet(ip_packet, pocket_len, IP_DEFAULT_TTL, IPPROTO_UDP);
-    return len;
+    return microip_send_ip_packet(ip_packet,
+            udp_packet->hader.length, IP_DEFAULT_TTL, IPPROTO_UDP);
 }
+

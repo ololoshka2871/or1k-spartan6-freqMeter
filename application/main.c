@@ -114,25 +114,28 @@ static void cb_udp_callback(uint32_t src_ip, uint16_t src_port,
                             uint16_t dst_port, void *data,
                             uint32_t length) {
     assert(data);
-#if 0
-    char buff[(sizeof(uint32_t) + sizeof(double)) * FREQMETERS_COUNT];
-    memcpy(buff, timestamps, sizeof(timestamps));
-    memcpy(buff + sizeof(timestamps), Fs, sizeof(Fs));
-#else
-    struct {
+#if 1
+    struct fm_results {
         uint32_t start;
         uint32_t stop;
         uint32_t mt;
         double res;
-    } r[FREQMETERS_COUNT];
+    } __attribute__((packed)); // иначе проблемы с выравниванием
+
+    struct fm_results *r = (struct fm_results *)
+            allocateUDPpocket(src_ip, sizeof(struct fm_results) * FREQMETERS_COUNT);
+    if (!r)
+        return;
+
     for (uint32_t i = 0; i < FREQMETERS_COUNT; ++i) {
         r[i].start = starts[i];
         r[i].stop = timestamps[i];
         r[i].mt = measure_time[i];
         r[i].res = Fs[i];
     }
-#endif
-    send_udp_packet(src_ip, src_port, dst_port, r, sizeof(r));
+    sendUDPpacket(src_port, dst_port, r);
+#else
+#endif 
 }
 
 static void configure_ethernet_PHY() {

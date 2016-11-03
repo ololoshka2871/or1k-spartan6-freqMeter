@@ -30,7 +30,9 @@ typedef void (*udp_callback)(uint32_t src_ip, uint16_t src_port,
 
 void process_udp(struct udp_frame* rx_udp);
 void set_rx_callback(udp_callback callback);
-int send_udp_packet(uint32_t ip_to, uint16_t port_to, uint16_t port_src,
-                     uint8_t *data, size_t len);
+
+uint8_t *allocateUDPpocket(uint32_t ip_to, size_t data_len);
+uint32_t sendUDPpacket(uint16_t port_to, uint16_t port_src,
+                  uint8_t *data);
 
 #endif // UDP_H
