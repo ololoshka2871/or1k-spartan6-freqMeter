@@ -1,0 +1,4 @@
+#ifndef FNET_USER_CONFIG_H
+#define FNET_USER_CONFIG_H
+
+#endif // FNET_USER_CONFIG_H

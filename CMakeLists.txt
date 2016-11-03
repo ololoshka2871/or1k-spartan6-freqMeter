@@ -171,7 +171,6 @@ math(EXPR TEST_SIGNAL_HZ10 "${REFERENCE_CLOCK_HZ} * 10 / (1 << ${TEST_SIGNAL_DEV
 floterise(TEST_SIGNAL_HZ ${TEST_SIGNAL_HZ10} 10)
 message(STATUS "Actual test input signal freq: ${TEST_SIGNAL_HZ}Hz (/ ${TEST_SIGNAL_DEVIDER})")
 
-# check if RMII clock == 50 MHz
 math(EXPR CPU_CLOCK_HZ
     "${INPUT_CLOCK_HZ} * ${CPU_PLL_MULTIPLYER} / ${CPU_CLOCK_DEVIDER}")
 message(STATUS "CPU clock is ${CPU_CLOCK_HZ}")
