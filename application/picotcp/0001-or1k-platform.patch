@@ -1,13 +1,29 @@
-From fd7549dd2633e6edae19e6c99b1fc9591532fd79 Mon Sep 17 00:00:00 2001
+From f96fd4665e34317dd1637a35ce0875d19bdf2fa8 Mon Sep 17 00:00:00 2001
 From: ololoshka2871 <SweetTreasure@2ch.hk>
-Date: Thu, 3 Nov 2016 11:42:21 +0300
-Subject: [PATCH] or1k system  definitions
+Date: Thu, 3 Nov 2016 14:16:23 +0300
+Subject: [PATCH] or1k platform
 
 ---
+ Makefile                     |  4 ++
  include/arch/pico_or1k_gcc.h | 97 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 97 insertions(+)
+ 2 files changed, 101 insertions(+)
  create mode 100644 include/arch/pico_or1k_gcc.h
 
+diff --git a/Makefile b/Makefile
+index 8ce14e6..75d3a51 100644
+--- a/Makefile
++++ b/Makefile
+@@ -164,6 +164,10 @@ ifeq ($(ARCH),atmega128)
+   CFLAGS+=-Wall -mmcu=atmega128 -DAVR
+ endif
+ 
++ifeq ($(ARCH),or1k)
++  CFLAGS+=-DOR1K
++endif
++
+ ifeq ($(ARCH),none)
+   CFLAGS+=-DARCHNONE
+ endif
 diff --git a/include/arch/pico_or1k_gcc.h b/include/arch/pico_or1k_gcc.h
 new file mode 100644
 index 0000000..b8fea0a
