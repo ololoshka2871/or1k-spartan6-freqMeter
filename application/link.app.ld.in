@@ -6,6 +6,8 @@ MEMORY
   macrx (rw)  : ORIGIN = @MAC_RX_MEM_BASE@, LENGTH = @MAC_RX_MEM_SIZE@
 }
 
+ENTRY(entry)
+
 SECTIONS
 {
   .header :

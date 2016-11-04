@@ -52,7 +52,7 @@ else()
     endif(OR1K)
 endif()
 
-set(JUMP_INSTRUCTION    "l.j")
+set(JUMP_INSTRUCTION    "l.jal")
 
 # specify the cross compiler
 set(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}gcc)

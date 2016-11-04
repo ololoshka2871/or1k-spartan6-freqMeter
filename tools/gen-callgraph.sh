@@ -214,6 +214,9 @@ while read -r FUNC_PAIR; do
         continue
     fi
 
+    echo $CALLEE_ASM_LINES_LIST 1>&2
+    read ttt
+
     while read -r CALLEE_ASM_LINE; do
         CALLEE_ADDR_PART="`echo \"$CALLEE_ASM_LINE\" | cut -d'	' -f1`"
         CALL_ADDR="`echo \"$CALLEE_ADDR_PART\" | cut -d':' -f1`"
