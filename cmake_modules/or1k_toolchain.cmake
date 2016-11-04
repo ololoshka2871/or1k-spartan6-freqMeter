@@ -52,6 +52,8 @@ else()
     endif(OR1K)
 endif()
 
+set(JUMP_INSTRUCTION    "l.j")
+
 # specify the cross compiler
 set(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}gcc)
 

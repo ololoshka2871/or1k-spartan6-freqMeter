@@ -2,25 +2,48 @@
 
 CMD=`basename $0`
 
-TOOLPREFIX=or1knd-elf-
-READELF=${TOOLPREFIX}readelf
-OBJDUMP=${TOOLPREFIX}objdump
-CPPFILT=${TOOLPREFIX}c++filt
-#MASHINE=or1knd
-JUMP_INST=l.j
-call_parcesr_sed_script="s/l\.j.* \([0-9a-f]*\) .*/\1/"
-
 export LANG=C
+
+genrandom_color() {
+    echo -n `python -c "import random; print('{:3f} {:3f} {:3f}'.format(random.random(), random.random(), random.random()))"`
+}
 
 show_help()
 {
-    echo "Usage: $CMD <BINARY> [DEBUG={0*/1}] | dot -Tpng -ocallgraph.png"
+    echo "Usage: $CMD <BINARY> <TOOLPREFIX> <JUMP_INST> [DEBUG={0*/1}] | dot -Tsvg -ocallgraph.svg"
 }
 
-if [ $# -ne 1 -a $# -ne 2 ]; then
-    echo "Fail! -- Expecting 1 or 2 arguments! ==> $@"
+if [ $# -ne 3 -a $# -ne 4 ]; then
+    echo "Fail! -- Expecting 3 or 4 arguments! ==> $@"
     show_help
     exit 1
+fi
+
+EXEC=$1
+
+TOOLPREFIX=$2
+READELF=${TOOLPREFIX}readelf
+OBJDUMP=${TOOLPREFIX}objdump
+CPPFILT=${TOOLPREFIX}c++filt
+JUMP_INST=$3
+
+DEBUG=$4
+
+if [ ! -f "$EXEC" ]; then
+    echo "Error: $EXEC doesn't exist!"
+    exit 1
+fi
+
+if [ -z "$JUMP_INST" ]; then
+    echo "Warning: $JUMP_INST doesn't exist, assuming \"callq\""
+    JUMP_INST="callq"
+fi
+
+escaped_JMP_INST=`echo $JUMP_INST | sed 's/\./\\\\./g'`
+call_parcesr_sed_script="s/$escaped_JMP_INST.* \([0-9a-f]*\) .*/\1/"
+
+if [ -z "$DEBUG" ]; then
+    DEBUG=0
 fi
 
 if [ -z "`which ${READELF}`" ]; then
@@ -41,18 +64,6 @@ fi
 if [ -z "`which dot`" ]; then
     echo "Error: Requires \"dot\""
     exit 1
-fi
-
-EXEC=$1
-DEBUG=$2
-
-if [ ! -f "$EXEC" ]; then
-    echo "Error: $EXEC doesn't exist!"
-    exit 1
-fi
-
-if [ -z "$DEBUG" ]; then
-    DEBUG=0
 fi
 
 #${READELF} $EXEC --all
@@ -197,7 +208,7 @@ while read -r FUNC_PAIR; do
     FUNC_ASM_LAST_LINE_NO=$(( $NEXT_FUNC_ASM_LINE_NO - 1 ))
     FUNC_ASM_BODY_LEN=$(( $NEXT_FUNC_ASM_LINE_NO - $FUNC_ASM_LINE_NO ))
     FUNC_ASM_BODY="`echo \"$ASM_FILE_CONTENTS\" | head -$FUNC_ASM_LAST_LINE_NO | tail -$FUNC_ASM_BODY_LEN`"
-    CALLEE_ASM_LINES_LIST="`echo \"$FUNC_ASM_BODY\" | grep $JUMP_INST`" # callq
+    CALLEE_ASM_LINES_LIST="`echo \"$FUNC_ASM_BODY\" | grep $JUMP_INST`"
     if [ -z "$CALLEE_ASM_LINES_LIST" ]; then
         i=$(( $i + 1 ))
         continue
@@ -212,7 +223,7 @@ while read -r FUNC_PAIR; do
         if [ -z "$CALLEE_NAME" ]; then
             continue
         fi
-        echo "$FUNC_NAME -> $CALLEE_NAME [label=\"0x$CALL_ADDR\"]"
+        echo "$FUNC_NAME -> $CALLEE_NAME [label=\"0x$CALL_ADDR\" color=\"`genrandom_color`\"]"
     done <<< "$CALLEE_ASM_LINES_LIST"
 
     i=$(( $i + 1 ))

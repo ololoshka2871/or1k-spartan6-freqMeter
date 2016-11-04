@@ -142,6 +142,24 @@ add_custom_target(firmware_summary
     DEPENDS ${BOOTLOADER_IMAGE_ELF} ${APPLICATION_ELF_NAME}
     )
 
+set(gen_callgraph_script        ${tools_DIR}/gen-callgraph.sh)
+set(callgraph_outfile           ${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_ELF_NAME}-callgraph.svg)
+
+find_package(Doxygen)
+
+if (DOXYGEN_DOT_FOUND)
+add_custom_target(application_call_graph
+    COMMAND ${gen_callgraph_script}
+        ${APPLICATION_ELF_NAME}
+        ${TOOLCHAIN_PREFIX}
+        ${JUMP_INSTRUCTION} | ${DOXYGEN_DOT_EXECUTABLE} -Tsvg -o${callgraph_outfile}
+    COMMAND
+        echo "Callgraph saved to ${callgraph_outfile}"
+    DEPENDS ${APPLICATION_ELF_NAME}
+    COMMENT
+        "Building application callgraph")
+endif(DOXYGEN_DOT_FOUND)
+
 add_custom_target(application DEPENDS ${application_BIN} firmware_summary)
 
 SET(APPLICATION_BINARY		${application_BIN}	    PARENT_SCOPE)
