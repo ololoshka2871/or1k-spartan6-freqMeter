@@ -63,7 +63,8 @@ def generate_function_dict(sym_table):
         #print(line)
         match = function_search_pattern.search(line)
         if not (match is None):
-            if match.group(3) == 'FUNC' and match.group(4) == 'GLOBAL' and match.group(3) != 'UND':
+            #if match.group(3) == 'FUNC' and match.group(4) == 'GLOBAL' and match.group(3) != 'UND':
+            if match.group(3) == 'FUNC' and match.group(3) != 'UND':
                 func2addr_dict[parce_hex(match.group(1))] = match.group(6)
 
     if not found_symtab:

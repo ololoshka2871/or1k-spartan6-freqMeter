@@ -41,7 +41,8 @@ set(PICOTCP_PORT_SRC
 set(picotcp_DISTRO          ${CMAKE_CURRENT_SOURCE_DIR}/dist_picotcp)
 set(picotcp_BUILD_DIR       ${CMAKE_CURRENT_BINARY_DIR})
 
-set(picotcp_PARTCH          ${CMAKE_CURRENT_SOURCE_DIR}/0001-or1k-platform.patch)
+set(picotcp_PARTCH1          ${CMAKE_CURRENT_SOURCE_DIR}/0001-or1k-platform.patch)
+set(picotcp_PARTCH2          ${CMAKE_CURRENT_SOURCE_DIR}/0002-DPICO_PORT_CUSTOM.patch)
 
 find_package(Git REQUIRED)
 
@@ -49,7 +50,8 @@ ExternalProject_add(build_pico_tcp
     GIT_REPOSITORY ${picotcp_DISTRO}
     GIT_TAG master
     PATCH_COMMAND
-        ${GIT_EXECUTABLE} apply --ignore-whitespace ${picotcp_PARTCH} || true
+        ${GIT_EXECUTABLE} apply --ignore-whitespace ${picotcp_PARTCH1} || true
+        #${GIT_EXECUTABLE} apply --ignore-whitespace ${picotcp_PARTCH2} || true
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND

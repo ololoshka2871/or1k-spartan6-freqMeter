@@ -1,7 +1,7 @@
 
 MEMORY 
 {
-  sram  (rwx) : ORIGIN = @APP_START@, LENGTH = 1000000/*@APP_SIZE@*/
+  sram  (rwx) : ORIGIN = @APP_START@, LENGTH = 110000/*@APP_SIZE@*/
   mactx (rw)  : ORIGIN = @MAC_TX_MEM_BASE@, LENGTH = @MAC_TX_MEM_SIZE@
   macrx (rw)  : ORIGIN = @MAC_RX_MEM_BASE@, LENGTH = @MAC_RX_MEM_SIZE@
 }

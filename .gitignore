@@ -73,3 +73,5 @@ _xmsgs/
 
 
 *.log
+
+*build/

@@ -49,6 +49,7 @@ enum enHeapPools {
 #define get_heap_free_mac_tx()  xPortGetFreeHeapSize(HEAP_POOL_ETH_TX)
 
 void *pvPortMalloc( enum enHeapPools pool, size_t xWantedSize );
+void *pvPortZalloc( enum enHeapPools pool, size_t xWantedSize );
 void vPortFree( enum enHeapPools pool, void *pv );
 size_t xPortGetFreeHeapSize( enum enHeapPools pool );
 

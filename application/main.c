@@ -172,10 +172,10 @@ void main(void)
 
     configure_ethernet_PHY();
 
-    pico_stack_init();
+    //pico_stack_init();
 
-    //microip_start(IPTOINT(192, 168, 1, 99));
-    //set_rx_callback(cb_udp_callback);
+    microip_start(IPTOINT(192, 168, 1, 99));
+    set_rx_callback(cb_udp_callback);
 
     irq_enable(IS_FREQMETERS);
 
@@ -184,6 +184,6 @@ void main(void)
     while(1) {
         //Send_Data();
         Process_freqmeters();
-        //microip_service();
+        microip_service();
     }
 }
