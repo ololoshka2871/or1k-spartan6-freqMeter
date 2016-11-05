@@ -155,10 +155,6 @@ static void configure_ethernet_PHY() {
     }
 }
 
-//
-
-//
-
 void main(void)
 {
     interrupts_init();
@@ -171,8 +167,6 @@ void main(void)
     }
 
     configure_ethernet_PHY();
-
-    //pico_stack_init();
 
     microip_start(IPTOINT(192, 168, 1, 99));
     set_rx_callback(cb_udp_callback);

@@ -37,8 +37,6 @@ enum enHeapPools {
     HEAP_POOL_ETH_TX = 1
 };
 
-#define MEM_MEAS // for picoTCP
-
 #define malloc_sys(size)        pvPortMalloc(HEAP_POOL_SYSTEM, size)
 #define zalloc_sys(size)        pvPortZalloc(HEAP_POOL_SYSTEM, size)
 #define free_sys(p)             vPortFree(HEAP_POOL_SYSTEM, p)

@@ -1,3 +1,0 @@
-[submodule "application/picotcp/dist_picotcp"]
-	path = application/picotcp/dist_picotcp
-	url = https://github.com/tass-belgium/picotcp.git
