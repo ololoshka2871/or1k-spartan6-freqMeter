@@ -64,7 +64,7 @@ add_custom_command(
     OUTPUT  ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
     DEPENDS memory_refresh
     COMMAND
-        xxd -ps -c 4 ${SYSTEM_MEMORY_MODULE} > ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
+        xxd -ps -c 4 ${SYSTEM_MEMORY_BLOCK_TEMPLATE} > ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
     )
 endif()
 
