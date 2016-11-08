@@ -65,7 +65,6 @@ add_custom_target(tools.editor
         decodeDoubleDump.py
         decodeChanels.py
         test_data_querryer.py
-        gen-callgraph.sh
         gen-callgraph.py
     )
 
