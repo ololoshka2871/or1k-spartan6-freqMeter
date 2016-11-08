@@ -103,7 +103,8 @@ static char       GDB_STUB_SECTION_BSS    _outbuffer[MAX_BUF_SIZE];
        int        GDB_STUB_SECTION_BSS    _initial_trap;
 static const char GDB_STUB_SECTION_RODATA _hex_char[] = "0123456789abcdef" ;
 
-static GDB_STUB_SECTION_BSS unsigned int * (*syscall_handler)(unsigned int *registers);
+static GDB_STUB_SECTION_BSS unsigned int * (*syscall_handler)(unsigned int code,
+                                                              unsigned int *registers);
 static GDB_STUB_SECTION_BSS unsigned int * (*irq_handler)(unsigned int *registers);
 
 //-----------------------------------------------------------------
@@ -386,7 +387,7 @@ gdb_syscall(unsigned int *registers)
       //---------------------------------------------------
       default:
           if (syscall_handler)
-              return syscall_handler(registers);
+              return syscall_handler(sys_num, registers);
           // Not supported
           else
           {
@@ -477,6 +478,11 @@ gdb_exception(unsigned int *registers, unsigned int reason)
         sig_val = GDB_SIGHUP;
         _initial_trap = 0;
     }
+
+    // disable interrupts if any
+    uint32_t interrupts_was_enabled = mfspr(SPR_SR);
+    mtspr(SPR_SR, interrupts_was_enabled & ~SPR_SR_GIE);
+    interrupts_was_enabled &= SPR_SR_GIE;
 
     while (1)
     {
@@ -581,7 +587,7 @@ gdb_exception(unsigned int *registers, unsigned int reason)
             if (flush_caches)
                 gdb_flush_cache();
 
-            return registers;
+            goto gdb_exception_end;
         //---------------------------------------------------
         // s - Step from address (or last PC)
         //---------------------------------------------------
@@ -597,12 +603,19 @@ gdb_exception(unsigned int *registers, unsigned int reason)
             if (flush_caches)
                 gdb_flush_cache();
 
-            return registers;
+            goto gdb_exception_end;
         }
 
         // Send response to GDB host
         gdb_send (_outbuffer);
     }
+
+gdb_exception_end:
+    if (interrupts_was_enabled) {
+        mtspr(SPR_SR, mfspr(SPR_SR) | SPR_SR_GIE);
+    }
+
+    return registers;
 }
 
 //-----------------------------------------------------------------

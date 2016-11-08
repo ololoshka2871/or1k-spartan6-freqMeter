@@ -59,5 +59,5 @@ void GDB_STUB_SECTION_TEXT gdb_main(void)
 #endif /* STANDART_INIT */
     asm volatile ("l.trap 0");
 #endif /* NDEBUG */
-    try_load();
+     try_load();
 }

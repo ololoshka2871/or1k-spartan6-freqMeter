@@ -151,7 +151,7 @@ static int rx_quick_verify(enum enMiniMACRxSlots slot) {
 }
 
 // interrupt handlers
-static void miniMAC_rx_isr(unsigned int * registers) {
+static unsigned int * miniMAC_rx_isr(unsigned int * registers) {
     (void)registers;
     int last_error;
     enum enMiniMACSlotStates slot_state;
@@ -197,14 +197,18 @@ static void miniMAC_rx_isr(unsigned int * registers) {
         miniMAC_reset_rx_slot(slot);
         minimacstat.pocket_rx_errors++;
     }
+
+    return NULL;
 }
 
 
-static void miniMAC_tx_isr(unsigned int * registers) {
+static unsigned int * miniMAC_tx_isr(unsigned int * registers) {
     (void)registers;
     struct stx_slot_alloc_unit* sent_mem_block = (struct stx_slot_alloc_unit*)(
         MINIMAC_TX_SLOT_ADDR - sizeof(struct tx_slot_queue_item));
     sent_mem_block->queue_info.this_pocket_size = -1;
+
+    return NULL;
 }
 
 static uint32_t align32(uint32_t x) {
@@ -416,7 +420,7 @@ uint32_t miniMAC_slot_complite_and_send(uint8_t *slot_data) {
         MINIMAC_TX_SLOT_ADDR - sizeof(struct tx_slot_queue_item));
 
     while (MINIMAC_TX_REMAINING);
-    if (sending_mem_block > MAC_TX_MEM_BASE)
+    if (sending_mem_block > (void*)MAC_TX_MEM_BASE)
         free_mac_tx(sending_mem_block);
 
     // send now

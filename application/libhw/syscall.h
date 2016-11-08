@@ -35,7 +35,8 @@
 
 #include <stdint.h>
 
-typedef unsigned int*  (*syscall_handler)(unsigned int *registers);
+typedef unsigned int*  (*syscall_handler)(unsigned int code,
+                                          unsigned int *registers);
 
 uint32_t __attribute__((noinline)) syscall(uint32_t arg);
 syscall_handler __attribute__((noinline))

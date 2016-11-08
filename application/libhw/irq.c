@@ -58,14 +58,23 @@ int irq_check(int interrupt)
 //-----------------------------------------------------------------
 
 static unsigned int* default_ISR(unsigned int * registers) {
+    unsigned int * newregs = NULL;
+
     // check irq source
     for (int i = 0; i < IS_Count; ++i) {
         uint32_t interrup_flags = IRQ_STATUS & IRQ_MASK;
         struct src_handler* d = &ISRs[i];
         if (interrup_flags & (1 << d->src) ) {
-            if (d->ISR)
-                d->ISR(registers);
+            if (d->ISR) {
+                newregs = d->ISR(registers);
+            }
             irq_acknowledge(d->src);
+
+            // Если обработчик требует смены контекста, то придётся подчиняться
+            // выходим из прерывания с новым контекстом
+            if (newregs)
+                return newregs;
+
             // Акноледж всегда после тела прерывания, иначе может случиться
             // следующая ситуация:
             // прерывание на частотомере появилось, мы зашли сюда и сдедаи

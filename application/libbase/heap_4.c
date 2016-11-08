@@ -160,7 +160,7 @@ static size_t xBlockAllocatedBit = 0;
 
 /*-----------------------------------------------------------*/
 
-void *pvPortMalloc( enum enHeapPools pool, size_t xWantedSize )
+void *_pvPortMalloc( enum enHeapPools pool, size_t xWantedSize )
 {
 BlockLink_t *pxBlock, *pxPreviousBlock, *pxNewBlockLink;
 void *pvReturn = NULL;
@@ -310,7 +310,7 @@ void *pvReturn = NULL;
 }
 /*-----------------------------------------------------------*/
 
-void vPortFree( enum enHeapPools pool, void *pv )
+void _vPortFree( enum enHeapPools pool, void *pv )
 {
 uint8_t *puc = ( uint8_t * ) pv;
 BlockLink_t *pxLink;
@@ -358,7 +358,7 @@ BlockLink_t *pxLink;
 }
 /*-----------------------------------------------------------*/
 
-size_t xPortGetFreeHeapSize( enum enHeapPools pool )
+size_t _xPortGetFreeHeapSize( enum enHeapPools pool )
 {
     if( _pxEnd(pool) == NULL )
     {
@@ -368,7 +368,7 @@ size_t xPortGetFreeHeapSize( enum enHeapPools pool )
 }
 /*-----------------------------------------------------------*/
 
-size_t xPortGetMinimumEverFreeHeapSize( enum enHeapPools pool )
+size_t _xPortGetMinimumEverFreeHeapSize( enum enHeapPools pool )
 {
     if( _pxEnd(pool) == NULL )
     {
@@ -378,7 +378,7 @@ size_t xPortGetMinimumEverFreeHeapSize( enum enHeapPools pool )
 }
 /*-----------------------------------------------------------*/
 
-void vPortInitialiseBlocks( enum enHeapPools pool )
+void _vPortInitialiseBlocks( enum enHeapPools pool )
 {
 	/* This just exists to keep the linker quiet. */
 }

@@ -10,7 +10,7 @@
 
 
 typedef unsigned int* (*irq_handler)(unsigned int * registers); // global interrupt handler
-typedef void (*isr_handler)(unsigned int * registers); // user interrupt
+typedef unsigned int* (*isr_handler)(unsigned int * registers); // user interrupt
 
 enum InterruptSources {
     IS_UART0 = IRQ_UART0,
@@ -26,7 +26,10 @@ enum InterruptSources {
     IS_MINIMAC_TX = IRQ_MINIMAC_TX,
     IS_MINIMAC_RX = IRQ_MINIMAC_RX,
 
-    IS_Count = IS_MINIMAC_RX + 1
+    IS_Count = IS_MINIMAC_RX + 1,
+
+    IRQ_HIGEST_PRIO = 0,
+    IRQ_LOWEST_PRIO = IS_Count - 1
 };
 
 //-----------------------------------------------------------------

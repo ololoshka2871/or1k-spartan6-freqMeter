@@ -99,7 +99,7 @@ struct sHeapPools heap_table[] = {
 #define portBYTE_ALIGNMENT                  (4)
 #define portBYTE_ALIGNMENT_MASK             (0x0003)
 
-void *pvPortZalloc( enum enHeapPools pool, size_t xWantedSize ) {
+void *_pvPortZalloc( enum enHeapPools pool, size_t xWantedSize ) {
     void *r = pvPortMalloc( pool, xWantedSize );
     if (r)
         memset(r, 0, xWantedSize);

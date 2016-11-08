@@ -52,7 +52,7 @@ static void reload_cycle(uint8_t chanel_num) {
     FM_RELOAD_CH(chanel_num, cycleval);
 }
 
-static void fm_isr_handler(unsigned int *registers) {
+static unsigned int * fm_isr_handler(unsigned int *registers) {
     (void)registers;
     uint32_t chanels_to_scan = FM_IE & FM_IF;
 #if VERBOSE_DEBUG
@@ -72,6 +72,7 @@ static void fm_isr_handler(unsigned int *registers) {
         if (!chanels_to_scan)
             break;      
     }
+    return NULL;
 }
 
 void fm_init() {

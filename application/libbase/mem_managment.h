@@ -37,18 +37,18 @@ enum enHeapPools {
     HEAP_POOL_ETH_TX = 1
 };
 
-#define malloc_sys(size)        pvPortMalloc(HEAP_POOL_SYSTEM, size)
-#define zalloc_sys(size)        pvPortZalloc(HEAP_POOL_SYSTEM, size)
-#define free_sys(p)             vPortFree(HEAP_POOL_SYSTEM, p)
-#define get_heap_free_sys()     xPortGetFreeHeapSize(HEAP_POOL_SYSTEM)
+#define malloc_sys(size)        _pvPortMalloc(HEAP_POOL_SYSTEM, size)
+#define zalloc_sys(size)        _pvPortZalloc(HEAP_POOL_SYSTEM, size)
+#define free_sys(p)             _vPortFree(HEAP_POOL_SYSTEM, p)
+#define get_heap_free_sys()     _xPortGetFreeHeapSize(HEAP_POOL_SYSTEM)
 
-#define malloc_mac_tx(size)     pvPortMalloc(HEAP_POOL_ETH_TX, size)
-#define free_mac_tx(p)          vPortFree(HEAP_POOL_ETH_TX, p)
-#define get_heap_free_mac_tx()  xPortGetFreeHeapSize(HEAP_POOL_ETH_TX)
+#define malloc_mac_tx(size)     _pvPortMalloc(HEAP_POOL_ETH_TX, size)
+#define free_mac_tx(p)          _vPortFree(HEAP_POOL_ETH_TX, p)
+#define get_heap_free_mac_tx()  _xPortGetFreeHeapSize(HEAP_POOL_ETH_TX)
 
-void *pvPortMalloc( enum enHeapPools pool, size_t xWantedSize );
-void *pvPortZalloc( enum enHeapPools pool, size_t xWantedSize );
-void vPortFree( enum enHeapPools pool, void *pv );
-size_t xPortGetFreeHeapSize( enum enHeapPools pool );
+void *_pvPortMalloc( enum enHeapPools pool, size_t xWantedSize );
+void *_pvPortZalloc( enum enHeapPools pool, size_t xWantedSize );
+void _vPortFree( enum enHeapPools pool, void *pv );
+size_t _xPortGetFreeHeapSize( enum enHeapPools pool );
 
 #endif /*_HEAP_H_*/

@@ -61,7 +61,7 @@ static int  GDB_STUB_SECTION_BSS _rx_tail;
 //-----------------------------------------------------------------
 // mfspr: Read from SPR
 //-----------------------------------------------------------------
-static inline unsigned long mfspr(unsigned long spr) 
+unsigned long GDB_STUB_SECTION_TEXT mfspr(unsigned long spr)
 {    
     unsigned long value;
     asm volatile ("l.mfspr\t\t%0,%1,0" : "=r" (value) : "r" (spr));
@@ -70,7 +70,7 @@ static inline unsigned long mfspr(unsigned long spr)
 //-----------------------------------------------------------------
 // mtspr: Write to SPR
 //-----------------------------------------------------------------
-static inline void mtspr(unsigned long spr, unsigned long value) 
+void GDB_STUB_SECTION_TEXT mtspr(unsigned long spr, unsigned long value)
 {
     asm volatile ("l.mtspr\t\t%0,%1,0": : "r" (spr), "r" (value));
 }

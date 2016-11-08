@@ -1,5 +1,4 @@
 /****************************************************************************
- * app_main.c
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -39,6 +38,9 @@
 #include "mdio.h"
 #include "microip.h"
 #include "udp.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
 
 void DELAY() {
     for (int i = 0; i < 100000; ++i)
@@ -158,7 +160,7 @@ static void configure_ethernet_PHY() {
 void main(void)
 {
     interrupts_init();
-
+#if 0
     fm_init();
 
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
@@ -174,10 +176,15 @@ void main(void)
     irq_enable(IS_FREQMETERS);
 
     EXIT_CRITICAL();
+#endif
+
+    vTaskStartScheduler();
 
     while(1) {
+#if 0
         //Send_Data();
         Process_freqmeters();
         microip_service();
+#endif
     }
 }

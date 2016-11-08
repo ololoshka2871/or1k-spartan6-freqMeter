@@ -120,7 +120,7 @@ set(CPU_PLL_MULTIPLYER      25
 set(CPU_CLOCK_DEVIDER       24
     CACHE STRING "Input clock to CPU devider")
 
-set(SYSTEM_HEAP_SIZE        256
+set(SYSTEM_HEAP_SIZE        4096
     CACHE STRING "System memory heap size")
 
 #--- test firmware ---
