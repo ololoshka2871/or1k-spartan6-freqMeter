@@ -58,6 +58,7 @@ void GDB_STUB_SECTION_TEXT gdb_main(void)
     _initial_trap = 0;
 #endif /* STANDART_INIT */
     asm volatile ("l.trap 0");
+    asm volatile ("l.trap 0");
 #endif /* NDEBUG */
      try_load();
 }

@@ -77,29 +77,29 @@ struct context {
 };
 
 
-extern struct context * volatile pxCurrentTCB; // current task context
+extern struct context ** volatile pxCurrentTCB; // current task context
 
-static unsigned int* switch_context(unsigned int* current_context) {
-    memcpy(pxCurrentTCB, current_context, sizeof(struct context)); // save curent context to pxCurrentTCB
+static struct context * switch_context(struct context * current_context) {
+    memcpy(*pxCurrentTCB, current_context, sizeof(struct context)); // save curent context to pxCurrentTCB
     vTaskSwitchContext(); // update pxCurrentTCB
-    return (unsigned int *)pxCurrentTCB; // return new tcb
+    return *pxCurrentTCB; // return new tcb
 }
 
 // syscall context
-static unsigned int*  vSystemCallHandler(unsigned int code,
-                                         unsigned int *registers) {
+static unsigned int*  puiSystemCallHandler(unsigned int code,
+                                         struct context *current_context) {
     switch (code) {
     case portSysCall_yeld:
-        registers = switch_context(registers); // restore context from pxCurrentTCB
+        current_context = switch_context(current_context); // restore context from pxCurrentTCB
         break;
     case portSysCall_restoreContext:
-        registers = (unsigned int *)pxCurrentTCB;
+        current_context = *pxCurrentTCB;
         break;
     default:
         break;
     }
 
-    return registers;
+    return current_context;
 }
 
 // interrupt context
@@ -113,7 +113,7 @@ static unsigned int * vSysTimerTick(unsigned int *registers) {
 
 StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters ) {
 
-    struct context *xTopOfStack = (struct context *) pxTopOfStack;
+    struct context *xTopOfStack = ((struct context *) pxTopOfStack) - 1;
 
     xTopOfStack->r0 = (portSTACK_TYPE ) 0;           /* R0 = 0 */
     xTopOfStack->r1 = (portSTACK_TYPE ) xTopOfStack; /* R1 (SP) */
@@ -153,7 +153,7 @@ StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t px
 
     /* Return a pointer to the top of the stack we have generated so this can
      be stored in the task control block for the task. */
-    return pxTopOfStack;
+    return (StackType_t*) xTopOfStack;
 }
 
 static void prvSetupTimerInterrupt() {
@@ -165,11 +165,11 @@ static void prvSetupTimerInterrupt() {
 BaseType_t xPortStartScheduler( void ) {
     /* Setup the hardware to generate the tick.  Interrupts are disabled when
      this function is called. */
-    prvSetupTimerInterrupt();
+    //prvSetupTimerInterrupt();
 
     /* Install interrupt handler for system call exception, this will allow
      us to yield manually */
-    install_syscall_handler(vSystemCallHandler);
+    install_syscall_handler(puiSystemCallHandler);
 
     /* Restore the context of the first task that is going to run. */
     portRESTORE_CONTEXT();

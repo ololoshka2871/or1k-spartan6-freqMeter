@@ -387,13 +387,10 @@ gdb_syscall(unsigned int *registers)
       //---------------------------------------------------
       default:
           if (syscall_handler)
-              return syscall_handler(sys_num, registers);
-          // Not supported
+              registers = syscall_handler(sys_num, registers);
           else
-          {
               registers[REG_ARG0] = 0;
-              return registers;
-          }
+          return registers;
     }
 }
 
@@ -479,10 +476,12 @@ gdb_exception(unsigned int *registers, unsigned int reason)
         _initial_trap = 0;
     }
 
+#if 0
     // disable interrupts if any
     uint32_t interrupts_was_enabled = mfspr(SPR_SR);
     mtspr(SPR_SR, interrupts_was_enabled & ~SPR_SR_GIE);
     interrupts_was_enabled &= SPR_SR_GIE;
+#endif
 
     while (1)
     {
@@ -611,9 +610,11 @@ gdb_exception(unsigned int *registers, unsigned int reason)
     }
 
 gdb_exception_end:
+#if 0
     if (interrupts_was_enabled) {
         mtspr(SPR_SR, mfspr(SPR_SR) | SPR_SR_GIE);
     }
+#endif
 
     return registers;
 }

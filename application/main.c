@@ -178,6 +178,7 @@ void main(void)
     EXIT_CRITICAL();
 #endif
 
+    EXIT_CRITICAL();
     vTaskStartScheduler();
 
     while(1) {

@@ -34,7 +34,7 @@ extern void main(void);
 
 void __attribute__((used)) entry(void)
 {
-#ifndef NDEBUG
+#if !defined(NDEBUG) && !defined(DEBUGER_AT_BOOTLOADER)
     asm volatile ("l.trap 0");
     asm volatile ("l.trap 0");
 #endif
