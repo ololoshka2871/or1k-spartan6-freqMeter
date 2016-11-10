@@ -39,6 +39,10 @@
 #include "mdio.h"
 #include "microip.h"
 #include "udp.h"
+#include "prog_timer.h"
+
+#include "main.h"
+#include "eth-main.h"
 
 void DELAY() {
     for (int i = 0; i < 100000; ++i)
@@ -155,10 +159,23 @@ static void configure_ethernet_PHY() {
     }
 }
 
+static void init_tcpip() {
+    //----- SET OUR ETHENET UNIQUE MAC ADDRESS -----
+    our_mac_address.v[0] = 0;		//MSB
+    our_mac_address.v[1] = 80;
+    our_mac_address.v[2] = 194;
+    our_mac_address.v[3] = 80;
+    our_mac_address.v[4] = 16;
+    our_mac_address.v[5] = 50;		//LSB
+
+    //----- INITIALISE ETHERNET -----
+    tcp_ip_initialise();
+}
+
 void main(void)
 {
     interrupts_init();
-
+    progtimer_init();
     fm_init();
 
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
@@ -167,9 +184,10 @@ void main(void)
     }
 
     configure_ethernet_PHY();
+    init_tcpip();
 
-    microip_start(IPTOINT(192, 168, 1, 99));
-    set_rx_callback(cb_udp_callback);
+    //microip_start(IPTOINT(192, 168, 1, 99));
+    //set_rx_callback(cb_udp_callback);
 
     irq_enable(IS_FREQMETERS);
 
@@ -178,6 +196,7 @@ void main(void)
     while(1) {
         //Send_Data();
         Process_freqmeters();
-        microip_service();
+        //microip_service();
+        tcp_ip_process_stack();
     }
 }

@@ -31,39 +31,31 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-SET(LIBHW_SOURCES
-    cache.c
-    irq.c
-    serial0.c
-    serial1.c
-    timer.c
-    GPIO.c
-    syscall.c
-    seg7_display.c
-    freqmeters.c
-    minimac2.c
-    mdio.c
-    prog_timer.c
+set(CONFIG_FILE_IN       ${CMAKE_CURRENT_SOURCE_DIR}/main.h.in)
+set(CONFIG_FILE          ${CMAKE_CURRENT_BINARY_DIR}/main.h)
+configure_file(${CONFIG_FILE_IN} ${CONFIG_FILE} @ONLY)
+
+set(IBEXUK_IP_INCLUDE_DIRS
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        )
+
+include_directories(${IBEXUK_IP_INCLUDE_DIRS} ${LIBHW_INCLUDE_DIR})
+
+set(IBEXUK_IP_SRC
+    eth-nic.c
+    timers.c
+
+    eth-arp.c
+    eth-dhcp.c
+    #eth-http.c
+    eth-icmp.c
+    eth-ip.c
+    eth-main.c
+    eth-tcp.c
+    eth-udp.c
     )
 
-include_directories(. ${LIBBASE_INCLUDE_DIR})
+add_library(ibexukIP STATIC ${IBEXUK_IP_SRC})
 
-set(difenitions
-    MAC_TX_MEM_BASE=${MAC_TX_MEM_BASE}
-    MAC_RX_MEM_BASE=${MAC_RX_MEM_BASE}
-    MAC_CTL_BASE=${MAC_CTL_BASE}
-    MTU=${MTU}
-    MYMINMAC_RX_SLOTS=${MYMINMAC_RX_SLOTS}
-    FREQMETERS_BASE=${FREQMETERS_BASE}
-    FREQMETERS_MASTER_COUNT_LEN=${MASTER_FREQ_COUNTER_LEN}
-    )
-
-if(MASTER_HYBRID_COUNTER)
-    list(APPEND difenitions MASTER_HYBRID_COUNTER)
-endif()
-
-add_library(hw STATIC ${LIBHW_SOURCES})
-
-set_target_properties(hw PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
-
-set(LIBHW_INCLUDE_DIR           ${CMAKE_CURRENT_SOURCE_DIR}      PARENT_SCOPE)
+set(IBEXUK_IP_INCLUDE_DIRS  ${IBEXUK_IP_INCLUDE_DIRS}       PARENT_SCOPE)
