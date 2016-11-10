@@ -1,0 +1,3 @@
+[submodule "application/ibexukIP/C_Communications_Ethernet_TCP_IP_Driver"]
+	path = application/ibexukIP/C_Communications_Ethernet_TCP_IP_Driver
+	url = https://github.com/ibexuk/C_Communications_Ethernet_TCP_IP_Driver.git
