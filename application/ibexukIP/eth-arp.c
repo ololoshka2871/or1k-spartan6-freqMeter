@@ -149,8 +149,10 @@ BYTE arp_process_rx (void)
 
 		//READ THE PACKET INTO OUR BUFFER
 		//We can't do this as the ARP_PACKET structure is not aligned for 32bit architectures so will often be padded:
-		//if (!nic_read_array((BYTE*)&arp_packet, sizeof(arp_packet)))
-		//	return(1);									//Error - packet was too small - dump it
+#ifdef PACKED_STRUCT
+        if (!nic_read_array((BYTE*)&arp_packet, sizeof(arp_packet)))
+            return(1);									//Error - packet was too small - dump it
+#else
 		
 		//Instead we do this to avoid padding problems:
 		if (!nic_read_array((BYTE*)&arp_packet.hardware_type, 2))
@@ -171,6 +173,7 @@ BYTE arp_process_rx (void)
 			return(1);									//Error - packet was too small - dump it
 		if (!nic_read_array((BYTE*)&arp_packet.target_ip_addr, 4))
 			return(1);									//Error - packet was too small - dump it
+#endif
 
 #ifndef __ORDER_BIG_ENDIAN__
 		//Swap the bytes in hardware type, protocol & operation

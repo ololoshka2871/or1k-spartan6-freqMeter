@@ -60,7 +60,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "eth-main.h"
 
 
-#define ICMP_MAX_DATA_LENGTH	32
+#define ICMP_MAX_DATA_LENGTH	64
 
 
 //ICMP HEADER CODES:-
@@ -76,7 +76,7 @@ typedef struct _ICMP_HEADER
 	WORD		checksum;
 	WORD		identifier;
 	WORD		sequence_number;
-} ICMP_HEADER;
+} PACKED_STRUCT ICMP_HEADER;
 #define	ICMP_HEADER_LENGTH		8
 
 #endif

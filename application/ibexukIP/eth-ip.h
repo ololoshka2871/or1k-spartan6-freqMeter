@@ -121,7 +121,7 @@ typedef struct _IP_HEADER
 	WORD		header_checksum;
 	IP_ADDR		source_ip_address;
 	IP_ADDR		destination_ip_address;
-} IP_HEADER;
+} PACKED_STRUCT IP_HEADER;
 #define	IP_HEADER_LENGTH			20			//Defined to avoid sizeof problemms with compilers that add padd bytes
 
 #endif

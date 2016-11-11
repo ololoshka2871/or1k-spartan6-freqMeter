@@ -64,10 +64,11 @@ BYTE icmp_process_received_echo_request (WORD *icmp_id, WORD *icmp_sequence, BYT
 	BYTE calculate_checksum_next_byte_is_low;
 
 
-	//----- GET THE ICMP HEADER -----
-	//if (nic_read_array((BYTE*)&icmp_header, ICMP_HEADER_LENGTH) == 0)
-	//	return (0);								//Error - packet was too small - dump
-
+    //----- GET THE ICMP HEADER -----
+#ifdef PACKED_STRUCT
+    if (nic_read_array((BYTE*)&icmp_header, ICMP_HEADER_LENGTH) == 0)
+        return (0);								//Error - packet was too small - dump
+#else
 	if (!nic_read_next_byte(&icmp_header.type))
 		return(1);									//Error - packet was too small - dump it
 
@@ -82,7 +83,7 @@ BYTE icmp_process_received_echo_request (WORD *icmp_id, WORD *icmp_sequence, BYT
 
 	if (!nic_read_array((BYTE*)&icmp_header.sequence_number, 2))
 		return(1);									//Error - packet was too small - dump it
-
+#endif
 
 	//----- GET THE ICMP DATA -----
 	if (nic_read_array((BYTE*)icmp_data_buffer, (data_remaining_bytes - ICMP_HEADER_LENGTH)) == 0)
@@ -96,27 +97,35 @@ BYTE icmp_process_received_echo_request (WORD *icmp_id, WORD *icmp_sequence, BYT
 	//Calculate the checksum for the header
 	calculated_checksum = 0;
 	calculate_checksum_next_byte_is_low = 0;
-	//ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculate_checksum_next_byte_is_low, (BYTE*)&icmp_header, ICMP_HEADER_LENGTH);
+#ifdef PACKED_STRUCT
+    ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculate_checksum_next_byte_is_low, (BYTE*)&icmp_header, ICMP_HEADER_LENGTH);
+#else
     ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculate_checksum_next_byte_is_low, (BYTE*)&icmp_header.type, 1);
     ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculate_checksum_next_byte_is_low, (BYTE*)&icmp_header.code, 1);
     ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculate_checksum_next_byte_is_low, (BYTE*)&icmp_header.checksum, 2);
     ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculate_checksum_next_byte_is_low, (BYTE*)&icmp_header.identifier, 2);
     ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculate_checksum_next_byte_is_low, (BYTE*)&icmp_header.sequence_number, 2);
+#endif
 
 	//Calculate the checksum for the data
 	ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculate_checksum_next_byte_is_low, (BYTE*)icmp_data_buffer, (data_remaining_bytes - ICMP_HEADER_LENGTH));
 	
 	//Ensure checksums match
 	received_checksum = ~received_checksum;
+
+#ifndef __ORDER_BIG_ENDIAN__
 	received_checksum = swap_word_bytes(received_checksum);
+#endif
 
 	if (received_checksum != calculated_checksum)
 		return(0);
 
+#ifndef __ORDER_BIG_ENDIAN__
 	//SWAP IDENTIFIER, SEQ NUMBER & CHECKSUM WORDS
 	icmp_header.identifier = swap_word_bytes(icmp_header.identifier);
 	icmp_header.sequence_number = swap_word_bytes(icmp_header.sequence_number);
 	//icmp_header.checksum = swap_word_bytes(icmp_header.checksum);		//Don't need to
+#endif
 
 	//----- CHECK CODE IS ECHO REQUEST -----
 	if (icmp_header.type != ICMP_ECHO_REQUEST)
@@ -151,27 +160,36 @@ void icmp_send_packet(DEVICE_INFO *remote_device_info,BYTE icmp_packet_type, BYT
 	icmp_header.identifier = *icmp_id;
 	icmp_header.sequence_number = *icmp_sequence;
 
+#ifndef __ORDER_BIG_ENDIAN__
 	//SWAP IDENTIFIER, SEQ NUMBER & CHECKSUM WORDS
 	icmp_header.identifier = swap_word_bytes(icmp_header.identifier);
 	icmp_header.sequence_number = swap_word_bytes(icmp_header.sequence_number);
 	//icmp_header.checksum = swap_word_bytes(icmp_header.checksum);		//Done later
+#endif
 
 
 	//----- CALCULATE THE HEADER CHECKSUM -----
 	calculated_checksum = 0;
 	calculated_checksum_next_byte_is_low = 0;
-	//ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculated_checksum_next_byte_is_low, (BYTE*)&icmp_header, ICMP_HEADER_LENGTH);
+#ifdef PACKED_STRUCT
+    ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculated_checksum_next_byte_is_low, (BYTE*)&icmp_header, ICMP_HEADER_LENGTH);
+#else
     ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculated_checksum_next_byte_is_low, (BYTE*)&icmp_header.type, 1);
     ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculated_checksum_next_byte_is_low, (BYTE*)&icmp_header.code, 1);
     ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculated_checksum_next_byte_is_low, (BYTE*)&icmp_header.checksum, 2);
     ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculated_checksum_next_byte_is_low, (BYTE*)&icmp_header.identifier, 2);
     ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculated_checksum_next_byte_is_low, (BYTE*)&icmp_header.sequence_number, 2);
+#endif
 
 	//Add the data buffer to the checksum
 	ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculated_checksum_next_byte_is_low, (BYTE*)data_buffer, data_length);
 
+#ifndef __ORDER_BIG_ENDIAN__
 	//Add the calculated checksum to the header
 	icmp_header.checksum = swap_word_bytes(~calculated_checksum);
+#else
+    icmp_header.checksum = ~calculated_checksum;
+#endif
 
 
 	//----- WRITE THE IP HEADER -----
@@ -179,12 +197,15 @@ void icmp_send_packet(DEVICE_INFO *remote_device_info,BYTE icmp_packet_type, BYT
 
 
 	//----- WRITE THE ICMP HEADER -----
-	//nic_write_array((BYTE*)&icmp_header, ICMP_HEADER_LENGTH);
+#ifdef PACKED_STRUCT
+    nic_write_array((BYTE*)&icmp_header, ICMP_HEADER_LENGTH);
+#else
     nic_write_next_byte(icmp_header.type);
     nic_write_next_byte(icmp_header.code);
     nic_write_array((BYTE*)&icmp_header.checksum, 2);
     nic_write_array((BYTE*)&icmp_header.identifier, 2);
     nic_write_array((BYTE*)&icmp_header.sequence_number, 2);
+#endif
 
 
 	//----- WRITE THE ICMP DATA -----

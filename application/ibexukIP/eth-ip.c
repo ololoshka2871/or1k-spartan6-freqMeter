@@ -66,9 +66,10 @@ BYTE ip_get_header(IP_ADDR *destination_ip, DEVICE_INFO *remote_device_info, BYT
 
 
 	//----- GET THE IP HEADER -----
-	//if (nic_read_array((BYTE*)&ip_header, IP_HEADER_LENGTH) == 0)
-	//	goto ip_get_header_dump_packet;							//Error - packet was too small - dump
-
+#ifdef PACKED_STRUCT
+    if (nic_read_array((BYTE*)&ip_header, IP_HEADER_LENGTH) == 0)
+        goto ip_get_header_dump_packet;							//Error - packet was too small - dump
+#else
 	if (!nic_read_next_byte(&ip_header.version_header_length))
 		return(1);												//Error - packet was too small - dump it
 	if (!nic_read_next_byte(&ip_header.type_of_service))
@@ -89,7 +90,7 @@ BYTE ip_get_header(IP_ADDR *destination_ip, DEVICE_INFO *remote_device_info, BYT
 		goto ip_get_header_dump_packet;							//Error - packet was too small - dump
 	if (!(nic_read_array((BYTE*)&ip_header.destination_ip_address, 4)))
 		goto ip_get_header_dump_packet;							//Error - packet was too small - dump
-
+#endif
 
 	//IP Version should be V4
 	if ((ip_header.version_header_length & 0xf0) != (IP_VERSION << 4))
@@ -138,17 +139,22 @@ BYTE ip_get_header(IP_ADDR *destination_ip, DEVICE_INFO *remote_device_info, BYT
     	ip_add_bytes_to_ip_checksum (&calculated_checksum, &calculated_checksum_next_byte_is_low, (BYTE*)&header_options_bytes, options_length);
     }	
 
-	//Ensure checksums match
-	received_checksum = ~received_checksum;
+    //Ensure checksums match
+    received_checksum = ~received_checksum;
+
+#ifndef __ORDER_BIG_ENDIAN__
 	received_checksum = swap_word_bytes(received_checksum);
+#endif
 
 	if (received_checksum != calculated_checksum)
 		goto ip_get_header_dump_packet;
 
+#ifndef __ORDER_BIG_ENDIAN__
 	//SWAP LENGTH, IDENT & CHECKSUM WORDS
 	ip_header.length = swap_word_bytes(ip_header.length);
 	//ip_header.ident = swap_word_bytes(ip_header.ident);						//No need
 	//ip_header.header_checksum = swap_word_bytes(ip_header.header_checksum);	//No need
+#endif
 	
 
 	//----- CHECK THE DESTINATION IP ADDRESS MATCHES OURS OR IS BROADCAST ON OUR SUBNET -----
@@ -225,16 +231,21 @@ void ip_write_header(DEVICE_INFO *remote_device_info, BYTE ip_protocol)
 	ip_header.source_ip_address.Val = our_ip_address.Val;
 	ip_header.destination_ip_address.Val = remote_device_info->ip_address.Val;
 
+#ifndef __ORDER_BIG_ENDIAN__
 	//SWAP LENGTH, IDENT & CHECKSUM WORDS
 	//ip_header.length = swap_word_bytes(ip_header.length);		//Not needed
 	ip_header.ident = swap_word_bytes(ip_header.ident);
 	//ip_header.header_checksum = swap_word_bytes(ip_header.header_checksum);	//Done later
+#endif
 
 
 	//----- START CALCULATION OF IP HEADER CHECKSUM -----
 	ip_tx_ip_header_checksum = 0;
 	ip_tx_ip_header_checksum_next_byte_low = 0;
-	//ip_add_bytes_to_ip_checksum (&ip_tx_ip_header_checksum, &ip_tx_ip_header_checksum_next_byte_low, (BYTE*)&ip_header, IP_HEADER_LENGTH);
+
+#ifdef PACKED_STRUCT
+    ip_add_bytes_to_ip_checksum (&ip_tx_ip_header_checksum, &ip_tx_ip_header_checksum_next_byte_low, (BYTE*)&ip_header, IP_HEADER_LENGTH);
+#else
     ip_add_bytes_to_ip_checksum (&ip_tx_ip_header_checksum, &ip_tx_ip_header_checksum_next_byte_low, (BYTE*)&ip_header.version_header_length, 1);
     ip_add_bytes_to_ip_checksum (&ip_tx_ip_header_checksum, &ip_tx_ip_header_checksum_next_byte_low, (BYTE*)&ip_header.type_of_service, 1);
     ip_add_bytes_to_ip_checksum (&ip_tx_ip_header_checksum, &ip_tx_ip_header_checksum_next_byte_low, (BYTE*)&ip_header.length, 2);
@@ -245,6 +256,7 @@ void ip_write_header(DEVICE_INFO *remote_device_info, BYTE ip_protocol)
     ip_add_bytes_to_ip_checksum (&ip_tx_ip_header_checksum, &ip_tx_ip_header_checksum_next_byte_low, (BYTE*)&ip_header.header_checksum, 2);
     ip_add_bytes_to_ip_checksum (&ip_tx_ip_header_checksum, &ip_tx_ip_header_checksum_next_byte_low, (BYTE*)&ip_header.source_ip_address, 4);
     ip_add_bytes_to_ip_checksum (&ip_tx_ip_header_checksum, &ip_tx_ip_header_checksum_next_byte_low, (BYTE*)&ip_header.destination_ip_address, 4);
+#endif
 
 
 	//----- WRITE THE ETHERNET HEADER -----
@@ -252,7 +264,9 @@ void ip_write_header(DEVICE_INFO *remote_device_info, BYTE ip_protocol)
 
 
 	//----- WRITE THE IP HEADER -----
-	//nic_write_array((BYTE*)&ip_header, IP_HEADER_LENGTH);
+#ifdef PACKED_STRUCT
+    nic_write_array((BYTE*)&ip_header, IP_HEADER_LENGTH);
+#else
     nic_write_next_byte(ip_header.version_header_length);
     nic_write_next_byte(ip_header.type_of_service);
     nic_write_array((BYTE*)&ip_header.length, 2);
@@ -263,6 +277,7 @@ void ip_write_header(DEVICE_INFO *remote_device_info, BYTE ip_protocol)
     nic_write_array((BYTE*)&ip_header.header_checksum, 2);
     nic_write_array((BYTE*)&ip_header.source_ip_address, 4);
     nic_write_array((BYTE*)&ip_header.destination_ip_address, 4);
+#endif
 
 	
 	//----- NOW JUST WRITE THE IP DATA -----
@@ -285,7 +300,10 @@ void ip_tx_packet (void)
 
 	//GET THE IP PACKET LENGTH FOR THE IP HEADER
 	ip_length = (nic_tx_len - ETHERNET_HEADER_LENGTH);
+
+#ifndef __ORDER_BIG_ENDIAN__
 	ip_length = swap_word_bytes(ip_length);
+#endif
 	
 	//ADD IT TO THE IP HEADER CHECKSUM
 	ip_add_bytes_to_ip_checksum (&ip_tx_ip_header_checksum, &ip_tx_ip_header_checksum_next_byte_low, (BYTE*)&ip_length, 2);
@@ -294,7 +312,12 @@ void ip_tx_packet (void)
 	nic_write_tx_word_at_location ((ETHERNET_HEADER_LENGTH + 2), ip_length);
 	
 	//WRITE THE IP CHECKSUM FIELD
+#ifndef __ORDER_BIG_ENDIAN__
 	ip_tx_ip_header_checksum = swap_word_bytes(~ip_tx_ip_header_checksum);
+#else
+    ip_tx_ip_header_checksum = ~ip_tx_ip_header_checksum;
+#endif
+
 	nic_write_tx_word_at_location ((ETHERNET_HEADER_LENGTH + 10), ip_tx_ip_header_checksum);
 
 	//TX THE PACKET

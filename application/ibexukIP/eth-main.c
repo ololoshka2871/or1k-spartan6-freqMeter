@@ -391,7 +391,7 @@ void tcp_ip_process_stack (void)
 				if (destination_ip_address.Val == our_ip_address.Val)
 				{
 					//Process the packet as long as its length is OK
-					if (data_remaining_bytes <= (ICMP_MAX_DATA_LENGTH + ICMP_HEADER_LENGTH))
+                    if (data_remaining_bytes <= (ICMP_MAX_DATA_LENGTH + ICMP_HEADER_LENGTH))
 					{
 						if (icmp_process_received_echo_request(&icmp_id, &icmp_sequence, &icmp_data_buffer[0], data_remaining_bytes))
 						{

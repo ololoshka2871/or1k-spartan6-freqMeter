@@ -133,7 +133,7 @@ typedef struct _ARP_PACKET
 	IP_ADDR		sender_ip_addr;
 	MAC_ADDR	target_mac_addr;
 	IP_ADDR		target_ip_addr;
-} ARP_PACKET;
+} PACKED_STRUCT ARP_PACKET;
 
 
 #endif

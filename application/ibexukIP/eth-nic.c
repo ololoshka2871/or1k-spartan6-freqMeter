@@ -195,6 +195,7 @@ BYTE nic_setup_tx (void) {
     if (nic_ok_to_do_tx()) {
         miniMAC_txSlotPrepare();
         txPointer = miniMAC_txSlotData();
+        nic_tx_len = 0;
 
         return TRUE;
     }
@@ -214,6 +215,7 @@ BYTE nic_setup_tx (void) {
 void nic_write_next_byte (BYTE data) {
     *txPointer = data;
     ++txPointer;
+    ++nic_tx_len;
 }
 
 
@@ -227,6 +229,7 @@ void nic_write_next_byte (BYTE data) {
 void nic_write_array (BYTE *array_buffer, WORD array_length) {
     memcpy(txPointer, array_buffer, array_length);
     txPointer += array_length;
+    nic_tx_len += array_length;
 }
 
 
@@ -238,7 +241,10 @@ void nic_write_array (BYTE *array_buffer, WORD array_length) {
 //*********************************************************
 //byte_address must be word aligned
 void nic_write_tx_word_at_location (WORD byte_address, WORD data) {
-    miniMAC_txSlotData()[byte_address] = data;
+    BYTE *wp = miniMAC_txSlotData() + byte_address;
+    BYTE *src = (BYTE *)&data;
+    *wp++ = *src++;
+    *wp   = *src;
 }
 
 
@@ -253,11 +259,24 @@ void nic_write_tx_word_at_location (WORD byte_address, WORD data) {
 void write_eth_header_to_nic (MAC_ADDR *remote_mac_address, WORD ethernet_packet_type) {
     struct ethernet_header *hader = (struct ethernet_header *)txPointer;
 
-    memcpy(hader->destmac, remote_mac_address, sizeof(MAC_ADDR_LENGTH));
-    memcpy(hader->srcmac, &our_mac_address, sizeof(MAC_ADDR_LENGTH));
+    hader->destmac[0] = remote_mac_address->v[0];
+    hader->destmac[1] = remote_mac_address->v[1];
+    hader->destmac[2] = remote_mac_address->v[2];
+    hader->destmac[3] = remote_mac_address->v[3];
+    hader->destmac[4] = remote_mac_address->v[4];
+    hader->destmac[5] = remote_mac_address->v[5];
+
+    hader->srcmac[0] = our_mac_address.v[0];
+    hader->srcmac[1] = our_mac_address.v[1];
+    hader->srcmac[2] = our_mac_address.v[2];
+    hader->srcmac[3] = our_mac_address.v[3];
+    hader->srcmac[4] = our_mac_address.v[4];
+    hader->srcmac[5] = our_mac_address.v[5];
+
     hader->ethertype = ethernet_packet_type;
 
     txPointer += sizeof(struct ethernet_header);
+    nic_tx_len = sizeof(struct ethernet_header);
 }
 
 
@@ -269,23 +288,24 @@ void write_eth_header_to_nic (MAC_ADDR *remote_mac_address, WORD ethernet_packet
 //**************************************************************
 void nic_tx_packet (void) {
     BYTE* pocket_start = miniMAC_txSlotData();
-    WORD pocket_size = (uint16_t)(txPointer - pocket_start);
 
-    if (pocket_size < ETHERNET_FRAME_SIZE_MIN - sizeof(DWORD)) {
+    if (nic_tx_len < ETHERNET_FRAME_SIZE_MIN - sizeof(DWORD)) {
         DWORD filling_butes = ETHERNET_FRAME_SIZE_MIN -
-                sizeof(DWORD) - pocket_size;
+                sizeof(DWORD) - nic_tx_len;
         memset(txPointer, 0x00, filling_butes);
 
-        pocket_size += filling_butes;
-        txPointer += filling_butes;
+        nic_tx_len = ETHERNET_FRAME_SIZE_MIN - sizeof(DWORD);
+        txPointer = pocket_start + nic_tx_len;
     }
 
-    DWORD crc = crc32(pocket_start, pocket_size, 0);
-    *txPointer++ = crc & 0xff;
-    *txPointer++ = (crc >> 8) & 0xff;
-    *txPointer++ = (crc >> 16) & 0xff;
-    *txPointer   = (crc >> 24) & 0xff;
+    DWORD crc = crc32(pocket_start, nic_tx_len, 0);
+    *txPointer++ = crc;
+    *txPointer++ = crc >> 8;
+    *txPointer++ = crc >> 16;
+    *txPointer   = crc >> 24;
 
-    miniMAC_startTramcmission(pocket_size + sizeof(DWORD));
+    nic_tx_len += sizeof(crc);
+
+    miniMAC_startTramcmission(nic_tx_len);
 }
 

@@ -124,6 +124,8 @@ typedef union _DWORD_VAL
 #define UPPER_LSB(a)    ((a).v[2])
 #define UPPER_MSB(a)    ((a).v[3])
 
+#define PACKED_STRUCT   __attribute__((packed))
+
 //EXAMPLE OF HOW TO USE THE DATA TYPES:-
 //	WORD_VAL variable_name;				//Define the variable
 //	variable_name = 0xffffffff;			//Writing 32 bit value
