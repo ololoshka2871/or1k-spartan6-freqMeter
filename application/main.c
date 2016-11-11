@@ -46,6 +46,8 @@
 
 #include "eth-dhcp.h"
 
+#include "MAC.h"
+
 const char hostname[15] =
 #ifdef ETHERNET_HOSTNAME
         ETHERNET_HOSTNAME;
@@ -152,12 +154,12 @@ static void init_tcpip() {
 #endif
 
     //----- SET OUR ETHENET UNIQUE MAC ADDRESS -----
-    our_mac_address.v[0] = 0x00;
-    our_mac_address.v[1] = 0x50;
-    our_mac_address.v[2] = 0xC2;
-    our_mac_address.v[3] = 0x50;
-    our_mac_address.v[4] = 0x10;
-    our_mac_address.v[5] = 0x32;
+    our_mac_address.v[0] = ETH_MAC0;
+    our_mac_address.v[1] = ETH_MAC1;
+    our_mac_address.v[2] = ETH_MAC2;
+    our_mac_address.v[3] = ETH_MAC3;
+    our_mac_address.v[4] = ETH_MAC4;
+    our_mac_address.v[5] = ETH_MAC5;
 
     //----- INITIALISE ETHERNET -----
     tcp_ip_initialise();

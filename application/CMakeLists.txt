@@ -93,7 +93,23 @@ add_subdirectory(libbase)
 add_subdirectory(libhw)
 add_subdirectory(ibexukIP)
 
-include_directories(libhw libbase libnet ${IBEXUK_IP_INCLUDE_DIRS})
+set(MAC_ADDRESS_INCLUDE_FILE    ${CMAKE_CURRENT_BINARY_DIR}/MAC.h)
+
+add_custom_target(gen_mac
+    COMMAND
+        rm -f ${MAC_ADDRESS_INCLUDE_FILE}
+    COMMAND
+        ${MACADDR_GENERATOR} ${ETHERNET_MAC_ADDRESS_MSB} > ${MAC_ADDRESS_INCLUDE_FILE}
+    DEPENDS ${MACADDR_GENERATOR}
+    COMMENT
+        "Generating random MAC address"
+    )
+
+include_directories(
+    ${CMAKE_CURRENT_BINARY_DIR}
+    libhw libbase libnet
+    ${IBEXUK_IP_INCLUDE_DIRS}
+    )
 
 get_target_property(hwlib_difenitions hw COMPILE_DEFINITIONS)
 get_target_property(ibexukIP_difenitions ibexukIP COMPILE_DEFINITIONS)
@@ -103,6 +119,7 @@ set(APPLICATION_ELF_NAME app.elf)
 add_executable(${APPLICATION_ELF_NAME}
     ${APP_STARTUP_SRC}
     main.c
+    ${MAC_ADDRESS_INCLUDE_FILE}
     )
 target_link_libraries(${APPLICATION_ELF_NAME}
     -Wl,--start-group hw ibexukIP base -Wl,--end-group)

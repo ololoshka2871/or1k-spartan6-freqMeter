@@ -123,6 +123,18 @@ set(CPU_CLOCK_DEVIDER       24
 set(SYSTEM_HEAP_SIZE        256
     CACHE STRING "System memory heap size")
 
+set(ETHERNET_MAC_ADDRESS_MSB  09
+    CACHE STRING  "First byte of ethernet MAC address")
+
+set(ETHERNET_STATIC_IP_ADDR "192.168.0.199"
+    CACHE STRING  "Default static IP addr")
+
+set(ETHERNET_STATIC_IP_NETMASK "255.255.255.0"
+    CACHE STRING  "Default static IP netmask")
+
+set(ETHERNET_STATIC_IP_GATEWAY "192.168.0.1"
+    CACHE STRING  "Default static IP gateway")
+
 set(ETHERNET_USE_DHCP       YES
     CACHE BOOL   "Try to obtain ip address truth DHCP")
 

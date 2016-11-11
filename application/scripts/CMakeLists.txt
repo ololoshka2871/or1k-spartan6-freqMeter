@@ -31,14 +31,17 @@
 
 set(MK_APP_LD_SCRIPT   "${CMAKE_CURRENT_SOURCE_DIR}/mkldscript.sh")
 set(SUMMARY_GENERATOR  "${CMAKE_CURRENT_SOURCE_DIR}/mksummary.sh")
+set(MACADDR_GENERATOR  "${CMAKE_CURRENT_SOURCE_DIR}/gen_random_mac.sh")
 
 add_custom_target(app_scripts.editor
     SOURCES
         ${MK_APP_LD_SCRIPT}
         ${SUMMARY_GENERATOR}
+        ${MACADDR_GENERATOR}
         elf_get_section_info.sh
     )
     
 set(MK_APP_LD_SCRIPT   ${MK_APP_LD_SCRIPT}              PARENT_SCOPE)
 set(SUMMARY_GENERATOR  ${SUMMARY_GENERATOR}             PARENT_SCOPE)
+set(MACADDR_GENERATOR  ${MACADDR_GENERATOR}             PARENT_SCOPE)
 
