@@ -42,6 +42,9 @@
 
 #include "prog_timer.h"
 
+#ifndef STACK_USE_DHCP
+static progtimer_desc_t timers[1];
+#else
 static progtimer_desc_t timers[3];
 
 static void tick_1ms(void* p)  {
@@ -52,13 +55,6 @@ static void tick_1ms(void* p)  {
         eth_dhcp_1ms_timer--;
 }
 
-static void tick_10ms(void* p)  {
-    (void)p;
-
-    //----- ETHERNET GENERAL TIMER -----
-    ethernet_10ms_clock_timer_working++;
-}
-
 static void tick_1s(void* p)  {
     (void)p;
 
@@ -67,10 +63,20 @@ static void tick_1s(void* p)  {
     if (eth_dhcp_1sec_lease_timer)
         eth_dhcp_1sec_lease_timer--;
 }
+#endif
+
+static void tick_10ms(void* p)  {
+    (void)p;
+
+    //----- ETHERNET GENERAL TIMER -----
+    ethernet_10ms_clock_timer_working++;
+}
 
 void init_eth_timers() {
+    timers[0] = progtimer_new(10, tick_10ms, NULL);
+#ifdef STACK_USE_DHCP
     // create timers
-    timers[0] = progtimer_new(1, tick_1ms, NULL);
-    timers[1] = progtimer_new(10, tick_10ms, NULL);
+    timers[1] = progtimer_new(1, tick_1ms, NULL);
     timers[2] = progtimer_new(1000, tick_1s, NULL);
+#endif
 }

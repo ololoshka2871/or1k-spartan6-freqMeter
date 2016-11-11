@@ -172,10 +172,12 @@ BYTE arp_process_rx (void)
 		if (!nic_read_array((BYTE*)&arp_packet.target_ip_addr, 4))
 			return(1);									//Error - packet was too small - dump it
 
+#ifndef __ORDER_BIG_ENDIAN__
 		//Swap the bytes in hardware type, protocol & operation
 		arp_packet.hardware_type = swap_word_bytes(arp_packet.hardware_type);
 		arp_packet.protocol = swap_word_bytes(arp_packet.protocol);
 		arp_packet.op_code = swap_word_bytes(arp_packet.op_code);
+#endif
 
 		//DUMP THE PACKET FROM THE NIC BUFFER
 		nic_rx_dump_packet();
@@ -375,7 +377,7 @@ void arp_tx_packet (DEVICE_INFO *remote_device_info, WORD op_code)
 
 
 	//----- SEND THE PACKET -----
-	nix_tx_packet();
+    nic_tx_packet();
 
 	return;
 }

@@ -111,8 +111,8 @@ static void assert_slot(enum enMiniMACRxSlots slot) {
 }
 
 void miniMAC_init() {
-    MINIMAC_ENABLE_RX(1);
-    MINIMAC_ENABLE_TX(1);
+    MINIMAC_ENABLE_RX(true);
+    MINIMAC_ENABLE_TX(true);
 
     for(enum enMiniMACRxSlots slot = MINIMAC_RX_SLOT0;
              slot < MINIMAC_RX_SLOT_COUNT; ++slot) {
@@ -138,7 +138,19 @@ void miniMAC_acceptSlot(enum enMiniMACRxSlots slot) {
 }
 
 void miniMAC_resetIfError() {
-
+    if (MINIMAC_RST_CTL & MINIMAC_RST_RX) {
+        // ressive error
+        // слот, который сейчас активен вызвал ошибку приёма, сбросим его
+        // затем разрешим работу приёмника
+        for (enum enMiniMACRxSlots slot = MINIMAC_RX_SLOT0;
+             slot < MINIMAC_RX_SLOT_COUNT; ++slot) {
+            uint32_t count = MINIMAC_SLOT_COUNT(slot);
+            enum enMiniMACSlotStates slot_state = MINIMAC_SLOT_STATE(slot);
+            if (count && (slot_state == MINIMAC_SLOT_STATE_READY))
+                miniMAC_resetRxSlot(slot);
+        }
+        MINIMAC_ENABLE_RX(true);
+    }
 }
 
 uint32_t miniMAC_txRemaning() {
@@ -161,4 +173,16 @@ void miniMAC_resetRxSlot(enum enMiniMACRxSlots slot) {
     assert_slot(slot);
 
     MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
+}
+
+void miniMAC_txSlotPrepare() {
+    MINIMAC_TX_SLOT_ADDR = MAC_TX_MEM_BASE;
+}
+
+uint8_t* miniMAC_txSlotData() {
+    return (uint8_t*)MINIMAC_TX_SLOT_ADDR;
+}
+
+void miniMAC_startTramcmission(uint16_t size) {
+    MINIMAC_TX_REMAINING = size;
 }

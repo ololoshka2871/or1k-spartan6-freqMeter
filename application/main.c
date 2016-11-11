@@ -44,6 +44,8 @@
 #include "main.h"
 #include "eth-main.h"
 
+#include "eth-dhcp.h"
+
 void DELAY() {
     for (int i = 0; i < 100000; ++i)
         asm volatile("l.nop");
@@ -160,13 +162,31 @@ static void configure_ethernet_PHY() {
 }
 
 static void init_tcpip() {
+    //----- CONFIGURE ETHERNET -----
+#ifndef STACK_USE_DHCP
+    our_ip_address.v[0] = 192; //MSB
+    our_ip_address.v[1] = 168;
+    our_ip_address.v[2] = 1;
+    our_ip_address.v[3] = 99; //LSB
+    our_subnet_mask.v[0] = 255; //MSB
+    our_subnet_mask.v[1] = 255;
+    our_subnet_mask.v[2] = 255;
+    our_subnet_mask.v[3] = 0; //LSB
+    our_gateway_ip_address.v[0] = 192;
+    our_gateway_ip_address.v[1] = 168;
+    our_gateway_ip_address.v[2] = 1;
+    our_gateway_ip_address.v[3] = 1;
+#else
+    eth_dhcp_using_manual_settings = 0;
+#endif
+
     //----- SET OUR ETHENET UNIQUE MAC ADDRESS -----
-    our_mac_address.v[0] = 0;		//MSB
-    our_mac_address.v[1] = 80;
-    our_mac_address.v[2] = 194;
-    our_mac_address.v[3] = 80;
-    our_mac_address.v[4] = 16;
-    our_mac_address.v[5] = 50;		//LSB
+    our_mac_address.v[0] = 0x00;
+    our_mac_address.v[1] = 0x50;
+    our_mac_address.v[2] = 0xC2;
+    our_mac_address.v[3] = 0x50;
+    our_mac_address.v[4] = 0x10;
+    our_mac_address.v[5] = 0x32;
 
     //----- INITIALISE ETHERNET -----
     tcp_ip_initialise();

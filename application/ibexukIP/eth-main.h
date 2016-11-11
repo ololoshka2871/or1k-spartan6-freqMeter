@@ -131,7 +131,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //----- DHCP -----
 //(Used to allow us to automatically obtain an IP address, subnet mask and gateway address from a local network DHCP server)
-#define STACK_USE_DHCP				//(Comment out if not required)
+//#define STACK_USE_DHCP				//(Comment out if not required)
 
 //----- DNS -----
 //(Used to allow us to find out the IP address of remote devices from their domain name)

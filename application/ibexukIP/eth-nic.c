@@ -42,6 +42,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "eth-tcp.h"
 #endif
 
+#include "crc32.h"
 #include "minimac2.h"
 
 BYTE nic_is_linked;
@@ -55,6 +56,8 @@ extern void init_eth_timers();
 static enum enMiniMACRxSlots rxWorkingSlot;
 
 static BYTE * rxPointer;
+static BYTE * txPointer;
+
 
 //************************************
 //************************************
@@ -91,8 +94,26 @@ WORD nic_check_for_rx (void) {
 
     miniMAC_acceptSlot(rxWorkingSlot);
     rxPointer = miniMAC_rxSlotData(rxWorkingSlot);
+    uint16_t rxlen = miniMAC_rxCount(rxWorkingSlot);
 
-    return miniMAC_rxCount(rxWorkingSlot);
+    if (rxlen < ETHERNET_FRAME_SIZE_MIN) goto __ressive_error;
+
+    // check crc32
+    uint32_t ressived_crc = ((uint32_t)rxPointer[rxlen-1] << 24) |
+                ((uint32_t)rxPointer[rxlen-2] << 16) |
+                ((uint32_t)rxPointer[rxlen-3] <<  8) |
+                ((uint32_t)rxPointer[rxlen-4]);
+    uint32_t computed_crc =
+            crc32(rxPointer, rxlen - sizeof(ressived_crc), 0);
+
+    if (ressived_crc != computed_crc) goto __ressive_error;
+
+    return rxlen;
+
+__ressive_error:
+    miniMAC_resetRxSlot(rxWorkingSlot);
+    rxWorkingSlot = MINIMAC_RX_SLOT_INVALID;
+    return 0;
 }
 
 
@@ -155,8 +176,10 @@ void nic_move_pointer (WORD move_pointer_to_ethernet_byte) {
 //****************************************
 //Discard any remaining bytes in the current RX packet and free up the nic for the next rx packet
 void nic_rx_dump_packet (void) {
-    miniMAC_resetRxSlot(rxWorkingSlot);
-    rxWorkingSlot = MINIMAC_RX_SLOT_INVALID;
+    if (rxWorkingSlot != MINIMAC_RX_SLOT_INVALID) {
+        miniMAC_resetRxSlot(rxWorkingSlot);
+        rxWorkingSlot = MINIMAC_RX_SLOT_INVALID;
+    }
 }
 
 
@@ -169,7 +192,13 @@ void nic_rx_dump_packet (void) {
 //Checks the nic to see if it is ready to accept a new tx packet.  If so it sets up the nic ready for the first byte of the data area to be sent.
 //Returns 1 if nic ready, 0 if not.
 BYTE nic_setup_tx (void) {
+    if (nic_ok_to_do_tx()) {
+        miniMAC_txSlotPrepare();
+        txPointer = miniMAC_txSlotData();
 
+        return TRUE;
+    }
+    return FALSE;
 }
 
 
@@ -183,7 +212,8 @@ BYTE nic_setup_tx (void) {
 //(nic_setup_tx must have already been called)
 //The nic stores the ethernet tx in words.  This routine deals with this and allows us to work in bytes.
 void nic_write_next_byte (BYTE data) {
-
+    *txPointer = data;
+    ++txPointer;
 }
 
 
@@ -195,7 +225,8 @@ void nic_write_next_byte (BYTE data) {
 //*************************************
 //(nic_setup_tx must have already been called)
 void nic_write_array (BYTE *array_buffer, WORD array_length) {
-
+    memcpy(txPointer, array_buffer, array_length);
+    txPointer += array_length;
 }
 
 
@@ -207,7 +238,7 @@ void nic_write_array (BYTE *array_buffer, WORD array_length) {
 //*********************************************************
 //byte_address must be word aligned
 void nic_write_tx_word_at_location (WORD byte_address, WORD data) {
-
+    miniMAC_txSlotData()[byte_address] = data;
 }
 
 
@@ -220,7 +251,13 @@ void nic_write_tx_word_at_location (WORD byte_address, WORD data) {
 //**************************************************
 //nic_setup_tx() must have been called first
 void write_eth_header_to_nic (MAC_ADDR *remote_mac_address, WORD ethernet_packet_type) {
+    struct ethernet_header *hader = (struct ethernet_header *)txPointer;
 
+    memcpy(hader->destmac, remote_mac_address, sizeof(MAC_ADDR_LENGTH));
+    memcpy(hader->srcmac, &our_mac_address, sizeof(MAC_ADDR_LENGTH));
+    hader->ethertype = ethernet_packet_type;
+
+    txPointer += sizeof(struct ethernet_header);
 }
 
 
@@ -230,24 +267,25 @@ void write_eth_header_to_nic (MAC_ADDR *remote_mac_address, WORD ethernet_packet
 //********** TRANSMIT THE PACKET IN THE NIC TX BUFFER **********
 //**************************************************************
 //**************************************************************
-void nix_tx_packet (void) {
+void nic_tx_packet (void) {
+    BYTE* pocket_start = miniMAC_txSlotData();
+    WORD pocket_size = (uint16_t)(txPointer - pocket_start);
 
+    if (pocket_size < ETHERNET_FRAME_SIZE_MIN - sizeof(DWORD)) {
+        DWORD filling_butes = ETHERNET_FRAME_SIZE_MIN -
+                sizeof(DWORD) - pocket_size;
+        memset(txPointer, 0x00, filling_butes);
+
+        pocket_size += filling_butes;
+        txPointer += filling_butes;
+    }
+
+    DWORD crc = crc32(pocket_start, pocket_size, 0);
+    *txPointer++ = crc & 0xff;
+    *txPointer++ = (crc >> 8) & 0xff;
+    *txPointer++ = (crc >> 16) & 0xff;
+    *txPointer   = (crc >> 24) & 0xff;
+
+    miniMAC_startTramcmission(pocket_size + sizeof(DWORD));
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

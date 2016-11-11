@@ -40,21 +40,28 @@ set(IBEXUK_IP_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}
         )
 
-include_directories(${IBEXUK_IP_INCLUDE_DIRS} ${LIBHW_INCLUDE_DIR})
+include_directories(${IBEXUK_IP_INCLUDE_DIRS}
+    ${LIBHW_INCLUDE_DIR}
+    ${LIBBASE_INCLUDE_DIR})
 
 set(IBEXUK_IP_SRC
     eth-nic.c
     timers.c
 
     eth-arp.c
-    eth-dhcp.c
-    #eth-http.c
     eth-icmp.c
     eth-ip.c
     eth-main.c
     eth-tcp.c
     eth-udp.c
+
+    #eth-http.c
     )
+
+if(ETHERNET_USE_DHCP)
+    list(APPEND IBEXUK_IP_SRC eth-dhcp.c)
+    add_definitions(-DSTACK_USE_DHCP)
+endif()
 
 add_library(ibexukIP STATIC ${IBEXUK_IP_SRC})
 

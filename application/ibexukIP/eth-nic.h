@@ -83,7 +83,7 @@ void nic_write_next_byte (BYTE data);
 void nic_write_array (BYTE *array_buffer, WORD array_length);
 void nic_write_tx_word_at_location (WORD byte_address, WORD data);
 void write_eth_header_to_nic (MAC_ADDR *remote_mac_address, WORD ethernet_packet_type);
-void nix_tx_packet (void);
+void nic_tx_packet (void);
 
 
 

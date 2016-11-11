@@ -123,6 +123,9 @@ set(CPU_CLOCK_DEVIDER       24
 set(SYSTEM_HEAP_SIZE        256
     CACHE STRING "System memory heap size")
 
+set(ETHERNET_USE_DHCP       YES
+    CACHE BOOL   "Try to obtain ip address truth DHCP")
+
 #--- test firmware ---
 set(SIM_TEST_FREQMETER      OFF
     CACHE BOOL  "Bootloader firmware tests freqmeter IP-core")

@@ -298,7 +298,7 @@ void ip_tx_packet (void)
 	nic_write_tx_word_at_location ((ETHERNET_HEADER_LENGTH + 10), ip_tx_ip_header_checksum);
 
 	//TX THE PACKET
-	nix_tx_packet();
+    nic_tx_packet();
 }
 
 

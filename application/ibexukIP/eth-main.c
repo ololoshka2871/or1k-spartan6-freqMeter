@@ -263,9 +263,14 @@ void tcp_ip_process_stack (void)
 				nic_read_next_byte(&remote_device_info.mac_address.v[4]);
 				nic_read_next_byte(&remote_device_info.mac_address.v[5]);
 
-				//Get the header type [2]
-				nic_read_next_byte(&rx_ethernet_packet_type.v[1]);
-				nic_read_next_byte(&rx_ethernet_packet_type.v[0]);
+                //Get the header type [2]
+#ifdef __ORDER_BIG_ENDIAN__
+                nic_read_next_byte(&rx_ethernet_packet_type.v[0]);
+                nic_read_next_byte(&rx_ethernet_packet_type.v[1]);
+#else
+                nic_read_next_byte(&rx_ethernet_packet_type.v[1]);
+                nic_read_next_byte(&rx_ethernet_packet_type.v[0]);
+#endif
 				
 
 				//----- DECIDE WHAT TO DO FROM THE PACKET TYPE VALUE -----
