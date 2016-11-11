@@ -26,6 +26,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 //Project Name:		TCP/IP DRIVER
 
+#include <stddef.h>
+#include <string.h>
 
 #include "main.h"					//Global data type definitions (see https://github.com/ibexuk/C_Generic_Header_File )
 #include "eth-main.h"		//Include before our header file
@@ -48,6 +50,12 @@ BYTE nic_rx_packet_waiting_to_be_dumped;
 
 extern void init_eth_timers();
 
+//------------------------------------------------------------------------------
+
+static enum enMiniMACRxSlots rxWorkingSlot;
+
+static BYTE * rxPointer;
+
 //************************************
 //************************************
 //********** INITIALISE NIC **********
@@ -58,7 +66,10 @@ extern void init_eth_timers();
 void nic_initialise (BYTE init_config) {
     (void)init_config;
 
-    minmac_init();
+    rxWorkingSlot = MINIMAC_RX_SLOT_INVALID;
+    rxPointer = NULL;
+
+    miniMAC_init();
 
     init_eth_timers();
 }
@@ -72,7 +83,16 @@ void nic_initialise (BYTE init_config) {
 //********************************************
 //Returns 0 if no rx waiting (other nic activities may have been processed) or the number of bytes in the packet if rx is waiting
 WORD nic_check_for_rx (void) {
+    miniMAC_resetIfError();
 
+    rxWorkingSlot = miniMAC_findReadySlot();
+    if (rxWorkingSlot == MINIMAC_RX_SLOT_INVALID)
+        return 0;
+
+    miniMAC_acceptSlot(rxWorkingSlot);
+    rxPointer = miniMAC_rxSlotData(rxWorkingSlot);
+
+    return miniMAC_rxCount(rxWorkingSlot);
 }
 
 
@@ -83,21 +103,8 @@ WORD nic_check_for_rx (void) {
 //**********************************************************
 //**********************************************************
 BYTE nic_ok_to_do_tx (void) {
-
+    return miniMAC_txRemaning() == 0;
 }
-
-
-
-//************************************************
-//************************************************
-//********** NIC SETUP READ DATA BUFFER **********
-//************************************************
-//************************************************
-void nic_setup_read_data (void) {
-
-}
-
-
 
 
 //****************************************
@@ -109,11 +116,10 @@ void nic_setup_read_data (void) {
 //The nic stores the ethernet rx in little endian words.  This routine deals with this and allows us to work in bytes.
 //Returns 1 if read successful, 0 if there are no more bytes in the rx buffer
 BYTE nic_read_next_byte (BYTE *data) {
-
+    *data = *rxPointer;
+    ++rxPointer;
+    return TRUE;
 }
-
-
-
 
 
 //************************************
@@ -123,7 +129,9 @@ BYTE nic_read_next_byte (BYTE *data) {
 //************************************
 //(nic_setup_read_data must have already been called)
 BYTE nic_read_array (BYTE *array_buffer, WORD array_length) {
-
+    memcpy(array_buffer, rxPointer, array_length);
+    rxPointer += array_length;
+    return TRUE;
 }
 
 
@@ -135,7 +143,7 @@ BYTE nic_read_array (BYTE *array_buffer, WORD array_length) {
 //**************************************
 //Moves the pointer to a specified byte ready to be read next, with a value of 0 = the first byte of the Ethernet header
 void nic_move_pointer (WORD move_pointer_to_ethernet_byte) {
-
+    rxPointer = miniMAC_rxSlotData(rxWorkingSlot) + move_pointer_to_ethernet_byte;
 }
 
 
@@ -147,7 +155,8 @@ void nic_move_pointer (WORD move_pointer_to_ethernet_byte) {
 //****************************************
 //Discard any remaining bytes in the current RX packet and free up the nic for the next rx packet
 void nic_rx_dump_packet (void) {
-
+    miniMAC_resetRxSlot(rxWorkingSlot);
+    rxWorkingSlot = MINIMAC_RX_SLOT_INVALID;
 }
 
 
@@ -222,46 +231,6 @@ void write_eth_header_to_nic (MAC_ADDR *remote_mac_address, WORD ethernet_packet
 //**************************************************************
 //**************************************************************
 void nix_tx_packet (void) {
-
-}
-
-
-
-//*****************************************
-//*****************************************
-//********** READ NIC LINK SETUP **********
-//*****************************************
-//*****************************************
-//Returns:
-//	Bit 0 = high for 100Base-T speed, low for 10Base-T speed
-//	Bit 1 = high for full duplex, low for half duplex
-BYTE nic_read_link_setup (void) {
-
-}
-
-
-
-
-
-//****************************************
-//****************************************
-//********** WRITE PHY REGISTER **********
-//****************************************
-//****************************************
-//(Do via the MII serial interface)
-void nic_write_phy_register (BYTE address, WORD data) {
-
-}
-
-
-
-//***************************************
-//***************************************
-//********** READ PHY REGISTER **********
-//***************************************
-//***************************************
-//(Via the MII serial interface)
-WORD nic_read_phy_register (BYTE address)  {
 
 }
 

@@ -61,19 +61,30 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef NIC_C_INIT		//Do only once the first time this file is used
 #define	NIC_C_INIT
 
+#include "minimac2.h"
+
 //----- ETHERNET SPEED TO USE -----
 #define	NIC_INIT_SPEED						1	//0 = allow speed 10 / 100 Mbps, 1 = force speed to 10 Mbps
 
 
 
 //----- DATA TYPE DEFINITIONS -----
-typedef struct _ETHERNET_HEADER
-{
-    MAC_ADDR		destination_mac_address;
-    MAC_ADDR		source_mac_address;
-    WORD_VAL		type;
-} __attribute__((packed)) ETHERNET_HEADER;
-#define	ETHERNET_HEADER_LENGTH		(sizeof(ETHERNET_HEADER))
+#define	ETHERNET_HEADER_LENGTH		(sizeof(struct ethernet_header))
+
+void nic_initialise (BYTE init_config);
+WORD nic_check_for_rx (void);
+BYTE nic_ok_to_do_tx (void);
+BYTE nic_read_next_byte (BYTE *data);
+BYTE nic_read_array (BYTE *array_buffer, WORD array_length);
+void nic_move_pointer (WORD move_pointer_to_ethernet_byte);
+void nic_rx_dump_packet (void);
+BYTE nic_setup_tx (void);
+void nic_write_next_byte (BYTE data);
+void nic_write_array (BYTE *array_buffer, WORD array_length);
+void nic_write_tx_word_at_location (WORD byte_address, WORD data);
+void write_eth_header_to_nic (MAC_ADDR *remote_mac_address, WORD ethernet_packet_type);
+void nix_tx_packet (void);
+
 
 
 extern BYTE nic_is_linked;

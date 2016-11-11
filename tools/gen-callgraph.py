@@ -83,7 +83,7 @@ def generete_nodes(symtable, cppfilt, entry_addr):
         shape_spec = ''
         if addr == entry_addr:
             shape_spec = ', shape="box"'
-        res.append('{} [label="0x{:08X}: {}"{}];'.format(fname, addr, func_name_demangled, shape_spec))
+        res.append('"{}" [label="0x{:08X}: {}"{}];'.format(fname, addr, func_name_demangled, shape_spec))
 
     return res
 
@@ -127,7 +127,7 @@ def generate_edges(symtable, disassembly_list, call_cmd):
                 except KeyError:
                     continue
 
-                call = '{} -> {} [label="0x{:08X}" color="{}"];'.format(
+                call = '"{}" -> "{}" [label="0x{:08X}" color="{}"];'.format(
                     this_func, call_fun, addr, gen_random_color())
                 edges.append(call)
 

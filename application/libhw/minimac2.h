@@ -81,6 +81,14 @@ struct ethernet_header {
 
 //------------------------------------------------------------------------------
 
-void minmac_init();
+void miniMAC_init();
+
+enum enMiniMACRxSlots miniMAC_findReadySlot();
+void miniMAC_resetIfError();
+uint32_t miniMAC_txRemaning();
+uint16_t miniMAC_rxCount(enum enMiniMACRxSlots slot);
+uint8_t *miniMAC_rxSlotData(enum enMiniMACRxSlots slot);
+void miniMAC_acceptSlot(enum enMiniMACRxSlots slot);
+void miniMAC_resetRxSlot(enum enMiniMACRxSlots slot);
 
 #endif // MINMAC_H
