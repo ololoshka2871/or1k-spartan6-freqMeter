@@ -92,11 +92,11 @@ add_custom_target(mkldscript DEPENDS ${LD_SCRIPT_FILE})
 add_subdirectory(libbase)
 add_subdirectory(libhw)
 add_subdirectory(ibexukIP)
-add_subdirectory(libnet)
 
 include_directories(libhw libbase libnet ${IBEXUK_IP_INCLUDE_DIRS})
 
 get_target_property(hwlib_difenitions hw COMPILE_DEFINITIONS)
+get_target_property(ibexukIP_difenitions ibexukIP COMPILE_DEFINITIONS)
 
 set(APPLICATION_ELF_NAME app.elf)
 
@@ -105,8 +105,14 @@ add_executable(${APPLICATION_ELF_NAME}
     main.c
     )
 target_link_libraries(${APPLICATION_ELF_NAME}
-    -Wl,--start-group hw net ibexukIP base -Wl,--end-group)
-set_target_properties(${APPLICATION_ELF_NAME} PROPERTIES COMPILE_DEFINITIONS "${hwlib_difenitions}")
+    -Wl,--start-group hw ibexukIP base -Wl,--end-group)
+
+set(difenitions
+    ${hwlib_difenitions}
+    ${ibexukIP_difenitions}
+    )
+
+set_target_properties(${APPLICATION_ELF_NAME} PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
 add_dependencies(${APPLICATION_ELF_NAME} mkldscript)
 
 function(elf2bin ELF_FILE BIN_FILE)

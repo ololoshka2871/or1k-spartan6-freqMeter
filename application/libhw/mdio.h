@@ -264,9 +264,10 @@
 
 //------------------------------------------------------------------------------
 
-uint16_t MDIO_ReadREG_sync(const uint8_t phy_addr, const uint8_t reg_addr);
-void MDIO_WriteREG(const uint8_t phy_addr, const uint8_t reg_addr,
+uint16_t MDIO_ReadREG_sync(int8_t phy_addr, const uint8_t reg_addr);
+void MDIO_WriteREG(int8_t phy_addr, const uint8_t reg_addr,
                            const uint16_t val);
 int8_t MDIO_DetectPHY(uint8_t startAddr);
+uint32_t MDIO_getConnectionStatus(int8_t phy_addr) ;
 
 #endif // ETHERNET_PHY_H

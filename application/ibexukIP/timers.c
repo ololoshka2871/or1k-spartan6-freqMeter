@@ -40,12 +40,9 @@
 #include "eth-dhcp.h"
 #endif
 
-#include "prog_timer.h"
+#include "mdio.h"
 
-#ifndef STACK_USE_DHCP
-static progtimer_desc_t timers[1];
-#else
-static progtimer_desc_t timers[3];
+#include "prog_timer.h"
 
 static void tick_1ms(void* p)  {
     (void)p;
@@ -62,8 +59,11 @@ static void tick_1s(void* p)  {
         eth_dhcp_1sec_renewal_timer--;
     if (eth_dhcp_1sec_lease_timer)
         eth_dhcp_1sec_lease_timer--;
+
+    // check PHY connection
+    nic_is_linked = MDIO_getConnectionStatus(-1);
 }
-#endif
+
 
 static void tick_10ms(void* p)  {
     (void)p;
@@ -73,10 +73,8 @@ static void tick_10ms(void* p)  {
 }
 
 void init_eth_timers() {
-    timers[0] = progtimer_new(10, tick_10ms, NULL);
-#ifdef STACK_USE_DHCP
-    // create timers
-    timers[1] = progtimer_new(1, tick_1ms, NULL);
-    timers[2] = progtimer_new(1000, tick_1s, NULL);
-#endif
+    // save no pointer, can't free
+    progtimer_new(1, tick_1ms, NULL);
+    progtimer_new(10, tick_10ms, NULL);
+    progtimer_new(1000, tick_1s, NULL);
 }

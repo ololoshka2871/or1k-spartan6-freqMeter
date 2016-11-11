@@ -114,8 +114,10 @@ BYTE udp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 	//-----------------------------------------------
 
 	//----- GET THE UDP HEADER -----
-	//if (nic_read_array((BYTE*)&udp_header, UDP_HEADER_LENGTH) == 0)
-	//	goto udp_process_rx_dump_packet;						//Error - packet was too small - dump
+#ifdef PACKED_STRUCT
+    if (nic_read_array((BYTE*)&udp_header, UDP_HEADER_LENGTH) == 0)
+        goto udp_process_rx_dump_packet;						//Error - packet was too small - dump
+#else
 	if (nic_read_array((BYTE*)&udp_header.source_port, 2) == 0)
 		goto udp_process_rx_dump_packet;						//Error - packet was too small - dump
 	if (nic_read_array((BYTE*)&udp_header.destination_port, 2) == 0)
@@ -124,15 +126,17 @@ BYTE udp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 		goto udp_process_rx_dump_packet;						//Error - packet was too small - dump
 	if (nic_read_array((BYTE*)&udp_header.checksum, 2) == 0)
 		goto udp_process_rx_dump_packet;						//Error - packet was too small - dump
+#endif
 
 
 
-
+#ifndef __ORDER_BIG_ENDIAN__
 	//----- SWAP THE SOURCE PORT, DEST PORT, LENGTH AND CHECKSUM WORDS -----
 	udp_header.source_port = swap_word_bytes(udp_header.source_port);
 	udp_header.destination_port = swap_word_bytes(udp_header.destination_port);
 	udp_header.length = swap_word_bytes(udp_header.length);
 	udp_header.checksum = swap_word_bytes(udp_header.checksum);
+#endif
 
 
 	//----- LOOK FOR A MATCHING SOCKET -----
@@ -147,13 +151,16 @@ BYTE udp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 	//----- MATCHING SOCKET FOUND -----
 
 
-	//----- CHECK CHEKSUM -----
-	#ifdef UDP_CHECKSUMS_ENABLED
+    //----- CHECK CHEKSUM -----
+#ifdef UDP_CHECKSUMS_ENABLED
+
+#ifndef __ORDER_BIG_ENDIAN__
 		//----- SWAP THE SOURCE PORT, DEST PORT, LENGTH AND CHECKSUM WORDS FOR CHECKSUMMING -----
 		udp_header.source_port = swap_word_bytes(udp_header.source_port);
 		udp_header.destination_port = swap_word_bytes(udp_header.destination_port);
 		udp_header.length = swap_word_bytes(udp_header.length);
 		udp_header.checksum = swap_word_bytes(udp_header.checksum);
+#endif
 
 		udp_rx_checksum = 0;
 		udp_rx_checksum_next_byte_low = 0;
@@ -167,7 +174,10 @@ BYTE udp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 		
 		//Protocol
 		w_temp = (WORD)IP_PROTOCOL_UDP;
+
+#ifndef __ORDER_BIG_ENDIAN__
 		w_temp = swap_word_bytes(w_temp);
+#endif
 		ip_add_bytes_to_ip_checksum (&udp_rx_checksum, &udp_rx_checksum_next_byte_low, (BYTE*)&w_temp, 2);
 
 		//Length
@@ -176,11 +186,14 @@ BYTE udp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 		//----- ADD THE UDP HEADER TO THE CHECKSUM -----
 		udp_rx_checksum_recevied = udp_header.checksum;
 		udp_header.checksum = 0;
-		//ip_add_bytes_to_ip_checksum (&udp_rx_checksum, &udp_rx_checksum_next_byte_low, (BYTE*)&udp_header, UDP_HEADER_LENGTH);
+#ifdef PACKED_STRUCT
+        ip_add_bytes_to_ip_checksum (&udp_rx_checksum, &udp_rx_checksum_next_byte_low, (BYTE*)&udp_header, UDP_HEADER_LENGTH);
+#else
         ip_add_bytes_to_ip_checksum (&udp_rx_checksum, &udp_rx_checksum_next_byte_low, (BYTE*)&udp_header.source_port, 2);
         ip_add_bytes_to_ip_checksum (&udp_rx_checksum, &udp_rx_checksum_next_byte_low, (BYTE*)&udp_header.destination_port, 2);
         ip_add_bytes_to_ip_checksum (&udp_rx_checksum, &udp_rx_checksum_next_byte_low, (BYTE*)&udp_header.length, 2);
         ip_add_bytes_to_ip_checksum (&udp_rx_checksum, &udp_rx_checksum_next_byte_low, (BYTE*)&udp_header.checksum, 2);
+#endif
 
 		//----- ADD THE UDP DATA AREA TO THE CHECKSUM -----
 		for (count = 0; count < (ip_data_area_bytes - UDP_HEADER_LENGTH); count++)
@@ -189,7 +202,12 @@ BYTE udp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 			ip_add_bytes_to_ip_checksum (&udp_rx_checksum, &udp_rx_checksum_next_byte_low, (BYTE*)&b_data, 1);
 		}
 
+#ifdef __ORDER_BIG_ENDIAN__
+        udp_rx_checksum = ~udp_rx_checksum;
+#else
 		udp_rx_checksum = swap_word_bytes(~udp_rx_checksum);
+#endif
+
 	
 		//----- CHECK THAT THE CHECKSUMS MATCH -----
 		if (udp_rx_checksum_recevied != udp_rx_checksum)
@@ -198,11 +216,13 @@ BYTE udp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 		//----- MOVE NIC POINTER AND DATA BYTE COUNT BACK TO START OF UDP DATA AREA -----
 		nic_move_pointer (ETHERNET_HEADER_LENGTH + IP_HEADER_LENGTH + UDP_HEADER_LENGTH);
 
+#ifndef __ORDER_BIG_ENDIAN__
 		//----- SWAP THE SOURCE PORT, DEST PORT, LENGTH AND CHECKSUM WORDS BACK AGAIN AFTER CHECKSUMMING -----
 		udp_header.source_port = swap_word_bytes(udp_header.source_port);
 		udp_header.destination_port = swap_word_bytes(udp_header.destination_port);
 		udp_header.length = swap_word_bytes(udp_header.length);
 		udp_header.checksum = swap_word_bytes(udp_header.checksum);
+#endif
 	#endif
 
 
@@ -492,11 +512,13 @@ BYTE udp_setup_tx (BYTE socket)
 	udp_header.length = 0;					//This will be written before packet is sent
 	udp_header.checksum = 0;				//This will be written before packet is sent if checksumming is enabled
 	
+#ifndef __ORDER_BIG_ENDIAN__
 	//SWAP THE SOURCE PORT, DEST PORT, LENGTH AND CHECKSUM WORDS
 	udp_header.source_port = swap_word_bytes(udp_header.source_port);
 	udp_header.destination_port = swap_word_bytes(udp_header.destination_port);
 	//udp_header.length = swap_word_bytes(udp_header.length);		//No need
 	//udp_header.checksum = swap_word_bytes(udp_header.checksum);	//No need
+#endif
 
 
 	//----- START CALCULATION OF UDP CHECKSUM -----
@@ -513,7 +535,9 @@ BYTE udp_setup_tx (BYTE socket)
 		
 		//Protocol
 		w_temp = (WORD)IP_PROTOCOL_UDP;
+#ifndef __ORDER_BIG_ENDIAN__
 		w_temp = swap_word_bytes(w_temp);
+#endif
 		ip_add_bytes_to_ip_checksum (&udp_tx_checksum, &udp_tx_checksum_next_byte_low, (BYTE*)&w_temp, 2);
 		
 		//Length
@@ -531,11 +555,14 @@ BYTE udp_setup_tx (BYTE socket)
 	ip_write_header(&udp_socket[socket].remote_device_info, IP_PROTOCOL_UDP);
 
 	//----- WRITE THE UDP HEADER -----
-	//nic_write_array((BYTE*)&udp_header, UDP_HEADER_LENGTH);
+#ifdef PACKED_STRUCT
+    nic_write_array((BYTE*)&udp_header, UDP_HEADER_LENGTH);
+#else
     nic_write_array((BYTE*)&udp_header.source_port, 2);
     nic_write_array((BYTE*)&udp_header.destination_port, 2);
     nic_write_array((BYTE*)&udp_header.length, 2);
     nic_write_array((BYTE*)&udp_header.checksum, 2);
+#endif
 
 	//----- NOW JUST WRITE THE UDP DATA ----
 
@@ -589,7 +616,9 @@ void udp_tx_packet (void)
 
 	//----- GET THE UDP PACKET LENGTH FOR THE UDP HEADER -----
 	udp_length = (nic_tx_len - ETHERNET_HEADER_LENGTH - IP_HEADER_LENGTH);
+#ifndef __ORDER_BIG_ENDIAN__
 	udp_length = swap_word_bytes(udp_length);
+#endif
 	
 	//----- WRITE THE UDP LENGTH FIELD -----
 	nic_write_tx_word_at_location ((ETHERNET_HEADER_LENGTH + IP_HEADER_LENGTH + 4), udp_length);
@@ -602,7 +631,11 @@ void udp_tx_packet (void)
 		ip_add_bytes_to_ip_checksum (&udp_tx_checksum, &udp_tx_checksum_next_byte_low, (BYTE*)&udp_length, 2);	//Pseudo header
 
 		//----- WRITE THE UDP CHECKSUM FIELD -----
-		udp_tx_checksum = swap_word_bytes(~udp_tx_checksum);
+#ifdef __ORDER_BIG_ENDIAN__
+        udp_tx_checksum = ~udp_tx_checksum;
+#else
+        udp_tx_checksum = swap_word_bytes(~udp_tx_checksum);
+#endif
 		nic_write_tx_word_at_location ((ETHERNET_HEADER_LENGTH + IP_HEADER_LENGTH + 6), udp_tx_checksum);
 	#endif
 

@@ -349,7 +349,7 @@ typedef struct _UDP_HEADER
 	WORD		destination_port;
 	WORD		length;
 	WORD		checksum;
-} UDP_HEADER;
+} PACKED_STRUCT UDP_HEADER;
 #define	UDP_HEADER_LENGTH			8			//Defined to avoid sizeof problemms with compilers that add padd bytes
 
 #endif

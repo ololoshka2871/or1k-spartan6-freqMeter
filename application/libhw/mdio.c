@@ -41,8 +41,17 @@ enum enMDIOOperations {
     MDIO_WRITE = 0b10
 };
 
+static int32_t last_detected_phy_addr = -1;
 
-uint16_t MDIO_ReadREG_sync(const uint8_t phy_addr, const uint8_t reg_addr) {
+uint16_t MDIO_ReadREG_sync(int8_t phy_addr, const uint8_t reg_addr) {
+    if (phy_addr < 0) {
+        if (last_detected_phy_addr < 0) {
+            if (MDIO_DetectPHY(0) < 0)
+                return 0;
+        }
+        phy_addr = last_detected_phy_addr;
+    }
+
     while(!(MDIO_REG_CTL & MDIO_REG_CTL_IF)); // wait ready
     MDIO_REG_CTL = MDIO_REG_CTL_START |
         ((phy_addr << MDIO_REG_CTL_PHY_ADDR_SH) & MDIO_REG_CTL_PHY_ADDR_MSK) |
@@ -51,8 +60,15 @@ uint16_t MDIO_ReadREG_sync(const uint8_t phy_addr, const uint8_t reg_addr) {
     return MDIO_REG_DATA;
 }
 
-void MDIO_WriteREG(const uint8_t phy_addr, const uint8_t reg_addr,
-                           const uint16_t val) {
+void MDIO_WriteREG(int8_t phy_addr, const uint8_t reg_addr, const uint16_t val) {
+    if (phy_addr < 0) {
+        if (last_detected_phy_addr < 0) {
+            if (MDIO_DetectPHY(0) < 0)
+                return;
+        }
+        phy_addr = last_detected_phy_addr;
+    }
+
     while(!(MDIO_REG_CTL & MDIO_REG_CTL_IF)); // wait ready
     MDIO_REG_DATA = val;
     MDIO_REG_CTL = MDIO_REG_CTL_START | MDIO_REG_CTL_RW |
@@ -66,8 +82,13 @@ int8_t MDIO_DetectPHY(uint8_t startAddr) {
         uint16_t v = MDIO_ReadREG_sync(i, PHY_BMCR);
         if(v != 0xffff) {
             phy_addr = i;
+            last_detected_phy_addr = i;
             break;
         }
     }
     return phy_addr;
+}
+
+uint32_t MDIO_getConnectionStatus(int8_t phy_addr) {
+    return MDIO_ReadREG_sync(phy_addr, PHY_BMCR) & PHY_BMCR_SPEED100MB ? 1 : 0;
 }

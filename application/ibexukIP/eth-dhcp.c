@@ -33,6 +33,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "eth-dhcp.h"
 #undef DHCP_C
 
+#include <string.h>
+
 #include "eth-main.h"
 #include "eth-nic.h"
 #include "eth-udp.h"		//UDP is requried for DHCP
@@ -493,21 +495,18 @@ void dhcp_tx_packet (BYTE message_type)
 	{
 		udp_write_next_byte(12);					//Option
 		udp_write_next_byte(16);					//Length
-		udp_write_next_byte(eth_dhcp_our_name_pointer[0]);					//Data - our ascii name
-		udp_write_next_byte(eth_dhcp_our_name_pointer[1]);
-		udp_write_next_byte(eth_dhcp_our_name_pointer[2]);
-		udp_write_next_byte(eth_dhcp_our_name_pointer[3]);
-		udp_write_next_byte(eth_dhcp_our_name_pointer[4]);
-		udp_write_next_byte(eth_dhcp_our_name_pointer[5]);
-		udp_write_next_byte(eth_dhcp_our_name_pointer[6]);
-		udp_write_next_byte(eth_dhcp_our_name_pointer[7]);
-		udp_write_next_byte(eth_dhcp_our_name_pointer[8]);
-		udp_write_next_byte(eth_dhcp_our_name_pointer[9]);
-		udp_write_next_byte(eth_dhcp_our_name_pointer[10]);
-		udp_write_next_byte(eth_dhcp_our_name_pointer[11]);
-		udp_write_next_byte(eth_dhcp_our_name_pointer[12]);
-		udp_write_next_byte(eth_dhcp_our_name_pointer[13]);
-		udp_write_next_byte(eth_dhcp_our_name_pointer[14]);
+
+        //Data - our ascii name
+        size_t hostname_len = strlen(eth_dhcp_our_name_pointer);
+        if (hostname_len > 15)
+            hostname_len = 15;
+        for (size_t i = 0; i < 15; ++i) {
+            if (i < hostname_len)
+                udp_write_next_byte(eth_dhcp_our_name_pointer[i]);
+            else
+                udp_write_next_byte(0x00);
+        }
+
 		udp_write_next_byte(0x00);
 	}
 

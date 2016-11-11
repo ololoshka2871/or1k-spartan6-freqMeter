@@ -54,15 +54,19 @@ set(IBEXUK_IP_SRC
     eth-main.c
     eth-tcp.c
     eth-udp.c
+    eth-dhcp.c
 
     #eth-http.c
     )
 
+set(difenitions)
+
 if(ETHERNET_USE_DHCP)
-    list(APPEND IBEXUK_IP_SRC eth-dhcp.c)
-    add_definitions(-DSTACK_USE_DHCP)
+    list(APPEND difenitions DHCP_ON_STARTUP)
 endif()
 
 add_library(ibexukIP STATIC ${IBEXUK_IP_SRC})
+
+set_target_properties(ibexukIP PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
 
 set(IBEXUK_IP_INCLUDE_DIRS  ${IBEXUK_IP_INCLUDE_DIRS}       PARENT_SCOPE)

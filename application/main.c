@@ -46,44 +46,14 @@
 
 #include "eth-dhcp.h"
 
-void DELAY() {
-    for (int i = 0; i < 100000; ++i)
-        asm volatile("l.nop");
-}
-
-static const uint16_t measure_time_ms = 10;
-#if 0
-static uint32_t irqCountes[FREQMETERS_COUNT];
-
-void Send_Data() {
-    for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        irq_disable(IRQ_FREQMETERS);
-        uint32_t irqs = fm_getIRQCount(i);
-        if (irqs != irqCountes[i]) {
-            irq_enable(IRQ_FREQMETERS);
-            irqCountes[i] = irqs;
-            serial1_putchar('#');
-            serial1_putchar(i);
-            for (uint8_t j = 0; j < sizeof(uint32_t); ++j) {
-                serial1_putchar(((uint8_t*)&irqs)[j]);
-            }
-            serial1_putchar('$');
-        } else {
-            irq_enable(IRQ_FREQMETERS);
-        }
-    }
-}
+const char hostname[15] =
+#ifdef ETHERNET_HOSTNAME
+        ETHERNET_HOSTNAME;
+#else
+        "SCTB_FM-24_v2";
 #endif
 
-void Send_Data(uint32_t chanel, double F, uint32_t per) {
-    struct p {
-        uint32_t ch;
-        uint32_t per;
-        double F;
-    } _p = {chanel, per, F};
-
-    send_udp_packet(IPTOINT(192, 168, 1, 25), 4999, 4998, &_p, sizeof(_p));
-}
+static uint16_t measure_time_ms = 10;
 
 static uint32_t timestamps[FREQMETERS_COUNT];
 static uint32_t starts[FREQMETERS_COUNT];
@@ -116,6 +86,7 @@ static void Process_freqmeters() {
     }
 }
 
+#if 0
 static void cb_udp_callback(uint32_t src_ip, uint16_t src_port,
                             uint16_t dst_port, void *data,
                             uint32_t length) {
@@ -143,27 +114,25 @@ static void cb_udp_callback(uint32_t src_ip, uint16_t src_port,
 #else
 #endif 
 }
+#endif
 
 static void configure_ethernet_PHY() {
-    // find phy addr
-    int8_t phy_addr = MDIO_DetectPHY(0);
-    if (phy_addr > 0) {
-        // force 100 Mb/s FD
+    // force 100 Mb/s FD
+    MDIO_WriteREG(-1, PHY_BMCR, PHY_BMCR_SPEED100MB | PHY_BMCR_FULL_DUPLEX);
 
-        MDIO_WriteREG(phy_addr, PHY_BMCR, PHY_BMCR_SPEED100MB | PHY_BMCR_FULL_DUPLEX);
-
-        // set elastic bufer max len
-        uint8_t v;
-        v = MDIO_ReadREG_sync(phy_addr, PHY_RBR);
-        MDIO_WriteREG(phy_addr, PHY_RBR, (v & ~(PHY_RBR_ELAST_BUF_MSK))
-                      | PHY_RBR_RMII_REV1_0
-                      | (0b00 << PHY_RBR_ELAST_BUF_SH));
-    }
+    // set elastic bufer max len
+    uint8_t v;
+    v = MDIO_ReadREG_sync(-1, PHY_RBR);
+    MDIO_WriteREG(-1, PHY_RBR, (v & ~(PHY_RBR_ELAST_BUF_MSK))
+                  | PHY_RBR_RMII_REV1_0
+                  | (0b00 << PHY_RBR_ELAST_BUF_SH));
 }
 
 static void init_tcpip() {
     //----- CONFIGURE ETHERNET -----
-#ifndef STACK_USE_DHCP
+#ifndef DHCP_ON_STARTUP
+    eth_dhcp_using_manual_settings = 1;
+
     our_ip_address.v[0] = 192; //MSB
     our_ip_address.v[1] = 168;
     our_ip_address.v[2] = 1;
@@ -177,7 +146,9 @@ static void init_tcpip() {
     our_gateway_ip_address.v[2] = 1;
     our_gateway_ip_address.v[3] = 1;
 #else
-    eth_dhcp_using_manual_settings = 0;
+    eth_dhcp_using_manual_settings = 0; // dhcp will try to get ip addr
+
+    eth_dhcp_our_name_pointer = (BYTE*)hostname;
 #endif
 
     //----- SET OUR ETHENET UNIQUE MAC ADDRESS -----
