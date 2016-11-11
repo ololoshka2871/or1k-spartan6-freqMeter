@@ -58,6 +58,8 @@ void progtimer_handler_bottom(unsigned int *registers)
 {
     (void)registers;
 
+    progtimer_ticks_inc();
+
     struct sProgtimer *timer = progtimer_tl_head;
 
     while(timer)
