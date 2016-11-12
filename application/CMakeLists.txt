@@ -93,16 +93,38 @@ add_subdirectory(libbase)
 add_subdirectory(libhw)
 add_subdirectory(ibexukIP)
 
-set(MAC_ADDRESS_INCLUDE_FILE    ${CMAKE_CURRENT_BINARY_DIR}/MAC.h)
+set(MAIN_SRC             ${CMAKE_CURRENT_SOURCE_DIR}/main.c)
+set(APPLICATION_ELF_NAME app.elf)
 
-add_custom_target(gen_mac
+set(ETHERNET_CONFIG_INCLUDE_FILE    ${CMAKE_CURRENT_BINARY_DIR}/ETH_config.h)
+
+if(ETHERNET_MAC_ADDRESS_FORCE)
+    set(_gen_MAC        ${ETHERNET_MAC_ADDRESS_FORCED})
+else(ETHERNET_MAC_ADDRESS_FORCE)
+    set(_gen_MAC        ${ETHERNET_MAC_ADDRESS_MSB})
+endif(ETHERNET_MAC_ADDRESS_FORCE)
+
+set(_genMAC_ARGUMENTS ${_gen_MAC} ${ETHERNET_STATIC_IP_ADDR} ${ETHERNET_STATIC_IP_NETMASK} ${ETHERNET_STATIC_IP_GATEWAY})
+
+add_custom_command(
+    OUTPUT ${ETHERNET_CONFIG_INCLUDE_FILE}
     COMMAND
-        rm -f ${MAC_ADDRESS_INCLUDE_FILE}
-    COMMAND
-        ${MACADDR_GENERATOR} ${ETHERNET_MAC_ADDRESS_MSB} > ${MAC_ADDRESS_INCLUDE_FILE}
+        ${GEN_ETH_CONFIG} ${_genMAC_ARGUMENTS} > ${ETHERNET_CONFIG_INCLUDE_FILE}
     DEPENDS ${MACADDR_GENERATOR}
     COMMENT
         "Generating random MAC address"
+    )
+
+add_custom_target(gen_mac DEPENDS ${ETHERNET_CONFIG_INCLUDE_FILE})
+
+add_custom_target(regen_mac
+    COMMAND
+        touch ${MAIN_SRC}
+    COMMAND
+        ${GEN_ETH_CONFIG} ${_genMAC_ARGUMENTS} > ${ETHERNET_CONFIG_INCLUDE_FILE}
+    DEPENDS ${MACADDR_GENERATOR}
+    COMMENT
+        "Force regenerate MAC address on next build"
     )
 
 include_directories(
@@ -114,13 +136,12 @@ include_directories(
 get_target_property(hwlib_difenitions hw COMPILE_DEFINITIONS)
 get_target_property(ibexukIP_difenitions ibexukIP COMPILE_DEFINITIONS)
 
-set(APPLICATION_ELF_NAME app.elf)
 
 add_executable(${APPLICATION_ELF_NAME}
     ${APP_STARTUP_SRC}
-    main.c
-    ${MAC_ADDRESS_INCLUDE_FILE}
+    ${MAIN_SRC}
     )
+add_dependencies(${APPLICATION_ELF_NAME} gen_mac)
 target_link_libraries(${APPLICATION_ELF_NAME}
     -Wl,--start-group hw ibexukIP base -Wl,--end-group)
 

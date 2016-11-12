@@ -46,7 +46,7 @@
 
 #include "eth-dhcp.h"
 
-#include "MAC.h"
+#include "ETH_config.h"
 
 const char hostname[15] =
 #ifdef ETHERNET_HOSTNAME
@@ -132,26 +132,27 @@ static void configure_ethernet_PHY() {
 
 static void init_tcpip() {
     //----- CONFIGURE ETHERNET -----
+
 #ifndef DHCP_ON_STARTUP
     eth_dhcp_using_manual_settings = 1;
-
-    our_ip_address.v[0] = 192; //MSB
-    our_ip_address.v[1] = 168;
-    our_ip_address.v[2] = 1;
-    our_ip_address.v[3] = 99; //LSB
-    our_subnet_mask.v[0] = 255; //MSB
-    our_subnet_mask.v[1] = 255;
-    our_subnet_mask.v[2] = 255;
-    our_subnet_mask.v[3] = 0; //LSB
-    our_gateway_ip_address.v[0] = 192;
-    our_gateway_ip_address.v[1] = 168;
-    our_gateway_ip_address.v[2] = 1;
-    our_gateway_ip_address.v[3] = 1;
 #else
     eth_dhcp_using_manual_settings = 0; // dhcp will try to get ip addr
+#endif
 
     eth_dhcp_our_name_pointer = (BYTE*)hostname;
-#endif
+
+    our_ip_address.v[0] = ETH_IP0; //MSB
+    our_ip_address.v[1] = ETH_IP1;
+    our_ip_address.v[2] = ETH_IP2;
+    our_ip_address.v[3] = ETH_IP3; //LSB
+    our_subnet_mask.v[0] = ETH_NETMASK0; //MSB
+    our_subnet_mask.v[1] = ETH_NETMASK1;
+    our_subnet_mask.v[2] = ETH_NETMASK2;
+    our_subnet_mask.v[3] = ETH_NETMASK3; //LSB
+    our_gateway_ip_address.v[0] = ETH_NETMASK0;
+    our_gateway_ip_address.v[1] = ETH_NETMASK1;
+    our_gateway_ip_address.v[2] = ETH_NETMASK2;
+    our_gateway_ip_address.v[3] = ETH_NETMASK3;
 
     //----- SET OUR ETHENET UNIQUE MAC ADDRESS -----
     our_mac_address.v[0] = ETH_MAC0;
@@ -165,7 +166,7 @@ static void init_tcpip() {
     tcp_ip_initialise();
 }
 
-void main(void)
+int main(void)
 {
     interrupts_init();
     progtimer_init();
@@ -192,4 +193,5 @@ void main(void)
         //microip_service();
         tcp_ip_process_stack();
     }
+    return 0;
 }

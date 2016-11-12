@@ -120,11 +120,17 @@ set(CPU_PLL_MULTIPLYER      25
 set(CPU_CLOCK_DEVIDER       24
     CACHE STRING "Input clock to CPU devider")
 
-set(SYSTEM_HEAP_SIZE        256
+set(SYSTEM_HEAP_SIZE        4096
     CACHE STRING "System memory heap size")
 
 set(ETHERNET_MAC_ADDRESS_MSB  09
-    CACHE STRING  "First byte of ethernet MAC address")
+    CACHE STRING  "First byte of ethernet MAC address (execute make gen_mac to renew)")
+
+set(ETHERNET_MAC_ADDRESS_FORCE  NO
+    CACHE BOOL  "Force test MAC address")
+
+set(ETHERNET_MAC_ADDRESS_FORCED  09:98:77:c3:12:a3
+    CACHE STRING  "Forced test MAC address")
 
 set(ETHERNET_STATIC_IP_ADDR "192.168.0.199"
     CACHE STRING  "Default static IP addr")

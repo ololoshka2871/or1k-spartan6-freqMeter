@@ -30,7 +30,7 @@
  *
  ****************************************************************************/
 
-extern void main(void);
+extern int main(void);
 
 void __attribute__((used)) entry(void)
 {
