@@ -123,13 +123,13 @@ set(CPU_CLOCK_DEVIDER       24
 set(SYSTEM_HEAP_SIZE        4096
     CACHE STRING "System memory heap size")
 
-set(ETHERNET_MAC_ADDRESS_MSB  09
+set(ETHERNET_MAC_ADDRESS_MSB  0c
     CACHE STRING  "First byte of ethernet MAC address (execute make gen_mac to renew)")
 
 set(ETHERNET_MAC_ADDRESS_FORCE  NO
     CACHE BOOL  "Force test MAC address")
 
-set(ETHERNET_MAC_ADDRESS_FORCED  09:98:77:c3:12:a3
+set(ETHERNET_MAC_ADDRESS_FORCED  0c:98:77:c3:12:a3
     CACHE STRING  "Forced test MAC address")
 
 set(ETHERNET_STATIC_IP_ADDR "192.168.0.199"
@@ -142,7 +142,7 @@ set(ETHERNET_STATIC_IP_GATEWAY "192.168.0.1"
     CACHE STRING  "Default static IP gateway")
 
 set(ETHERNET_USE_DHCP       YES
-    CACHE BOOL   "Try to obtain ip address truth DHCP")
+    CACHE BOOL   "Try to obtain ip address trouth DHCP on startup")
 
 #--- test firmware ---
 set(SIM_TEST_FREQMETER      OFF

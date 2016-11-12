@@ -37,8 +37,6 @@
 #include "irq.h"
 #include "freqmeters.h"
 #include "mdio.h"
-#include "microip.h"
-#include "udp.h"
 #include "prog_timer.h"
 
 #include "main.h"
@@ -133,10 +131,11 @@ static void configure_ethernet_PHY() {
 static void init_tcpip() {
     //----- CONFIGURE ETHERNET -----
 
-#ifndef DHCP_ON_STARTUP
-    eth_dhcp_using_manual_settings = 1;
+#ifdef DHCP_ON_STARTUP
+    // dhcp will try to get ip addr
+    eth_dhcp_using_manual_settings = 0;
 #else
-    eth_dhcp_using_manual_settings = 0; // dhcp will try to get ip addr
+    eth_dhcp_using_manual_settings = 1;
 #endif
 
     eth_dhcp_our_name_pointer = (BYTE*)hostname;
@@ -149,10 +148,10 @@ static void init_tcpip() {
     our_subnet_mask.v[1] = ETH_NETMASK1;
     our_subnet_mask.v[2] = ETH_NETMASK2;
     our_subnet_mask.v[3] = ETH_NETMASK3; //LSB
-    our_gateway_ip_address.v[0] = ETH_NETMASK0;
-    our_gateway_ip_address.v[1] = ETH_NETMASK1;
-    our_gateway_ip_address.v[2] = ETH_NETMASK2;
-    our_gateway_ip_address.v[3] = ETH_NETMASK3;
+    our_gateway_ip_address.v[0] = ETH_GW0;
+    our_gateway_ip_address.v[1] = ETH_GW1;
+    our_gateway_ip_address.v[2] = ETH_GW2;
+    our_gateway_ip_address.v[3] = ETH_GW3;
 
     //----- SET OUR ETHENET UNIQUE MAC ADDRESS -----
     our_mac_address.v[0] = ETH_MAC0;

@@ -90,5 +90,5 @@ int8_t MDIO_DetectPHY(uint8_t startAddr) {
 }
 
 uint32_t MDIO_getConnectionStatus(int8_t phy_addr) {
-    return MDIO_ReadREG_sync(phy_addr, PHY_BMCR) & PHY_BMCR_SPEED100MB ? 1 : 0;
+    return ((MDIO_ReadREG_sync(phy_addr, PHY_BMSR) & PHY_BMSR_LinkOk) ? 1 : 0);
 }

@@ -71,7 +71,7 @@ _xmsgs/
 *.cmd
 
 
-
+CMakeLists.txt.user
 *.log
 
 *build/
