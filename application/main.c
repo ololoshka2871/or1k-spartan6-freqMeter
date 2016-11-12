@@ -1,5 +1,4 @@
 /****************************************************************************
- * app_main.c
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -43,6 +42,8 @@
 #include "eth-main.h"
 
 #include "eth-dhcp.h"
+
+#include "udp_server.h"
 
 #include "ETH_config.h"
 
@@ -179,18 +180,15 @@ int main(void)
     configure_ethernet_PHY();
     init_tcpip();
 
-    //microip_start(IPTOINT(192, 168, 1, 99));
-    //set_rx_callback(cb_udp_callback);
-
     irq_enable(IS_FREQMETERS);
 
     EXIT_CRITICAL();
 
     while(1) {
-        //Send_Data();
         Process_freqmeters();
-        //microip_service();
         tcp_ip_process_stack();
+
+        process_udp_server();
     }
     return 0;
 }

@@ -31,46 +31,14 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-set(CONFIG_FILE_IN       ${CMAKE_CURRENT_SOURCE_DIR}/main.h.in)
-set(CONFIG_FILE          ${CMAKE_CURRENT_BINARY_DIR}/main.h)
-configure_file(${CONFIG_FILE_IN} ${CONFIG_FILE} @ONLY)
+include_directories(. ${IBEXUK_IP_INCLUDE_DIRS} ${LIBHW_INCLUDE_DIR})
 
-set(IBEXUK_IP_INCLUDE_DIRS
-        ${CMAKE_CURRENT_BINARY_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        )
-
-include_directories(${IBEXUK_IP_INCLUDE_DIRS}
-    ${LIBHW_INCLUDE_DIR}
-    ${LIBBASE_INCLUDE_DIR})
-
-set(IBEXUK_IP_SRC
-    eth-nic.c
-    timers.c
-
-    eth-arp.c
-    eth-icmp.c
-    eth-ip.c
-    eth-main.c
-    eth-tcp.c
-    eth-udp.c
-    eth-dhcp.c
-
-    #eth-http.c
+add_definitions(
+    -DUDP_SERVER_PORT=${ETHERNET_UDP_SERVER_PORT}
     )
 
-set(difenitions)
+set(SERVERS_SRC
+    udp_server.c
+    )
 
-if(ETHERNET_USE_DHCP)
-    list(APPEND difenitions DHCP_ON_STARTUP)
-endif()
-
-if(ETHERNET_SKIP_UDP_CHECKSUMS)
-    list(APPEND difenitions SKIP_UDP_CHECKSUMS)
-endif()
-
-add_library(ibexukIP STATIC ${IBEXUK_IP_SRC})
-
-set_target_properties(ibexukIP PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
-
-set(IBEXUK_IP_INCLUDE_DIRS  ${IBEXUK_IP_INCLUDE_DIRS}       PARENT_SCOPE)
+add_library(servers STATIC ${SERVERS_SRC})

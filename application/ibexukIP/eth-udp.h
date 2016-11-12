@@ -323,8 +323,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #error UDP_NO_OF_AVAILABLE_SOCKETS value is out of range!
 #endif
 
-
+#ifndef SKIP_UDP_CHECKSUMS
 #define	UDP_CHECKSUMS_ENABLED					//Comment out if you do not want to use checksums for UDP tx and rx
+#endif
 
 
 //UDP PORTS:-

@@ -144,6 +144,12 @@ set(ETHERNET_STATIC_IP_GATEWAY "192.168.0.1"
 set(ETHERNET_USE_DHCP       YES
     CACHE BOOL   "Try to obtain ip address trouth DHCP on startup")
 
+set(ETHERNET_SKIP_UDP_CHECKSUMS YES
+    CACHE BOOL   "Disable UDP checksums calculation and check")
+
+set(ETHERNET_UDP_SERVER_PORT    9128
+    CACHE STRING "UDP server port number")
+
 #--- test firmware ---
 set(SIM_TEST_FREQMETER      OFF
     CACHE BOOL  "Bootloader firmware tests freqmeter IP-core")
