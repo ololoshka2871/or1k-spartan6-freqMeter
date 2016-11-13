@@ -1916,10 +1916,10 @@ void http_process_post_decode_next_data_byte (BYTE data)
 				//------------------------------------------------------------
 
 				//Convert back to the 24 bit value
-				dw_temp.Val = ((DWORD)http_convert_base64_to_bits(http_post_decoder_buffer[0]) << 18);
-				dw_temp.Val |= ((DWORD)http_convert_base64_to_bits(http_post_decoder_buffer[1]) << 12);
-				dw_temp.Val |= ((DWORD)http_convert_base64_to_bits(http_post_decoder_buffer[2]) << 6);
-				dw_temp.Val |= (DWORD)http_convert_base64_to_bits(data);
+                dw_temp.val = ((DWORD)http_convert_base64_to_bits(http_post_decoder_buffer[0]) << 18);
+                dw_temp.val |= ((DWORD)http_convert_base64_to_bits(http_post_decoder_buffer[1]) << 12);
+                dw_temp.val |= ((DWORD)http_convert_base64_to_bits(http_post_decoder_buffer[2]) << 6);
+                dw_temp.val |= (DWORD)http_convert_base64_to_bits(data);
 
 				//Send bytes to user application
 				HTTP_POST_MULTIPART_NEXT_BYTE_FUNCTION(dw_temp.v[2]);

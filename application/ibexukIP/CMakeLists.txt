@@ -56,7 +56,7 @@ set(IBEXUK_IP_SRC
     eth-udp.c
     eth-dhcp.c
 
-    #eth-http.c
+    eth-http.c
     )
 
 set(difenitions)

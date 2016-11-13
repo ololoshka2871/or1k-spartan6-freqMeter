@@ -40,6 +40,7 @@ add_definitions(
 set(SERVERS_SRC
     udp_server.c
     tcp_server.c
+    http_server.c
     )
 
 add_library(servers STATIC ${SERVERS_SRC})

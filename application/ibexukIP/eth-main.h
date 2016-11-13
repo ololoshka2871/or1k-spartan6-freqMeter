@@ -151,7 +151,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#define	STACK_USE_NETBIOS			//(Comment out if not required)
 
 //----- HTTP -----
-// #define STACK_USE_HTTP				//(Comment out if not required)
+#define STACK_USE_HTTP				//(Comment out if not required)
 //#define	STACK_USE_HTTP_CLIENT		//(Comment out if not required)
 
 //----- SNTP -----

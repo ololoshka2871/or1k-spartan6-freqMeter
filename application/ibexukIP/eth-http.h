@@ -57,12 +57,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //----- HTTP FILE INCLUDE OPTIONS -----
 //(Only 1 of these should be left un-comented)
-#define	HTTP_USING_C_FILES					//Comment out if not using web files included as part of the source code
+//#define	HTTP_USING_C_FILES					//Comment out if not using web files included as part of the source code
 //#define	HTTP_USING_BINARY_FILES				//Comment out if not using web files stored in external memory
-//#define	HTTP_USING_FILING_SYSTEM			//Comment out if not using web files stored in external memory controlled by a filing system (such as FAT)
+#define	HTTP_USING_FILING_SYSTEM			//Comment out if not using web files stored in external memory controlled by a filing system (such as FAT)
 
 //----- CONFIGURATION OPTIONS -----
-#define	HTTP_ACCEPT_POST_REQUESTS			//Comment out if you don't want to accept form POST requests (this will reduce memory size).  GET form inputs are still accepted
+//#define	HTTP_ACCEPT_POST_REQUESTS			//Comment out if you don't want to accept form POST requests (this will reduce memory size).  GET form inputs are still accepted
 
 #define	HTTP_NO_OF_AVAILABLE_SOCKETS		2		//The number of TCP sockets that HTTP should open to listen for new connections (i.e. the maximum
 													//number of simultanious http connections.  Value must be <= TCP_NO_OF_AVAILABLE_SOCKETS.  At least 2 is recomended.
