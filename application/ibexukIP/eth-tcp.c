@@ -274,7 +274,7 @@ void process_tcp (void)
 					//---------------------------------------------------------
 					//----- IDLE - DO NOTHING OR SEND RESEND PREVIOUS ACK -----
 					//---------------------------------------------------------
-					#ifdef TCP_USE_SOCKET_INACTIVITY_TIMOUT
+                    #if TCP_USE_SOCKET_INACTIVITY_TIMOUT == 1
 						tcp_response_flags = TCP_ACK;
 					#else
 						tcp_socket[socket].retry_count = 0;

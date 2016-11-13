@@ -410,7 +410,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define TCP_MAX_NUM_OF_RETRIES				3				//The number of retries to attempt before closing a TCP connection
 #define	TCP_MAX_TIMEOUT_VALUE_10MS			(DWORD)3000		//The maximum timeout value we should use
 
-#define	TCP_USE_SOCKET_INACTIVITY_TIMOUT			//Comment out to allow a socket to be opened and remain open indefinately even if there is no activity
+#ifndef TCP_USE_SOCKET_INACTIVITY_TIMOUT
+#define	TCP_USE_SOCKET_INACTIVITY_TIMOUT	0		//Comment out to allow a socket to be opened and remain open indefinately even if there is no activity
+#endif
 
 #define MAX_TCP_DATA_LEN    		(1500 - 40)		//Maximum size of the tcp packet data area (-40 allows for 20 byte tcp header and 20 byte ip header)
 #define	TCP_MAX_SEGMENT_SIZE		(1500 - 40)		//Maximum size of tcp packet data area this device is willing to accept.  We don't use a variable window
