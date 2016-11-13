@@ -417,6 +417,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 													//size as we're not buffering to memory.  We use a fixed window size of 1 packet to avoid a remote device
 													//sending lots of packets which we can't process fast enough and therefore get lost, to then be re-sent by
 													//the remote device after a delay.  -40 allows for 20 byte TCP header and 20 byte IP header
+
 //TCP HEADER FLAGS
 #define TCP_FIN						0x01
 #define TCP_SYN						0x02
@@ -424,6 +425,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define TCP_PSH						0x08			//We don't use PSH as its use isn't properly defined anyway
 #define TCP_ACK						0x10
 #define TCP_URG						0x20			//We don't use URG, but it could easily be used if requried by an application
+
 
 //TCP OPTIONS
 #define TCP_OPTIONS_MAX_SEG_SIZE	0x02
@@ -471,12 +473,21 @@ typedef struct _TCP_SOCKET_INFO
 	DWORD time_out_value;
 	struct
 	{
+#ifdef __ORDER_BIG_ENDIAN__
+        BYTE socket_is_server			:1;
+        BYTE tx_send_waiting_command	:1;
+        BYTE tx_resend_last_tx			:1;
+        BYTE tx_last_tx_had_data		:1;
+        BYTE tx_last_tx_awaiting_ack	:1;
+        BYTE ready_for_tx				:1;
+#else
 		BYTE ready_for_tx				:1;
 		BYTE tx_last_tx_awaiting_ack	:1;
 		BYTE tx_last_tx_had_data		:1;
 		BYTE tx_resend_last_tx			:1;			//If set the application function that owns the socket needs to re-send the last transmission
 		BYTE tx_send_waiting_command	:1;
 		BYTE socket_is_server			:1;
+#endif
 	} flags;
 
 } TCP_SOCKET_INFO;
@@ -495,8 +506,13 @@ typedef struct _TCP_HEADER
 	{
 		struct
 		{
+#ifdef __ORDER_BIG_ENDIAN__
+            BYTE val            :4;
+            BYTE reserved		:4;
+#else
 			BYTE reserved		:4;
 			BYTE val			:4;
+#endif
 		} bits;
 		BYTE byte;
 	} header_length;
@@ -505,6 +521,15 @@ typedef struct _TCP_HEADER
 	{
 		struct
 		{
+#ifdef __ORDER_BIG_ENDIAN__
+            BYTE reserved	:2;
+            BYTE flag_urg	:1;
+            BYTE flag_ack	:1;
+            BYTE flag_psh	:1;
+            BYTE flag_rst	:1;
+            BYTE flag_syn	:1;
+            BYTE flag_fin	:1;
+#else
 			BYTE flag_fin	:1;
 			BYTE flag_syn	:1;
 			BYTE flag_rst	:1;
@@ -512,6 +537,7 @@ typedef struct _TCP_HEADER
 			BYTE flag_ack	:1;
 			BYTE flag_urg	:1;
 			BYTE reserved	:2;
+#endif
 		} bits;
 		BYTE byte;
 	} flags;
@@ -519,7 +545,7 @@ typedef struct _TCP_HEADER
 	WORD window;
 	WORD checksum;
 	WORD urgent_pointer;
-} TCP_HEADER;
+} PACKED_STRUCT TCP_HEADER;
 #define	TCP_HEADER_LENGTH			20			//Defined to avoid sizeof problemms with compilers that add padd bytes
 
 
@@ -528,7 +554,7 @@ typedef struct _TCP_OPTIONS
 	BYTE id;
 	BYTE length;
 	WORD_VAL max_seg_size;
-} TCP_OPTIONS;
+} PACKED_STRUCT TCP_OPTIONS;
 #define	TCP_OPTIONS_LENGTH			4			//Defined to avoid sizeof problemms with compilers that add padd bytes
 
 
@@ -540,7 +566,7 @@ typedef struct _PSEUDO_HEADER
 	BYTE zero;
 	BYTE protocol;
 	WORD tcp_length;
-} PSEUDO_HEADER;
+} PACKED_STRUCT PSEUDO_HEADER;
 #define	PSEUDO_HEADER_LENGTH		12			//Defined to avoid sizeof problemms with compilers that add padd bytes
 
 #endif

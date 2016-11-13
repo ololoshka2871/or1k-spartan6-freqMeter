@@ -192,14 +192,11 @@ void nic_rx_dump_packet (void) {
 //Checks the nic to see if it is ready to accept a new tx packet.  If so it sets up the nic ready for the first byte of the data area to be sent.
 //Returns 1 if nic ready, 0 if not.
 BYTE nic_setup_tx (void) {
-    if (nic_ok_to_do_tx()) {
-        miniMAC_txSlotPrepare();
-        txPointer = miniMAC_txSlotData();
-        nic_tx_len = 0;
+    miniMAC_txSlotPrepare();
+    txPointer = miniMAC_txSlotData();
+    nic_tx_len = 0;
 
-        return TRUE;
-    }
-    return FALSE;
+    return TRUE;
 }
 
 

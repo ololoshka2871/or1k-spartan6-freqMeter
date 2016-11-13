@@ -425,9 +425,10 @@ BYTE tcp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 	//-----------------------------------------------
 
 	//----- GET THE TCP HEADER -----
-	//if (nic_read_array((BYTE*)&tcp_header, TCP_HEADER_LENGTH) == 0)
-	//	goto tcp_process_rx_dump_packet;						//Error - packet was too small - dump
-
+#ifdef PACKED_STRUCT
+    if (nic_read_array((BYTE*)&tcp_header, TCP_HEADER_LENGTH) == 0)
+        goto tcp_process_rx_dump_packet;						//Error - packet was too small - dump
+#else
 	if (nic_read_array((BYTE*)&tcp_header.source_port, 2) == 0)
 		goto tcp_process_rx_dump_packet;						//Error - packet was too small - dump
 	if (nic_read_array((BYTE*)&tcp_header.destination_port, 2) == 0)
@@ -446,6 +447,7 @@ BYTE tcp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 		goto tcp_process_rx_dump_packet;						//Error - packet was too small - dump
 	if (nic_read_array((BYTE*)&tcp_header.urgent_pointer, 2) == 0)
 		goto tcp_process_rx_dump_packet;						//Error - packet was too small - dump
+#endif
 
 
 
@@ -456,23 +458,29 @@ BYTE tcp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 	pseudo_header.protocol = IP_PROTOCOL_TCP;
 	pseudo_header.tcp_length = ip_data_area_bytes;
 
+#ifndef __ORDER_BIG_ENDIAN__
 	pseudo_header.tcp_length = swap_word_bytes(pseudo_header.tcp_length);
+#endif
 
 	//----- START CALCULATION OF TCP CHECKSUM -----
 	tcp_rx_checksum = 0;
 	tcp_rx_checksum_next_byte_low = 0;
-	//ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&pseudo_header, PSEUDO_HEADER_LENGTH);
+#ifdef PACKED_STRUCT
+    ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&pseudo_header, PSEUDO_HEADER_LENGTH);
+#else
     ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&pseudo_header.source_address, 4);
     ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&pseudo_header.destination_address, 4);
     ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&pseudo_header.zero, 1);
     ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&pseudo_header.protocol, 1);
     ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&pseudo_header.tcp_length, 2);
-
+#endif
 
 	//----- ADD THE TCP HEADER TO THE CHECKSUM -----
 	tcp_rx_checksum_recevied = tcp_header.checksum;
 	tcp_header.checksum = 0;
-	//ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&tcp_header, TCP_HEADER_LENGTH);
+#ifdef PACKED_STRUCT
+    ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&tcp_header, TCP_HEADER_LENGTH);
+#else
     ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&tcp_header.source_port, 2);
     ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&tcp_header.destination_port, 2);
     ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&tcp_header.sequence_number, 4);
@@ -482,7 +490,7 @@ BYTE tcp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
     ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&tcp_header.window, 2);
     ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&tcp_header.checksum, 2);
     ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&tcp_header.urgent_pointer, 2);
-
+#endif
 
 	//----- ADD THE OPTIONS AND TCP DATA AREA TO THE CHECKSUM -----
 	for (count = 0; count < (ip_data_area_bytes - TCP_HEADER_LENGTH); count++)
@@ -491,7 +499,11 @@ BYTE tcp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 		ip_add_bytes_to_ip_checksum (&tcp_rx_checksum, &tcp_rx_checksum_next_byte_low, (BYTE*)&b_data, 1);
 	}
 
+#ifdef __ORDER_BIG_ENDIAN__
+    tcp_rx_checksum = ~tcp_rx_checksum;
+#else
 	tcp_rx_checksum = swap_word_bytes(~tcp_rx_checksum);
+#endif
 
 	//----- CHECK THAT THE CHECKSUMS MATCH -----
 	if (tcp_rx_checksum_recevied != tcp_rx_checksum)
@@ -501,8 +513,10 @@ BYTE tcp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 	//Ignore any options if present after the TCP header
 	nic_move_pointer (ETHERNET_HEADER_LENGTH + IP_HEADER_LENGTH + (tcp_header.header_length.bits.val << 2));	//Use the header length value so that any option bytes are included
 
+#ifndef __ORDER_BIG_ENDIAN__
 	//SWAP THE HEADER WORDS (AFTER CHECKSUMMING)
     swap_tcp_header(&tcp_header);
+#endif
 
 	//GET THE TCP DATA LENGTH
 	tcp_data_length = ip_data_area_bytes - (tcp_header.header_length.bits.val << 2);
@@ -1536,8 +1550,10 @@ BYTE tcp_setup_tx (DEVICE_INFO *remote_device_info, WORD local_port, WORD remote
 	tcp_header.checksum = 0;
 	tcp_header.urgent_pointer = 0;
 
+#ifndef __ORDER_BIG_ENDIAN__
 	//SWAP THE HEADER WORDS READY FOR CHECKSUMMING AND TX
     swap_tcp_header(&tcp_header);
+#endif
 
 	//----- IF SENDING SYN PACKET THEN INCLUDE MAXIMUM SEGMENT SIZE IN OPTION FIELD -----
 	//----- ALSO SET THE HEADER LENGTH -----
@@ -1545,6 +1561,7 @@ BYTE tcp_setup_tx (DEVICE_INFO *remote_device_info, WORD local_port, WORD remote
 	{
 		tcp_options.id = TCP_OPTIONS_MAX_SEG_SIZE;			//OPTION TYPE
 		tcp_options.length = 4;
+
 		tcp_options.max_seg_size.v[0] = (BYTE)(TCP_MAX_SEGMENT_SIZE >> 8);
 		tcp_options.max_seg_size.v[1] = (BYTE)(TCP_MAX_SEGMENT_SIZE & 0x00ff);
 
@@ -1565,16 +1582,21 @@ BYTE tcp_setup_tx (DEVICE_INFO *remote_device_info, WORD local_port, WORD remote
 	//----- START CALCULATION OF TCP CHECKSUM -----
 	tcp_tx_checksum = 0;
 	tcp_tx_checksum_next_byte_low = 0;
-	//ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&pseudo_header, PSEUDO_HEADER_LENGTH);
+#ifdef PACKED_STRUCT
+    ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&pseudo_header, PSEUDO_HEADER_LENGTH);
+#else
     ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&pseudo_header.source_address, 4);
     ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&pseudo_header.destination_address, 4);
     ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&pseudo_header.zero, 1);
     ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&pseudo_header.protocol, 1);
     ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&pseudo_header.tcp_length, 2);
+#endif
 
 
 	//----- ADD THE TCP HEADER TO THE CHECKSUM -----
-	//ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_header, TCP_HEADER_LENGTH);
+#ifdef PACKED_STRUCT
+    ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_header, TCP_HEADER_LENGTH);
+#else
     ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_header.source_port, 2);
     ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_header.destination_port, 2);
     ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_header.sequence_number, 4);
@@ -1584,21 +1606,27 @@ BYTE tcp_setup_tx (DEVICE_INFO *remote_device_info, WORD local_port, WORD remote
     ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_header.window, 2);
     ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_header.checksum, 2);
     ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_header.urgent_pointer, 2);
+#endif
 
 	//----- ADD THE OPTIONS TO THE CHECKSUM -----
 	if (tx_flags & TCP_SYN)
 	{
-		//ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_options, TCP_OPTIONS_LENGTH);
+#ifdef PACKED_STRUCT
+        ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_options, TCP_OPTIONS_LENGTH);
+#else
         ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_options.id, 1);
         ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_options.length, 1);
         ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_options.max_seg_size.val, 2);
+#endif
 	}
 
 	//----- WRITE THE ETHERNET & IP HEADER TO THE NIC -----
 	ip_write_header(remote_device_info, IP_PROTOCOL_TCP);
 
 	//----- WRITE THE TCP HEADER TO THE NIC -----
-	//nic_write_array((BYTE*)&tcp_header, TCP_HEADER_LENGTH);
+#ifdef PACKED_STRUCT
+    nic_write_array((BYTE*)&tcp_header, TCP_HEADER_LENGTH);
+#else
     nic_write_array((BYTE*)&tcp_header.source_port, 2);
     nic_write_array((BYTE*)&tcp_header.destination_port, 2);
     nic_write_array((BYTE*)&tcp_header.sequence_number, 4);
@@ -1608,14 +1636,18 @@ BYTE tcp_setup_tx (DEVICE_INFO *remote_device_info, WORD local_port, WORD remote
     nic_write_array((BYTE*)&tcp_header.window, 2);
     nic_write_array((BYTE*)&tcp_header.checksum, 2);
     nic_write_array((BYTE*)&tcp_header.urgent_pointer, 2);
+#endif
 
 	//----- WRITE THE OPTIONS TO THE NIC -----
 	if (tx_flags & TCP_SYN)
 	{
-		//nic_write_array((BYTE*)&tcp_options, TCP_OPTIONS_LENGTH);
+#ifdef PACKED_STRUCT
+        nic_write_array((BYTE*)&tcp_options, TCP_OPTIONS_LENGTH);
+#else
         nic_write_next_byte(tcp_options.id);
         nic_write_next_byte(tcp_options.length);
         nic_write_array((BYTE*)&tcp_options.max_seg_size.val, 2);
+#endif
 	}
 
 	//----- NOW JUST WRITE THE TCP DATA ----
@@ -1734,7 +1766,9 @@ void tcp_tx_packet (void)
 
 	//----- GET THE TCP PACKET LENGTH -----
 	tcp_length = (nic_tx_len - ETHERNET_HEADER_LENGTH - IP_HEADER_LENGTH);
+#ifndef __ORDER_BIG_ENDIAN__
 	tcp_length = swap_word_bytes(tcp_length);
+#endif
 
 	//----- ADD THE LENGTH TO THE TCP CHECKSUM -----
 	//(In place of where it should have been for the pseudo header)
@@ -1742,7 +1776,11 @@ void tcp_tx_packet (void)
 	ip_add_bytes_to_ip_checksum (&tcp_tx_checksum, &tcp_tx_checksum_next_byte_low, (BYTE*)&tcp_length, 2);
 
 	//----- WRITE THE TCP CHECKSUM FIELD -----
-	tcp_tx_checksum = swap_word_bytes(~tcp_tx_checksum);
+#ifdef __ORDER_BIG_ENDIAN__
+    tcp_tx_checksum = ~tcp_tx_checksum;
+#else
+    tcp_tx_checksum = swap_word_bytes(~tcp_tx_checksum);
+#endif
 	nic_write_tx_word_at_location ((ETHERNET_HEADER_LENGTH + IP_HEADER_LENGTH + 16), tcp_tx_checksum);
 
 	//----- TX THE PACKET -----

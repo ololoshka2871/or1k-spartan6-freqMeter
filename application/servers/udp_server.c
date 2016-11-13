@@ -130,6 +130,7 @@ void process_udp_server() {
         //WRITE THE UDP DATA
         udp_write_next_byte('H');
         udp_write_next_byte('i');
+        udp_write_next_byte('\n');
         udp_write_next_byte(0x00);
         //You can also use udp_write_array()
         //SEND THE PACKET

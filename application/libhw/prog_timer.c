@@ -52,6 +52,14 @@ static struct sProgtimer *progtimer_tl_head = 0;
 static volatile progtimer_time_t _current_time;
 
 /************************************************************************
+* DESCRIPTION: This function increments current value of the RTC counter.
+*************************************************************************/
+void progtimer_ticks_inc( void )
+{
+    _current_time++;
+}
+
+/************************************************************************
 * DESCRIPTION: Handles timer interrupts
 *************************************************************************/
 void progtimer_handler_bottom(unsigned int *registers)
@@ -134,14 +142,6 @@ progtimer_time_t progtimer_get_seconds( void )
 progtimer_time_t progtimer_time_t_get_ms( void )
 {
     return (_current_time * PROGTIMER_PERIOD_MS);
-}
-
-/************************************************************************
-* DESCRIPTION: This function increments current value of the RTC counter.
-*************************************************************************/
-void progtimer_ticks_inc( void )
-{
-    _current_time++;
 }
 
 /************************************************************************
