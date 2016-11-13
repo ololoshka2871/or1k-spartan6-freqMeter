@@ -110,9 +110,10 @@ void process_tcp_server() {
         //----- PROCESS CLIENT CONNECTION -----
         if (tcp_server_socket_timeout_timer == 0)
         {
+            tcp_request_disconnect_socket(our_tcp_server_socket); // soft close
             //THERE HAS BEEN NO COMMUNICATIONS FROM CLIENT TIMEOUT
             //RESET SOCKET AS WE ASSUME CLIENT HAS BEEN LOST
-            tcp_close_socket(our_tcp_server_socket);
+            //tcp_close_socket(our_tcp_server_socket); // har close
             //As this socket is a server the existing connection will be closed
             //but the socket will be reset to wait for a new connection (use
             //tcp_close_socket_from_listen if you want to fully close it)
