@@ -36,8 +36,17 @@
 
 #include "ap-main.h"
 
-static const char index_page[] = "\
-<br>I'm an index page!";
+static const char index_page[] = "<!doctype html>\
+<html lang=\"en\">\
+<head>\
+  <meta charset=\"utf-8\">\
+  <title>СКТБ ЭППА Частотомер 24-х канальный V2.0</title>\
+  <meta name=\"author\" content=\"ShiloXyZ\">\
+</head>\
+<body>\
+  <br>Helloo WORLD!\
+</body>\
+</html>";
 
 // autorisation
 
