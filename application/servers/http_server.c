@@ -31,6 +31,8 @@
 
 #include <stddef.h>
 
+#include "syscall.h"
+
 #include "main.h"
 #include "eth-http.h"
 
@@ -95,6 +97,7 @@ BYTE process_http_find_file(BYTE* request_filename, BYTE* request_file_extension
                             DWORD* file_size, DWORD* next_byte_address) {
     *file_size = sizeof(index_page) + 1;
     *next_byte_address = (DWORD)index_page;
+    read_boot_flash(0, request_filename, 5);
     return 1;
 }
 

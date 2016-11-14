@@ -34,7 +34,7 @@
 
 uint32_t __attribute__((noinline)) syscall(uint32_t arg) {
     // arg == r3 -> first argument for syscall
-    asm volatile("l.sys 6"); // 6 == exec user's syscall
+    asm volatile("l.sys 7"); // 7 == exec user's syscall
     return arg;
 }
 
@@ -45,6 +45,18 @@ install_syscall_handler(syscall_handler handler) {
     return handler;
 }
 
+uint32_t __attribute__((noinline))
+read_boot_flash(uint32_t addr, uint8_t *dest, uint32_t size) {
+    // addr == r3 -> addr to read from
+    // desr == r4 -> deftination buffer
+    // size == r5 -> size to read
+    asm volatile("l.sys 6"
+                 : "=r" (addr)
+                 : "r" (addr), "r" (dest), "r" (size)
+                 ); // 6 == read boot flash
+    // r3 <- syscall result (r5 if ok)
+    return addr == size; // 1 if read success
+}
 
 //-----------------------------------------------------------------
 // mfspr: Read from SPR

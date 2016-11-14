@@ -67,6 +67,7 @@
 #define REG_SP                                1
 #define REG_ARG0                              3
 #define REG_ARG1                              4
+#define REG_ARG2                              5
 #define REG_PC                                33
 #define REG_SR                                34
 #define REG_NUM                               35
@@ -105,6 +106,8 @@ static const char GDB_STUB_SECTION_RODATA _hex_char[] = "0123456789abcdef" ;
 
 static GDB_STUB_SECTION_BSS unsigned int * (*syscall_handler)(unsigned int *registers);
 static GDB_STUB_SECTION_BSS unsigned int * (*irq_handler)(unsigned int *registers);
+
+static GDB_STUB_SECTION_BSS uint8_t cs_found;
 
 //-----------------------------------------------------------------
 // gdb_atoi_hex: Convert from hex character to integer
@@ -382,6 +385,25 @@ gdb_syscall(unsigned int *registers)
           return registers;
       }
       //---------------------------------------------------
+      // l.sys 6 -> read boot flash
+      // R3 - addr to read from
+      // R4 - destination buffer
+      // R5 - size to read
+      // Return R3 == R5 if success or 0 if error
+      //---------------------------------------------------
+      case 6:
+          if (!cs_found) {
+              registers[REG_ARG0] = 0;
+          } else {
+            uint32_t read_addr = registers[REG_ARG0];
+            unsigned char* destbuf = (unsigned char*)registers[REG_ARG1];
+            uint32_t size_to_read = registers[REG_ARG2];
+            spi_flash_read(cs_found, read_addr, destbuf, size_to_read);
+            registers[REG_ARG0] = size_to_read;
+          }
+
+          return registers;
+      //---------------------------------------------------
       // Default: User syscall
       //---------------------------------------------------
       default:
@@ -634,7 +656,7 @@ void GDB_STUB_SECTION_TEXT try_load(void) {
         uint32_t buf;
 
         //Probing flash
-        uint8_t cs_found = spi_probe_flash(1, 2);
+        cs_found = spi_probe_flash(1, 2);
 
         if (!cs_found)
             FATAL_no_bootable_code_found(0);
