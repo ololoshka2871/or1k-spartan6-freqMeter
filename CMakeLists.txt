@@ -260,6 +260,10 @@ make_bitgen(${BIT_FILE} ${UT_FILE_NAME} ${NCD_FILE})
 
 #------------------------------------/HDL---------------------------------------
 
+#-------------------------------------WWW---------------------------------------
+add_subdirectory(www)
+#------------------------------------/WWW---------------------------------------
+
 #---------------------------------application-----------------------------------
 add_subdirectory(application)
 add_custom_command(OUTPUT ${APPLICATION_BINARY} DEPENDS application)
