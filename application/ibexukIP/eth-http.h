@@ -66,8 +66,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define	HTTP_NO_OF_AVAILABLE_SOCKETS		2		//The number of TCP sockets that HTTP should open to listen for new connections (i.e. the maximum
 													//number of simultanious http connections.  Value must be <= TCP_NO_OF_AVAILABLE_SOCKETS.  At least 2 is recomended.
-
+#ifndef HTTP_MAX_FILENAME_LENGTH
 #define HTTP_MAX_FILENAME_LENGTH			21		//The maximum length of a http request filename including any sub directory, excluding file extension (including a terminating null - smaller value reduces ram requirement)
+#endif
+#ifndef HTTP_MAX_FILEEXT_LENGTH
+#define HTTP_MAX_FILEEXT_LENGTH             3		//file ext length
+#elif HTTP_MAX_FILEEXT_LENGTH != 3
+#error "HTTP_MAX_FILEEXT_LENGTH mast be 3!"
+#endif
 #define HTTP_MAX_INPUT_NAME_LENGTH			16		//The maximum number of characters permitted for a single GET or POST input name field (including a terminating null - smaller value reduces ram requirement)
 #define HTTP_MAX_INPUT_VALUE_LENGTH			24		//The maximum number of characters permitted for a single GET or POST input value field (including a terminating null - smaller value reduces ram requirement)
 #define HTTP_MAX_OUTPUT_VARIABLE_NAME_LENGTH 21		//The maximum number of characters that will be stored for a html dynamic output vairable name (including a terminating null - smaller value reduces ram requirement)

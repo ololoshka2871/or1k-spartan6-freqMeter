@@ -31,18 +31,20 @@
 
 #include <stddef.h>
 
-#include "syscall.h"
+#include "rodata.h"
 
 #include "main.h"
 #include "eth-http.h"
 
 #include "ap-main.h"
 
+static rodata_descriptor curent_file;
+
 static const char index_page[] = "<!doctype html>\
 <html lang=\"en\">\
 <head>\
   <meta charset=\"utf-8\">\
-  <title>СКТБ ЭППА Частотомер 24-х канальный V2.0</title>\
+  <title>СКТБ ЭЛПА Частотомер 24-х канальный V2.0</title>\
   <meta name=\"author\" content=\"ShiloXyZ\">\
 </head>\
 <body>\
@@ -95,12 +97,15 @@ void process_http_multipart_form_data(BYTE v) {
 
 BYTE process_http_find_file(BYTE* request_filename, BYTE* request_file_extension,
                             DWORD* file_size, DWORD* next_byte_address) {
-    *file_size = sizeof(index_page) + 1;
-    *next_byte_address = (DWORD)index_page;
-    //read_boot_flash(0, request_filename, 5);
-    return 1;
+    curent_file = rodata_find_file(request_filename, request_file_extension);
+    if (curent_file == RODATA_INVALID_FILE_DESCRIPTOR)
+        return FALSE; // no file found
+
+    *file_size = rodata_filesize(curent_file);
+    *next_byte_address = 0; // read from start
+    return TRUE;
 }
 
 BYTE process_http_file_next_byte(BYTE* pointer) {
-    return *pointer;
+    return rodata_readchar(curent_file, (uint32_t)pointer);
 }

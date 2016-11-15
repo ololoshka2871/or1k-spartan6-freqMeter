@@ -32,6 +32,8 @@
 #ifndef _HEAP_H_
 #define _HEAP_H_
 
+#include <stddef.h>
+
 enum enHeapPools {
     HEAP_POOL_SYSTEM = 0,
     HEAP_POOL_ETH_TX = 1

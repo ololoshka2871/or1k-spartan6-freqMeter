@@ -209,6 +209,7 @@ set(MAC_RX_MEM_BASE         ${MAC_RX_MEM_BASE}          PARENT_SCOPE)
 set(MAC_CTL_BASE            ${MAC_CTL_BASE}             PARENT_SCOPE)
 set(MTU                     ${MTU}                      PARENT_SCOPE)
 set(MEMORY_UNIT_SIZE        ${_MEMORY_UNIT_SIZE}        PARENT_SCOPE)
+set(MEMORY_UNIT_SIZE_BYTES  ${MEMORY_UNIT_SIZE_BYTES}   PARENT_SCOPE)
 set(FREQMETERS_BASE         ${FREQMETERS_BASE}          PARENT_SCOPE)
 
 set(TESTBENCH_TOP           ${TESTBENCH_TOP}            PARENT_SCOPE)

@@ -68,7 +68,7 @@ set(INPUT_CLOCK_HZ          48000000
     CACHE STRING "FPGA main clock source (Hz)")
 set(SPI_FLASH_CHIP          "W25Q32BV"
     CACHE STRING "SPI flash memory part name")
-set(FPGA_DP_MEMORY_USE      32
+set(FPGA_DP_MEMORY_USE      28
     CACHE STRING "Number of RAMB16BWERs to use as main memory")
 
 set(HEADER_W1               0x03030303
@@ -123,6 +123,8 @@ set(CPU_CLOCK_DEVIDER       24
 set(SYSTEM_HEAP_SIZE        4096
     CACHE STRING "System memory heap size")
 
+#-------------------------------------------------------------------------------
+
 set(ETHERNET_MAC_ADDRESS_MSB  0c
     CACHE STRING  "First byte of ethernet MAC address (execute make gen_mac to renew)")
 
@@ -149,6 +151,18 @@ set(ETHERNET_SKIP_UDP_CHECKSUMS YES
 
 set(ETHERNET_UDP_SERVER_PORT    9128
     CACHE STRING "UDP server port number")
+
+#-------------------------------------------------------------------------------
+
+set(SITE_FILENAME_MAX       21
+    CACHE STRING "Site path+filename max size")
+
+set(SITE_FILEEXT_MAX        3
+    CACHE STRING "Site filenamepath max size")
+
+set(SITE_STATIC_CACHE       128
+    CACHE STRING "SPI flash read cache")
+
 
 #--- test firmware ---
 set(SIM_TEST_FREQMETER      OFF
@@ -262,9 +276,18 @@ make_bitgen(${BIT_FILE} ${UT_FILE_NAME} ${NCD_FILE})
 
 #-------------------------------------WWW---------------------------------------
 add_subdirectory(www)
+add_custom_command(OUTPUT ${SITE_BLOB_NAME} DEPENDS site2blob)
 #------------------------------------/WWW---------------------------------------
 
 #---------------------------------application-----------------------------------
+# position of site blob need for application
+execute_process(
+    COMMAND ${PYTHON_EXECUTABLE} -c "print('0x{:X}'.format(${USER_CODE_FLASH_OFFSET} + ${MEMORY_UNIT_SIZE_BYTES} * ${FPGA_DP_MEMORY_USE}))"
+    OUTPUT_VARIABLE SITE_BLOB_START
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+message(STATUS "Site blob will be writen in flash at ${SITE_BLOB_START}")
+
 add_subdirectory(application)
 add_custom_command(OUTPUT ${APPLICATION_BINARY} DEPENDS application)
 #--------------------------------/application-----------------------------------
@@ -321,6 +344,7 @@ configure_file(${IMPACT_BATCH_FILE_FLASH_IN} ${IMPACT_BATCH_FILE_FLASH} @ONLY)
 build_mcs(${MCS_FIRMWARE_IMAGE}
     0x0 ${BIT_FILE}
     ${USER_CODE_FLASH_OFFSET} ${APPLICATION_BINARY}
+    ${SITE_BLOB_START}  ${SITE_BLOB_NAME}
     )
 #append_data_to_file(${MCS_FIRMWARE_IMAGE} ${MCS_CONFIG_IMAGE}
 #    ${APPLICATION_BINARY} ${USER_CODE_FLASH_OFFSET})

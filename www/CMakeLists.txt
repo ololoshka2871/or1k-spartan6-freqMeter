@@ -32,4 +32,39 @@
 cmake_minimum_required(VERSION 2.8.5)
 
 add_subdirectory(scripts)
+add_subdirectory(siteroot)
 
+set(site_blob_name      ${CMAKE_CURRENT_BINARY_DIR}/site.blob)
+
+if (CMAKE_BUILD_TYPE EQUAL "Release")
+    # TODO minimise code
+    add_custom_command(
+        OUTPUT ${site_blob_name}
+        DEPENDS ${SITE_SRC} ${BLOB_GENERATOR_SCRIPT}
+        COMMAND ${PYTHON_EXECUTABLE}
+            ${BLOB_GENERATOR_SCRIPT}
+            --outputblob ${site_blob_name}
+            --path_max ${SITE_FILENAME_MAX}
+            --ext_max ${SITE_FILEEXT_MAX}
+            --ignore_regexp "CMakeLists"
+            ${siteroot_DIR}
+        )
+
+    add_custom_target(site2blob DEPENDS ${site_blob_name})
+else()
+    add_custom_command(
+        OUTPUT ${site_blob_name}
+        DEPENDS ${SITE_SRC} ${BLOB_GENERATOR_SCRIPT}
+        COMMAND ${PYTHON_EXECUTABLE}
+            ${BLOB_GENERATOR_SCRIPT}
+            --outputblob ${site_blob_name}
+            --path_max ${SITE_FILENAME_MAX}
+            --ext_max ${SITE_FILEEXT_MAX}
+            --ignore_regexp "CMakeLists"
+            ${siteroot_DIR}
+        )
+
+    add_custom_target(site2blob DEPENDS ${site_blob_name})
+endif()
+
+set(SITE_BLOB_NAME      ${site_blob_name}       PARENT_SCOPE)

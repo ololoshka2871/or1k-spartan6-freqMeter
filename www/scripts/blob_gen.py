@@ -25,7 +25,9 @@ def filter_stings(strings, filter):
 def read_input_files(files_list, rootdir, path_max, ext_max):
     records = {}
     for f in files_list:
-        name = f.replace(rootdir, '/')
+        name = f.replace(rootdir, '')
+        if (name[0] == '/'):
+            name = name[1:]
         fname, ext = os.path.splitext(name)
         ext = ext[1:]
         if len(fname) > path_max or len(ext) > ext_max:
@@ -56,7 +58,8 @@ def sort_records(records, ext_len):
     return list(map(lambda x: x[1], map_ext2filename))
 
 def format_hader(records, order, name_size, ext_size, is_le):
-    result = b''
+    hhader_len = 16
+    reserved_field_len = 16 - 2 * 4
 
     if is_le:
         endian_def = '<'
@@ -65,11 +68,12 @@ def format_hader(records, order, name_size, ext_size, is_le):
 
     struct_def = endian_def + str(ext_size) + 's' + str(name_size) + 's' + 'II'
 
-    hader_size = (ext_size + name_size + 2 * 4) * len(order)
+    hader_size = (ext_size + name_size + 2 * 4) * len(order) + hhader_len
 
-    offset = hader_size + 4
+    offset = hader_size
 
     print("Построение заголовка блоба, структура {}".format(struct_def))
+    hader_records = b''
     for record in order:
         name = records[record][1]
         ext = records[record][0]
@@ -78,13 +82,15 @@ def format_hader(records, order, name_size, ext_size, is_le):
         print('{{ ext: {}\tname: {}\tstart: {}\tsize:{} }}'.format(ext, name, start, size))
         offset += size
 
-        result += struct.pack(struct_def, ext.encode('utf-8'), name.encode('utf-8'), start, size)
+        hader_records += struct.pack(struct_def, ext.encode('utf-8'), name.encode('utf-8'), start, size)
+
+    result  = struct.pack(endian_def + 'II', hader_size, 0) + b'\00' * reserved_field_len
+    result += hader_records
 
     hader_crc32 = zlib.crc32(result)
-
     print('Контрольная сумма заголовка: 0x{:08X}'.format(hader_crc32))
 
-    result += struct.pack(endian_def + 'I', hader_crc32)
+    result = result[0:4] + struct.pack(endian_def + 'I', hader_crc32) + result[8:]
 
     return result
 

@@ -338,7 +338,7 @@ void http_process_rx (BYTE socket_number)
 	BYTE request_type;
 	BYTE waiting_for_forward_slash;
 	BYTE filename[HTTP_MAX_FILENAME_LENGTH];
-	BYTE file_extension[3];
+    BYTE file_extension[HTTP_MAX_FILEEXT_LENGTH];
 	BYTE filename_next_character;
 	BYTE file_extension_next_character;
 	BYTE reading_filename;
@@ -478,7 +478,7 @@ void http_process_rx (BYTE socket_number)
 				}	
 				else
 				{
-					if (file_extension_next_character < 3)			//If extension is > 3 characters simply ignore any additional characters as we only deal with 3 character extensions
+                    if (file_extension_next_character < HTTP_MAX_FILEEXT_LENGTH)			//If extension is > 3 characters simply ignore any additional characters as we only deal with 3 character extensions
 						file_extension[file_extension_next_character++] = convert_ascii_hex_to_byte(data_buffer[1], data_buffer[0]);
 				}
 			}
@@ -537,7 +537,7 @@ void http_process_rx (BYTE socket_number)
 				}	
 				else
 				{
-					if (file_extension_next_character < 3)			//If extension is > 3 characters simply ignore any additional characters as we only deal with 3 character extensions
+                    if (file_extension_next_character < HTTP_MAX_FILEEXT_LENGTH)			//If extension is > 3 characters simply ignore any additional characters as we only deal with 3 character extensions
 						file_extension[file_extension_next_character++] = data_buffer[0];
 				}	
 			}
