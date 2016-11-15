@@ -78,7 +78,7 @@ struct rodata_fs {
 
 static struct rodata_fs* prodata_fs = NULL;
 
-static char rodata_cache[RODATA_CACHE_SIZE];
+static uint8_t rodata_cache[RODATA_CACHE_SIZE];
 static uint32_t rodata_cached_start = 0;
 
 #define FILES_IN_TABLE()                ((prodata_fs->hader.rodata_table_size - sizeof(struct rodata_hader))/sizeof(struct rodata_file))
@@ -90,7 +90,23 @@ static void rodata_assert(bool condition) {
 }
 
 static void read_from_cache(uint8_t *buf, uint32_t start, uint32_t size) {
-    memset(buf, '-', size);
+    while(size) {
+        uint32_t requred_segment = start / RODATA_CACHE_SIZE;
+        if (requred_segment != rodata_cached_start) {
+            // cache new segment
+            rodata_cached_start = requred_segment;
+            read_boot_flash(rodata_cached_start, rodata_cache, RODATA_CACHE_SIZE);
+        }
+
+        uint32_t sizetoread = RODATA_CACHE_SIZE;
+        if (sizetoread > size)
+            sizetoread = size;
+
+        memcpy(buf, &rodata_cache[start - requred_segment], sizetoread);
+        size  -= sizetoread;
+        start += sizetoread;
+        buf   += sizetoread;
+    }
 }
 
 static bool rodata_init() {
