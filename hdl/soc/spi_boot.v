@@ -98,7 +98,8 @@ wire[WB_DATA_WIDTH-1:0]   data_spi_o;
 
 tiny_spi #
 (
-    .SPI_MODE(-1)
+    .SPI_MODE(-1),
+    .BAUD_WIDTH(5)
 ) spi (
     .rst_i(rst_i),
     .clk_i(clk_i),

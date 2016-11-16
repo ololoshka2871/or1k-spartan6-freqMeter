@@ -40,20 +40,7 @@
 
 static rodata_descriptor curent_file;
 
-static const char index_page[] = "<!doctype html>\
-<html lang=\"en\">\
-<head>\
-  <meta charset=\"utf-8\">\
-  <title>СКТБ ЭЛПА Частотомер 24-х канальный V2.0</title>\
-  <meta name=\"author\" content=\"ShiloXyZ\">\
-</head>\
-<body>\
-  <br>Helloo WORLD!\
-</body>\
-</html>";
-
 // autorisation
-
 BYTE process_http_authorise_request (BYTE *requested_filename,
                                      BYTE *requested_filename_extension,
                                      BYTE tcp_socket_number) {
@@ -61,7 +48,6 @@ BYTE process_http_authorise_request (BYTE *requested_filename,
 }
 
 // templates values
-
 BYTE *process_http_dynamic_data (BYTE *variable_name, BYTE tcp_socket_number) {
     return NULL;
 }
@@ -108,4 +94,8 @@ BYTE process_http_find_file(BYTE* request_filename, BYTE* request_file_extension
 
 BYTE process_http_file_next_byte(BYTE* pointer) {
     return rodata_readchar(curent_file, (uint32_t)pointer);
+}
+
+DWORD process_http_file_next_bytes(BYTE* buf, BYTE* pointer, DWORD count) {
+    return rodata_readarray(curent_file, buf, (uint32_t)pointer, count);
 }

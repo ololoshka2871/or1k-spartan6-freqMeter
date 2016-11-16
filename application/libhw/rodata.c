@@ -103,7 +103,11 @@ static void read_from_cache(uint8_t *buf, uint32_t start, uint32_t size) {
         if (sizetoread > size)
             sizetoread = size;
 
-        memcpy(buf, &rodata_cache[segment_offset], sizetoread);
+        if (size == 1)
+            *buf = rodata_cache[segment_offset];
+        else
+            memcpy(buf, &rodata_cache[segment_offset], sizetoread);
+
         size  -= sizetoread;
         start += sizetoread;
         buf   += sizetoread;

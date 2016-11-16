@@ -250,6 +250,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----- RETURN NEXT BYTE OF FILE -----
 #define	HTTP_EXTERNAL_FILE_NEXT_BYTE		process_http_file_next_byte
 
+
+//----- return n bytes of file
+// returns: actual bytes read
+#define HTTP_EXTERNAL_FILE_NEXT_BYTES       process_http_file_next_bytes
+
 //Your function definition needs to be:
 //	BYTE my_function_name (DWORD our_pointer_variable)
 //our_pointer_variable
