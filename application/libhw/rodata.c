@@ -91,18 +91,19 @@ static void rodata_assert(bool condition) {
 
 static void read_from_cache(uint8_t *buf, uint32_t start, uint32_t size) {
     while(size) {
-        uint32_t requred_segment = start / RODATA_CACHE_SIZE;
+        uint32_t segment_offset = start % RODATA_CACHE_SIZE;
+        uint32_t requred_segment = start - segment_offset;
         if (requred_segment != rodata_cached_start) {
             // cache new segment
             rodata_cached_start = requred_segment;
             read_boot_flash(rodata_cached_start, rodata_cache, RODATA_CACHE_SIZE);
         }
 
-        uint32_t sizetoread = RODATA_CACHE_SIZE;
+        uint32_t sizetoread = RODATA_CACHE_SIZE - segment_offset;
         if (sizetoread > size)
             sizetoread = size;
 
-        memcpy(buf, &rodata_cache[start - requred_segment], sizetoread);
+        memcpy(buf, &rodata_cache[segment_offset], sizetoread);
         size  -= sizetoread;
         start += sizetoread;
         buf   += sizetoread;
@@ -196,7 +197,7 @@ uint8_t rodata_readchar(rodata_descriptor descriptor, uint32_t offset) {
     if (offset > FILE_HADER(descriptor).size)
         return 0;
 
-    offset = FILE_CONTENT_ADDR(descriptor) + offset;
+    offset += FILE_CONTENT_ADDR(descriptor);
     uint8_t r;
     read_from_cache(&r, offset, sizeof(uint8_t));
     return r;
@@ -213,7 +214,7 @@ uint32_t rodata_readarray(rodata_descriptor descriptor, uint8_t *buf,
         size = _size;
     }
 
-    start = FILE_CONTENT_ADDR(descriptor) + start;
+    start += FILE_CONTENT_ADDR(descriptor);
     read_from_cache(buf, start, size);
     return size;
 }
