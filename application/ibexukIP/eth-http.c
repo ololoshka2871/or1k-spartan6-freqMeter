@@ -1248,6 +1248,34 @@ void http_transmit_next_response_packet (BYTE socket_number, BYTE resend_last_pa
 			p_rom_file = http_socket[socket_number].response_next_byte_address;
 		#endif
 
+#if 1 // my own implementation
+        // no dynamic content yet
+        // http_socket[socket_number].response_next_byte_address - address to start read
+        // http_socket[socket_number].response_bytes_remaining   - bytes to transmitt
+        // tcp_write_array() - writes data buf to transmitter - can't use (2 copyes)
+        // ip_add_bytes_to_ip_checksum() caluelate checksumm of data fragment, need to calcule in transmitter memory directly
+
+        // request pointer to write to -> nic_get_wrpointer()
+        BYTE* ptx_pos = nic_get_wrpointer();
+
+        // calc size to read
+        DWORD txThis_time = http_socket[socket_number].response_bytes_remaining;
+        if (txThis_time > MAX_TCP_DATA_LEN)
+            txThis_time = MAX_TCP_DATA_LEN;
+
+        // call read file to transmitter directly -> HTTP_EXTERNAL_FILE_NEXT_BYTES()
+        txThis_time = HTTP_EXTERNAL_FILE_NEXT_BYTES(
+                    ptx_pos, http_socket[socket_number].response_next_byte_address,
+                    txThis_time);
+
+        // set nic correct write addr -> nic_move_pointer()
+        nic_tx_writen_indirectly(txThis_time);
+
+        // calc checksumm in transmitter memory -> ip_add_bytes_to_ip_checksum()
+        // update tcp_tx_data_byte_length variable (not in scope)
+        tcp_writen_directly(ptx_pos, txThis_time);
+        http_socket[socket_number].file_bytes_sent_last_time = txThis_time;
+#else
 		bytes_sent = 0;
 		file_offset = 0;
 		while (bytes_sent < (MAX_TCP_DATA_LEN - 100))		//-100 to allow for dynamic content that may appear right at the end of a packet
@@ -1326,7 +1354,8 @@ void http_transmit_next_response_packet (BYTE socket_number, BYTE resend_last_pa
 
 		}
 		//----- THIS PACKET FULL OR END OF FILE REACHED -----
-		
+
+#endif
 	}
 
 	//---------------------------

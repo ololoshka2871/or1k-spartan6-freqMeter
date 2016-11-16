@@ -219,7 +219,7 @@ uint32_t rodata_readarray(rodata_descriptor descriptor, uint8_t *buf,
     }
 
     start += FILE_CONTENT_ADDR(descriptor);
-    read_from_cache(buf, start, size);
+    read_boot_flash(start, buf, size);
     return size;
 }
 

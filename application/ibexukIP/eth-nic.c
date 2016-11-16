@@ -163,7 +163,7 @@ BYTE nic_read_array (BYTE *array_buffer, WORD array_length) {
 //**************************************
 //**************************************
 //Moves the pointer to a specified byte ready to be read next, with a value of 0 = the first byte of the Ethernet header
-void nic_move_pointer (WORD move_pointer_to_ethernet_byte) {
+void nic_move_pointer (SIGNED_WORD move_pointer_to_ethernet_byte) {
     rxPointer = miniMAC_rxSlotData(rxWorkingSlot) + move_pointer_to_ethernet_byte;
 }
 
@@ -199,8 +199,16 @@ BYTE nic_setup_tx (void) {
     return TRUE;
 }
 
-
-
+//**************************************
+//**************************************
+//********** NIC MOVE TX POINTER *******
+//**************************************
+//**************************************
+//Moves the pointer to a specified byte ready to be read next, with a value of 0 = the first byte of the Ethernet header
+void nic_tx_writen_indirectly (WORD move_pointer_to_ethernet_byte) {
+    txPointer += move_pointer_to_ethernet_byte;
+    nic_tx_len += move_pointer_to_ethernet_byte;
+}
 
 //********************************************
 //********************************************
@@ -229,6 +237,15 @@ void nic_write_array (BYTE *array_buffer, WORD array_length) {
     nic_tx_len += array_length;
 }
 
+//*************************************
+//*************************************
+//***** NIC GET POINTER TO WRITE ******
+//*************************************
+//*************************************
+//(nic_setup_tx must have already been called)
+BYTE * nic_get_wrpointer() {
+    return txPointer;
+}
 
 
 //*********************************************************

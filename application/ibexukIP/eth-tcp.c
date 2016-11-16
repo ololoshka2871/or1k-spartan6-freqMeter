@@ -1712,7 +1712,22 @@ BYTE tcp_write_array (BYTE *array_buffer, WORD array_length)
 	return(1);
 }
 
+//*************************************
+//*************************************
+//********** TCP WRITE ARRAY **********
+//*************************************
+//*************************************
+//add bytes writen directly to tx buffer as normal pocket data
+void tcp_writen_directly (BYTE *start, WORD length)
+{
+    // add new data to checksumm
+    ip_add_bytes_to_ip_checksum(
+                &tcp_tx_checksum, &tcp_tx_checksum_next_byte_low,
+                start, length);
 
+    // update tcp_tx_data_byte_length variable
+    tcp_tx_data_byte_length += length;
+}
 
 
 //******************************************
