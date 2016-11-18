@@ -44,6 +44,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "eth-main.h"
 #include "eth-tcp.h"
 
+#include "eth-nic.h"
 
 #ifdef HTTP_DYNAMIC_DATA_FUNCTION
 #include "ap-main.h"			//File that includes the definition for the function used to process http output dynamic data variables (only requried if this function is being used)
@@ -1248,33 +1249,36 @@ void http_transmit_next_response_packet (BYTE socket_number, BYTE resend_last_pa
 			p_rom_file = http_socket[socket_number].response_next_byte_address;
 		#endif
 
-#if 1 // my own implementation
+#if 1   // my own implementation
         // no dynamic content yet
         // http_socket[socket_number].response_next_byte_address - address to start read
         // http_socket[socket_number].response_bytes_remaining   - bytes to transmitt
         // tcp_write_array() - writes data buf to transmitter - can't use (2 copyes)
         // ip_add_bytes_to_ip_checksum() caluelate checksumm of data fragment, need to calcule in transmitter memory directly
 
-        // request pointer to write to -> nic_get_wrpointer()
-        BYTE* ptx_pos = nic_get_wrpointer();
+        if (http_socket[socket_number].response_bytes_remaining) {
+            // request pointer to write to -> nic_get_wrpointer()
+            BYTE* ptx_pos = nic_get_wrpointer();
 
-        // calc size to read
-        DWORD txThis_time = http_socket[socket_number].response_bytes_remaining;
-        if (txThis_time > MAX_TCP_DATA_LEN)
-            txThis_time = MAX_TCP_DATA_LEN;
+            // calc size to read
+            bytes_sent = http_socket[socket_number].response_bytes_remaining;
+            if (bytes_sent > MAX_TCP_DATA_LEN)
+                bytes_sent = MAX_TCP_DATA_LEN;
 
-        // call read file to transmitter directly -> HTTP_EXTERNAL_FILE_NEXT_BYTES()
-        txThis_time = HTTP_EXTERNAL_FILE_NEXT_BYTES(
-                    ptx_pos, http_socket[socket_number].response_next_byte_address,
-                    txThis_time);
-
-        // set nic correct write addr -> nic_move_pointer()
-        nic_tx_writen_indirectly(txThis_time);
-
-        // calc checksumm in transmitter memory -> ip_add_bytes_to_ip_checksum()
-        // update tcp_tx_data_byte_length variable (not in scope)
-        tcp_writen_directly(ptx_pos, txThis_time);
-        http_socket[socket_number].file_bytes_sent_last_time = txThis_time;
+            // call read file to transmitter directly -> HTTP_EXTERNAL_FILE_NEXT_BYTES()
+            bytes_sent = HTTP_EXTERNAL_FILE_NEXT_BYTES(
+                        ptx_pos, http_socket[socket_number].response_next_byte_address,
+                        bytes_sent);
+            if (!bytes_sent) {
+                // reset
+                http_socket[socket_number].sm_http_state = HTTP_RETURN_SERVICE_UNAVAILABLE;
+                return;
+            }
+            // calc checksumm in transmitter memory -> ip_add_bytes_to_ip_checksum()
+            // update tcp_tx_data_byte_length variable
+            tcp_writen_directly(ptx_pos, bytes_sent);
+            http_socket[socket_number].file_bytes_sent_last_time = bytes_sent;
+        }
 #else
 		bytes_sent = 0;
 		file_offset = 0;

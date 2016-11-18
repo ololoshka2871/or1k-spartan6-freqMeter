@@ -45,7 +45,7 @@ install_syscall_handler(syscall_handler handler) {
     return handler;
 }
 
-uint32_t __attribute__((noinline))
+void __attribute__((noinline))
 read_boot_flash(uint32_t addr, uint8_t *dest, uint32_t size) {
     // addr == r3 -> addr to read from
     // desr == r4 -> deftination buffer
@@ -54,8 +54,6 @@ read_boot_flash(uint32_t addr, uint8_t *dest, uint32_t size) {
                  : "=r" (addr)
                  : "r" (addr), "r" (dest), "r" (size)
                  ); // 6 == read boot flash
-    // r3 <- syscall result (r5 if ok)
-    return addr == size; // 1 if read success
 }
 
 //-----------------------------------------------------------------

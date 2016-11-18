@@ -1720,13 +1720,29 @@ BYTE tcp_write_array (BYTE *array_buffer, WORD array_length)
 //add bytes writen directly to tx buffer as normal pocket data
 void tcp_writen_directly (BYTE *start, WORD length)
 {
-    // add new data to checksumm
-    ip_add_bytes_to_ip_checksum(
-                &tcp_tx_checksum, &tcp_tx_checksum_next_byte_low,
-                start, length);
+    // set nic correct write addr -> nic_move_pointer()
+    nic_tx_writen_directly(length);
 
     // update tcp_tx_data_byte_length variable
     tcp_tx_data_byte_length += length;
+
+    // add new data to checksumm
+#if 1
+    while(length) {
+        BYTE step = 0xff;
+        if (step > length)
+            step = length;
+        ip_add_bytes_to_ip_checksum (&tcp_tx_checksum,
+                                     &tcp_tx_checksum_next_byte_low,
+                                     start, step);
+        start += step;
+        length -= step;
+    }
+#else
+    ip_add_bytes_to_ip_checksum(
+                &tcp_tx_checksum, &tcp_tx_checksum_next_byte_low,
+                start, length);
+#endif
 }
 
 

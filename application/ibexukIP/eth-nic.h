@@ -79,10 +79,11 @@ BYTE nic_read_array (BYTE *array_buffer, WORD array_length);
 void nic_move_pointer (SIGNED_WORD move_pointer_to_ethernet_byte);
 void nic_rx_dump_packet (void);
 BYTE nic_setup_tx (void);
-void nic_tx_writen_indirectly(WORD move_pointer_to_ethernet_byte);
+void nic_tx_writen_directly(WORD bytes_writen);
 void nic_write_next_byte (BYTE data);
 void nic_write_array (BYTE *array_buffer, WORD array_length);
 BYTE * nic_get_wrpointer();
+
 void nic_write_tx_word_at_location (WORD byte_address, WORD data);
 void write_eth_header_to_nic (MAC_ADDR *remote_mac_address, WORD ethernet_packet_type);
 void nic_tx_packet (void);

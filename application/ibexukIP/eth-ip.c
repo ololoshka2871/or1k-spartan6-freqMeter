@@ -341,21 +341,21 @@ void ip_add_bytes_to_ip_checksum (WORD *checksum, BYTE *checksum_next_byte_is_lo
 {
 	DWORD dw_temp;
 	BYTE count;
-
+    BYTE t_checksum_next_byte_is_low = *checksum_next_byte_is_low;
 
 	dw_temp = (DWORD)*checksum;
 	
 	for (count = 0; count < no_of_bytes_to_add; count++)
 	{
-		if (*checksum_next_byte_is_low)
+        if (t_checksum_next_byte_is_low)
 		{
 			dw_temp += (DWORD)next_byte[count];
-			*checksum_next_byte_is_low = 0;
+            t_checksum_next_byte_is_low = 0;
 		}
 		else
 		{
 			dw_temp += ((DWORD)next_byte[count] << 8);
-			*checksum_next_byte_is_low = 1;
+            t_checksum_next_byte_is_low = 1;
 		}
 
 		//Do one's complement (overflow bit is added to checksum)
@@ -366,6 +366,7 @@ void ip_add_bytes_to_ip_checksum (WORD *checksum, BYTE *checksum_next_byte_is_lo
 		}
 	}
 	*checksum = (WORD)dw_temp;
+    *checksum_next_byte_is_low = t_checksum_next_byte_is_low;
 }
 
 

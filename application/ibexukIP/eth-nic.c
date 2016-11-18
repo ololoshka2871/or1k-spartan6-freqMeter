@@ -205,9 +205,9 @@ BYTE nic_setup_tx (void) {
 //**************************************
 //**************************************
 //Moves the pointer to a specified byte ready to be read next, with a value of 0 = the first byte of the Ethernet header
-void nic_tx_writen_indirectly (WORD move_pointer_to_ethernet_byte) {
-    txPointer += move_pointer_to_ethernet_byte;
-    nic_tx_len += move_pointer_to_ethernet_byte;
+void nic_tx_writen_directly (WORD bytes_writen) {
+    txPointer += bytes_writen;
+    nic_tx_len += bytes_writen;
 }
 
 //********************************************

@@ -41,8 +41,7 @@ uint32_t __attribute__((noinline)) syscall(uint32_t arg);
 syscall_handler __attribute__((noinline))
 install_syscall_handler(syscall_handler handler);
 
-uint32_t __attribute__((noinline))
-read_boot_flash(uint32_t addr, uint8_t *dest, uint32_t size);
+void read_boot_flash(uint32_t addr, uint8_t *dest, uint32_t size);
 
 //
 unsigned long mfspr(unsigned long spr);
