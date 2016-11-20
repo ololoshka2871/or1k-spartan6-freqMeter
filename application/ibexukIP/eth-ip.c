@@ -337,10 +337,10 @@ void ip_tx_packet (void)
 //To do before starting a new checksum:-
 //checksum = 0;
 //checksum_next_byte_is_low = 0;
-void ip_add_bytes_to_ip_checksum (WORD *checksum, BYTE *checksum_next_byte_is_low, BYTE *next_byte, BYTE no_of_bytes_to_add)
+void ip_add_bytes_to_ip_checksum (WORD *checksum, BYTE *checksum_next_byte_is_low, BYTE *next_byte, WORD no_of_bytes_to_add)
 {
 	DWORD dw_temp;
-	BYTE count;
+    WORD count;
     BYTE t_checksum_next_byte_is_low = *checksum_next_byte_is_low;
 
 	dw_temp = (DWORD)*checksum;

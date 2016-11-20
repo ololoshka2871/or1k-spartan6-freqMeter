@@ -1261,23 +1261,23 @@ void http_transmit_next_response_packet (BYTE socket_number, BYTE resend_last_pa
             BYTE* ptx_pos = nic_get_wrpointer();
 
             // calc size to read
-            bytes_sent = http_socket[socket_number].response_bytes_remaining;
-            if (bytes_sent > MAX_TCP_DATA_LEN)
-                bytes_sent = MAX_TCP_DATA_LEN;
+            DWORD bytes2send = http_socket[socket_number].response_bytes_remaining;
+            if (bytes2send > MAX_TCP_DATA_LEN)
+                bytes2send = MAX_TCP_DATA_LEN;
 
             // call read file to transmitter directly -> HTTP_EXTERNAL_FILE_NEXT_BYTES()
-            bytes_sent = HTTP_EXTERNAL_FILE_NEXT_BYTES(
+            DWORD bytes_actualy_read = HTTP_EXTERNAL_FILE_NEXT_BYTES(
                         ptx_pos, http_socket[socket_number].response_next_byte_address,
-                        bytes_sent);
-            if (!bytes_sent) {
+                        bytes2send);
+            if (!bytes_actualy_read) {
                 // reset
                 http_socket[socket_number].sm_http_state = HTTP_RETURN_SERVICE_UNAVAILABLE;
                 return;
             }
             // calc checksumm in transmitter memory -> ip_add_bytes_to_ip_checksum()
             // update tcp_tx_data_byte_length variable
-            tcp_writen_directly(ptx_pos, bytes_sent);
-            http_socket[socket_number].file_bytes_sent_last_time = bytes_sent;
+            tcp_writen_directly(ptx_pos, bytes_actualy_read);
+            http_socket[socket_number].file_bytes_sent_last_time = bytes_actualy_read;
         }
 #else
 		bytes_sent = 0;

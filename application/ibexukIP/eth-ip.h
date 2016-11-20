@@ -145,7 +145,7 @@ typedef struct _IP_HEADER
 //(Also defined below as extern)
 BYTE ip_get_header(IP_ADDR *destination_ip, DEVICE_INFO *remote_device_info, BYTE *ip_protocol, WORD *length);
 void ip_write_header(DEVICE_INFO *remote_device_info, BYTE ip_protocol);
-void ip_add_bytes_to_ip_checksum (WORD *checksum, BYTE *checksum_next_byte_is_low, BYTE *next_byte, BYTE no_of_bytes_to_add);
+void ip_add_bytes_to_ip_checksum (WORD *checksum, BYTE *checksum_next_byte_is_low, BYTE *next_byte, WORD no_of_bytes_to_add);
 void ip_tx_packet (void);
 
 
@@ -155,7 +155,7 @@ void ip_tx_packet (void);
 //------------------------------
 extern BYTE ip_get_header(IP_ADDR *destination_ip, DEVICE_INFO *remote_device_info, BYTE *ip_protocol, WORD *length);
 extern void ip_write_header(DEVICE_INFO *remote_device_info, BYTE ip_protocol);
-extern void ip_add_bytes_to_ip_checksum (WORD *checksum, BYTE *checksum_next_byte_is_low, BYTE *next_byte, BYTE no_of_bytes_to_add);
+extern void ip_add_bytes_to_ip_checksum (WORD *checksum, BYTE *checksum_next_byte_is_low, BYTE *next_byte, WORD no_of_bytes_to_add);
 extern void ip_tx_packet (void);
 
 

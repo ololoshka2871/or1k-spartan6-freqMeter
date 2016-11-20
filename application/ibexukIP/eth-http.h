@@ -254,6 +254,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----- return n bytes of file
 // returns: actual bytes read
 #define HTTP_EXTERNAL_FILE_NEXT_BYTES       process_http_file_next_bytes
+#ifdef HTTP_EXTERNAL_FILE_NEXT_BYTES
+extern DWORD HTTP_EXTERNAL_FILE_NEXT_BYTES(BYTE* buf, BYTE* pointer, DWORD count);
+#endif
 
 //Your function definition needs to be:
 //	BYTE my_function_name (DWORD our_pointer_variable)
