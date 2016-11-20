@@ -398,7 +398,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "eth-main.h"
 
 //----- TCP SETUP -----
-#define TCP_NO_OF_AVAILABLE_SOCKETS		6		//<<<<< SETUP FOR A NEW APPLICATION
+#define TCP_NO_OF_AVAILABLE_SOCKETS		10		//<<<<< SETUP FOR A NEW APPLICATION
 												//The number of TCP sockets available to the application (each socket uses sizeof(TCP_SOCKET_INFO) bytes of ram)
 												//Note that other stack components that use TCP will use sockets from this pool.
 

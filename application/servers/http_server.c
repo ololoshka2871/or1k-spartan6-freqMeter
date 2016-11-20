@@ -40,12 +40,14 @@
 
 static rodata_descriptor curent_file;
 
+#ifdef HTTP_AUTHORISE_REQUEST_FUNCTION
 // autorisation
 BYTE process_http_authorise_request (BYTE *requested_filename,
                                      BYTE *requested_filename_extension,
                                      BYTE tcp_socket_number) {
     return 1;
 }
+#endif
 
 // templates values
 BYTE *process_http_dynamic_data (BYTE *variable_name, BYTE tcp_socket_number) {
@@ -89,7 +91,7 @@ BYTE process_http_find_file(BYTE* request_filename, BYTE* request_file_extension
     }
 
     *file_size = rodata_filesize(curent_file);
-    *next_byte_address = 0; // read from start
+    *next_byte_address = rodata_filedata_pointerAbsolute(curent_file);
     return TRUE;
 }
 
@@ -98,8 +100,6 @@ BYTE process_http_file_next_byte(BYTE* pointer) {
             rodata_readchar(curent_file, (uint32_t)pointer);
 }
 
-DWORD process_http_file_next_bytes(BYTE* buf, BYTE* pointer, DWORD count) {
-    if (curent_file == RODATA_INVALID_FILE_DESCRIPTOR)
-        return 0;
-    return rodata_readarray(curent_file, buf, (uint32_t)pointer, count);
+DWORD process_http_file_next_bytes(BYTE* buf, DWORD pointer, DWORD count) {
+    return rodata_readarray_by_pointer(buf, (uint32_t)pointer, count);
 }

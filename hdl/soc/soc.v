@@ -366,7 +366,8 @@ u_intr
 //-----------------------------------------------------------------
 spi_boot
 #(
-    .WB_DATA_WIDTH(32)
+    .WB_DATA_WIDTH(32),
+    .SPI_CLK_DEVIDER(`SPI_CLK_DEVIDER_LEN)
 ) spi (
     .clk_i(clk_i),
     .rst_i(rst_i),

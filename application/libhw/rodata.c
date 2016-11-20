@@ -53,10 +53,6 @@
 #define RODATA_FILEEXT_LEN  21
 #endif
 
-#ifndef RODATA_CACHE_SIZE
-#warning "RODATA_CACHE_SIZE not defined, assuming 128"
-#define RODATA_CACHE_SIZE  128
-#endif
 
 struct rodata_file {
     char fileExt[RODATA_FILEEXT_LEN];
@@ -73,13 +69,20 @@ struct rodata_hader {
 
 struct rodata_fs {
     struct rodata_hader hader;
-    struct rodata_file records[10 /*invalid value, only for debug frendly*/];
+    struct rodata_file records[20 /*invalid value, only for debug frendly*/];
 } __attribute__((packed));
 
 static struct rodata_fs* prodata_fs = NULL;
 
+#ifdef CACHING_SUPPORT
+#ifndef RODATA_CACHE_SIZE
+#warning "RODATA_CACHE_SIZE not defined, assuming 128"
+#define RODATA_CACHE_SIZE  128
+#endif
+
 static uint8_t rodata_cache[RODATA_CACHE_SIZE];
 static uint32_t rodata_cached_start = 0;
+#endif
 
 #define FILES_IN_TABLE()                ((prodata_fs->hader.rodata_table_size - sizeof(struct rodata_hader))/sizeof(struct rodata_file))
 #define FILE_HADER(descriptor)          (prodata_fs->records[descriptor])
@@ -89,6 +92,7 @@ static void rodata_assert(bool condition) {
     assert(condition);
 }
 
+#ifdef CACHING_SUPPORT
 static void read_from_cache(uint8_t *buf, uint32_t start, uint32_t size) {
     while(size) {
         uint32_t segment_offset = start % RODATA_CACHE_SIZE;
@@ -113,6 +117,7 @@ static void read_from_cache(uint8_t *buf, uint32_t start, uint32_t size) {
         buf   += sizetoread;
     }
 }
+#endif
 
 static bool rodata_init() {
     struct rodata_hader h;
@@ -146,6 +151,10 @@ static int8_t is_file_mach(char *name, char *ext, uint32_t list_index) {
     uint32_t i;
 
     for (i = 0; i < RODATA_FILEEXT_LEN; ++i) {
+        if (!ext[i])
+            return liExt[i] != 0;
+        if (!liExt[i])
+            return -1;
         if (ext[i] > liExt[i])
             return 1;
         if (ext[i] < liExt[i])
@@ -154,9 +163,9 @@ static int8_t is_file_mach(char *name, char *ext, uint32_t list_index) {
 
     for (i = 0; i < RODATA_FILENAME_LEN; ++i) {
         if (!name[i])
-            return liName[i];
+            return liName[i] != 0;
         if (!liName[i])
-            return name[i] ? -1 : 0;
+            return -1;
         if (name[i] > liName[i])
             return 1;
         if (name[i] < liName[i])
@@ -172,9 +181,9 @@ rodata_descriptor rodata_find_file(char *name, char *ext) {
 
 
     /* Номер первого элемента в массиве */
-    rodata_descriptor first_file = 0;
+    uint32_t first_file = 0;
     /* Номер элемента в массиве, СЛЕДУЮЩЕГО ЗА последним */
-    rodata_descriptor last_file =  FILES_IN_TABLE() - 1;
+    uint32_t last_file =  FILES_IN_TABLE() - 1;
     rodata_assert(last_file != ~0);
 
     if (ext[0] < FILE_HADER(first_file).fileExt[0] ||
@@ -183,7 +192,7 @@ rodata_descriptor rodata_find_file(char *name, char *ext) {
 
     /* Если просматриваемый участок непустой, first < last */
     while (first_file < last_file) {
-        rodata_descriptor mid = first_file + ((last_file - first_file) >> 2);
+        uint32_t mid = first_file + ((last_file - first_file) >> 2);
 
         if (is_file_mach(name, ext, mid) <= 0)
             last_file = mid;
@@ -192,9 +201,10 @@ rodata_descriptor rodata_find_file(char *name, char *ext) {
     }
 
     int8_t r = is_file_mach(name, ext, last_file);
-    return r ? RODATA_INVALID_FILE_DESCRIPTOR : last_file;
+    return r ? RODATA_INVALID_FILE_DESCRIPTOR : &prodata_fs->records[last_file];
 }
 
+#ifdef CACHING_SUPPORT
 uint8_t rodata_readchar(rodata_descriptor descriptor, uint32_t offset) {
     rodata_assert(prodata_fs && descriptor != RODATA_INVALID_FILE_DESCRIPTOR);
 
@@ -206,19 +216,25 @@ uint8_t rodata_readchar(rodata_descriptor descriptor, uint32_t offset) {
     read_from_cache(&r, offset, sizeof(uint8_t));
     return r;
 }
+#endif
 
 uint32_t rodata_readarray(rodata_descriptor descriptor, uint8_t *buf,
                           uint32_t start, uint32_t size) {
     rodata_assert(prodata_fs && descriptor != RODATA_INVALID_FILE_DESCRIPTOR);
 
-    if (start + size > FILE_HADER(descriptor).size) {
-        int32_t _size = FILE_HADER(descriptor).size - start;
+    if (start + size > descriptor->size) {
+        int32_t _size = descriptor->size - start;
         if (_size <= 0)
             return 0;
         size = _size;
     }
 
-    start += FILE_CONTENT_ADDR(descriptor);
+    start += descriptor->startOffset;
+    read_boot_flash(start, buf, size);
+    return size;
+}
+
+uint32_t rodata_readarray_by_pointer(uint8_t *buf, uint32_t start, uint32_t size) {
     read_boot_flash(start, buf, size);
     return size;
 }
@@ -226,5 +242,11 @@ uint32_t rodata_readarray(rodata_descriptor descriptor, uint8_t *buf,
 uint32_t rodata_filesize(rodata_descriptor descriptor) {
     rodata_assert(prodata_fs && descriptor != RODATA_INVALID_FILE_DESCRIPTOR);
 
-    return FILE_HADER(descriptor).size;
+    return descriptor->size;
+}
+
+uint32_t rodata_filedata_pointerAbsolute(rodata_descriptor descriptor) {
+    rodata_assert(prodata_fs && descriptor != RODATA_INVALID_FILE_DESCRIPTOR);
+
+    return descriptor->startOffset + RODATA_BLOB_START;
 }

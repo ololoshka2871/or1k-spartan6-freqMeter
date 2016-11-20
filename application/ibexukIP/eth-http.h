@@ -64,7 +64,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----- CONFIGURATION OPTIONS -----
 //#define	HTTP_ACCEPT_POST_REQUESTS			//Comment out if you don't want to accept form POST requests (this will reduce memory size).  GET form inputs are still accepted
 
-#define	HTTP_NO_OF_AVAILABLE_SOCKETS		2		//The number of TCP sockets that HTTP should open to listen for new connections (i.e. the maximum
+#define	HTTP_NO_OF_AVAILABLE_SOCKETS		6		//The number of TCP sockets that HTTP should open to listen for new connections (i.e. the maximum
 													//number of simultanious http connections.  Value must be <= TCP_NO_OF_AVAILABLE_SOCKETS.  At least 2 is recomended.
 #ifndef HTTP_MAX_FILENAME_LENGTH
 #define HTTP_MAX_FILENAME_LENGTH			21		//The maximum length of a http request filename including any sub directory, excluding file extension (including a terminating null - smaller value reduces ram requirement)
@@ -87,7 +87,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //application to decide if the request should be serviced or denied.  This is useful for applications where you want to only provide HTTP to certain
 //clients based on their MAC or IP address, or where you want the to option to effectively disconnect clients after some form of initial sign in page.
 //If you don't want this funnctionality simply comment this define out.
-#define HTTP_AUTHORISE_REQUEST_FUNCTION	process_http_authorise_request
+//#define HTTP_AUTHORISE_REQUEST_FUNCTION	process_http_authorise_request
 
 //Your function definition needs to be:
 //		BYTE my_function_name (BYTE *requested_filename, BYTE *requested_filename_extension, BYTE tcp_socket_number)
@@ -255,7 +255,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // returns: actual bytes read
 #define HTTP_EXTERNAL_FILE_NEXT_BYTES       process_http_file_next_bytes
 #ifdef HTTP_EXTERNAL_FILE_NEXT_BYTES
-extern DWORD HTTP_EXTERNAL_FILE_NEXT_BYTES(BYTE* buf, BYTE* pointer, DWORD count);
+extern DWORD process_http_file_next_bytes(BYTE* buf, DWORD pointer, DWORD count);
 #endif
 
 //Your function definition needs to be:

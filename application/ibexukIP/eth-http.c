@@ -339,7 +339,7 @@ void http_process_rx (BYTE socket_number)
 	BYTE request_type;
 	BYTE waiting_for_forward_slash;
 	BYTE filename[HTTP_MAX_FILENAME_LENGTH];
-    BYTE file_extension[HTTP_MAX_FILEEXT_LENGTH];
+    BYTE file_extension[HTTP_MAX_FILEEXT_LENGTH + 1];
 	BYTE filename_next_character;
 	BYTE file_extension_next_character;
 	BYTE reading_filename;
@@ -422,6 +422,7 @@ void http_process_rx (BYTE socket_number)
 			return;
 		}	
 	}
+
 
 	//READ THE FILENAME
 	data_buffer[1] = data_buffer[2] = data_buffer[3] = 0x00;
@@ -579,8 +580,16 @@ void http_process_rx (BYTE socket_number)
 	else
 		filename[HTTP_MAX_FILENAME_LENGTH - 1] = 0x00;
 
+    //----- ADD TERMINATING NULL TO THE FILE EXTANTION -----
+    if (file_extension_next_character < HTTP_MAX_FILEEXT_LENGTH + 1)
+        file_extension[file_extension_next_character] = 0x00;
+    else
+        file_extension[HTTP_MAX_FILEEXT_LENGTH] = 0x00;
+
+
 	//----- CHECK FILENAME IS VALID -----
-	if ((filename_next_character <= 1) || (file_extension_next_character != 3) || (waiting_for_forward_slash))
+    if (    (filename_next_character <= 1) ||
+            (waiting_for_forward_slash))
 	{
 		http_socket[socket_number].sm_http_state = HTTP_RETURN_BAD_REQUEST;
 		tcp_dump_rx_packet();
@@ -591,9 +600,7 @@ void http_process_rx (BYTE socket_number)
 	//----- ENSURE FILENAME IS LOWER CASE TO REMOVE CASE SENSITIVITY -----
 	//--------------------------------------------------------------------
 	convert_string_to_lower_case(&filename[0]);
-	file_extension[0] = convert_character_to_lower_case(file_extension[0]);
-	file_extension[1] = convert_character_to_lower_case(file_extension[1]);
-	file_extension[2] = convert_character_to_lower_case(file_extension[2]);
+    convert_string_to_lower_case(&file_extension[0]);
 
 	//------------------------------------------------------------------------
 	//----- CALL USER APPLICATION IN CASE IT WANTS TO REJECT THE REQUEST -----
