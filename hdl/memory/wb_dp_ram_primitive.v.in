@@ -104,8 +104,8 @@ wire b_access = b_cyc_i & b_stb_i & ~b_ack_o;
 assign wb_stall_o = 1'b0;
 assign rawp_stall_o = 1'b0;
 
-assign a_ack_o = a_ack_o_reg;
-assign b_ack_o = b_ack_o_reg;
+assign a_ack_o = a_ack_o_reg & a_cyc_i;
+assign b_ack_o = b_ack_o_reg /*& b_cyc_i*/;
 
 //------------------------------------------------------------------------------
 
@@ -143,7 +143,7 @@ end
 
 endgenerate
 
-always @(posedge a_clk) begin
+always @(negedge a_clk) begin
     a_ack_o_reg <= rst_i ? 1'b0 : a_access;
 end
 

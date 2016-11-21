@@ -32,7 +32,7 @@ RAMB16BWER #(
     .INITP_07 ( 256'h0000000000000000000000000000000000000000000000000000000000000000 )
 
 ) _mem_inst_@inst_num@ (
-    .CLKA(a_clk),
+    .CLKA(~a_clk),
     .CLKB(b_clk),
     .ENA(1'b1),
     .ENB(1'b1),
