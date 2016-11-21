@@ -74,6 +74,8 @@ struct rodata_fs {
 
 static struct rodata_fs* prodata_fs = NULL;
 
+#define CACHING_SUPPORT
+
 #ifdef CACHING_SUPPORT
 #ifndef RODATA_CACHE_SIZE
 #warning "RODATA_CACHE_SIZE not defined, assuming 128"
@@ -205,13 +207,7 @@ rodata_descriptor rodata_find_file(char *name, char *ext) {
 }
 
 #ifdef CACHING_SUPPORT
-uint8_t rodata_readchar(rodata_descriptor descriptor, uint32_t offset) {
-    rodata_assert(prodata_fs && descriptor != RODATA_INVALID_FILE_DESCRIPTOR);
-
-    if (offset > FILE_HADER(descriptor).size)
-        return 0;
-
-    offset += FILE_CONTENT_ADDR(descriptor);
+uint8_t rodata_readchar(uint32_t offset) {
     uint8_t r;
     read_from_cache(&r, offset, sizeof(uint8_t));
     return r;

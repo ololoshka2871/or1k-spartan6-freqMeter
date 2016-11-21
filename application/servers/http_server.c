@@ -38,8 +38,6 @@
 
 #include "ap-main.h"
 
-static rodata_descriptor curent_file;
-
 #ifdef HTTP_AUTHORISE_REQUEST_FUNCTION
 // autorisation
 BYTE process_http_authorise_request (BYTE *requested_filename,
@@ -85,7 +83,8 @@ void process_http_multipart_form_data(BYTE v) {
 
 BYTE process_http_find_file(BYTE* request_filename, BYTE* request_file_extension,
                             DWORD* file_size, DWORD* next_byte_address) {
-    curent_file = rodata_find_file(request_filename, request_file_extension);
+    rodata_descriptor curent_file =
+            rodata_find_file(request_filename, request_file_extension);
     if (curent_file == RODATA_INVALID_FILE_DESCRIPTOR) {
         return FALSE; // no file found
     }
@@ -96,8 +95,7 @@ BYTE process_http_find_file(BYTE* request_filename, BYTE* request_file_extension
 }
 
 BYTE process_http_file_next_byte(BYTE* pointer) {
-    return curent_file == RODATA_INVALID_FILE_DESCRIPTOR ? 0 :
-            rodata_readchar(curent_file, (uint32_t)pointer);
+    return rodata_readchar((uint32_t)pointer);
 }
 
 DWORD process_http_file_next_bytes(BYTE* buf, DWORD pointer, DWORD count) {

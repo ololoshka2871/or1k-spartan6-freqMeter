@@ -1262,30 +1262,105 @@ void http_transmit_next_response_packet (BYTE socket_number, BYTE resend_last_pa
         // http_socket[socket_number].response_bytes_remaining   - bytes to transmitt
         // tcp_write_array() - writes data buf to transmitter - can't use (2 copyes)
         // ip_add_bytes_to_ip_checksum() caluelate checksumm of data fragment, need to calcule in transmitter memory directly
+#ifdef HTTP_DYNAMIC_DATA_FUNCTION
+        if ((http_socket[socket_number].response_content_type == HTTP_CONTENT_TEXT_HTML)) {
+            bytes_sent = 0;
+            file_offset = 0;
+            while (bytes_sent < (MAX_TCP_DATA_LEN - 100))		//-100 to allow for dynamic content that may appear right at the end of a packet
+            {
+                //----- CHECK FOR END OF FILE -----
+                if (http_socket[socket_number].file_bytes_sent_last_time >= http_socket[socket_number].response_bytes_remaining)
+                    break;
 
-        if (http_socket[socket_number].response_bytes_remaining) {
-            // request pointer to write to -> nic_get_wrpointer()
-            BYTE* ptx_pos = nic_get_wrpointer();
+                //----- GET NEXT BYTE -----
+                next_byte = HTTP_EXTERNAL_FILE_NEXT_BYTE(http_socket[socket_number].response_next_byte_address + (DWORD)file_offset++);
 
-            // calc size to read
-            DWORD bytes2send = http_socket[socket_number].response_bytes_remaining;
-            if (bytes2send > MAX_TCP_DATA_LEN)
-                bytes2send = MAX_TCP_DATA_LEN;
+                http_socket[socket_number].file_bytes_sent_last_time++;
 
-            // call read file to transmitter directly -> HTTP_EXTERNAL_FILE_NEXT_BYTES()
-            DWORD bytes_actualy_read = HTTP_EXTERNAL_FILE_NEXT_BYTES(
-                        ptx_pos, http_socket[socket_number].response_next_byte_address,
-                        bytes2send);
-            if (!bytes_actualy_read) {
-                // reset
-                http_socket[socket_number].sm_http_state = HTTP_RETURN_SERVICE_UNAVAILABLE;
-                return;
+                //----- CHECK FOR DYNAMIC CONTENT -----
+                if ((http_socket[socket_number].response_content_type == HTTP_CONTENT_TEXT_HTML) && (next_byte == '~'))
+                {
+                    //----- TILDE '~' CHARACTER MARKS START OF A DYNAMIC DATA VARIABLE NAME -----
+                    dynamic_variable_name_next_character = 0;
+                }
+                else if (dynamic_variable_name_next_character != 0xff)
+                {
+                    //----- WE ARE READING VARIABLE NAME -----
+                    if (next_byte == '-')
+                    {
+                        //----- HYPHEN '-' MARKS END OF VARIABLE NAME - OUTPUT DYNAMIC DATA ------
+
+                        //Add null terminator to variable name string
+                        if (dynamic_variable_name_next_character < HTTP_MAX_OUTPUT_VARIABLE_NAME_LENGTH)
+                            dynamic_variable_name[dynamic_variable_name_next_character++] = 0x00;
+                        else
+                            dynamic_variable_name[dynamic_variable_name_next_character - 1] = 0x00;
+
+                        //Call user application function
+                        p_string = HTTP_DYNAMIC_DATA_FUNCTION(&dynamic_variable_name[0], http_socket[socket_number].tcp_socket_id);
+
+                        //Output returned string as part of this packet
+                        dynamic_variable_name_next_character = 0;		//Use this variable to limit output to max 100 characters
+                        while ((*p_string != 0x00) && (dynamic_variable_name_next_character < 100))
+                        {
+                            tcp_write_next_byte(*p_string++);
+                            bytes_sent++;
+
+                            dynamic_variable_name_next_character++;
+                        }
+
+                        //All done - flag that we're no longer reading a variable name
+                        dynamic_variable_name_next_character = 0xff;
+                        continue;			//Jump back to the beginning of the while loop
+                    }
+                    else
+                    {
+                        //----- ADD NEXT CHARCTER TO VARIABLE NAME ----
+                        if (dynamic_variable_name_next_character < HTTP_MAX_OUTPUT_VARIABLE_NAME_LENGTH)
+                        {
+                            dynamic_variable_name[dynamic_variable_name_next_character++] = next_byte;
+                        }
+                    }
+                }
+
+                //----- ADD BYTE TO PACKET -----
+                if (dynamic_variable_name_next_character == 0xff)		//Don't output byte if we are currently reading a dynamic data variable name
+                {
+                    tcp_write_next_byte(next_byte);
+                    bytes_sent++;
+                }
             }
-            // calc checksumm in transmitter memory -> ip_add_bytes_to_ip_checksum()
-            // update tcp_tx_data_byte_length variable
-            tcp_writen_directly(ptx_pos, bytes_actualy_read);
-            http_socket[socket_number].file_bytes_sent_last_time = bytes_actualy_read;
+            //----- THIS PACKET FULL OR END OF FILE REACHED -----
+        } else {
+#endif
+            // static data
+            if (http_socket[socket_number].response_bytes_remaining) {
+                // request pointer to write to -> nic_get_wrpointer()
+                BYTE* ptx_pos = nic_get_wrpointer();
+
+                // calc size to read
+                DWORD bytes2send = http_socket[socket_number].response_bytes_remaining;
+                if (bytes2send > MAX_TCP_DATA_LEN)
+                    bytes2send = MAX_TCP_DATA_LEN;
+
+                // call read file to transmitter directly -> HTTP_EXTERNAL_FILE_NEXT_BYTES()
+                DWORD bytes_actualy_read = HTTP_EXTERNAL_FILE_NEXT_BYTES(
+                            ptx_pos, http_socket[socket_number].response_next_byte_address,
+                            bytes2send);
+                if (!bytes_actualy_read) {
+                    // reset
+                    http_socket[socket_number].sm_http_state = HTTP_RETURN_SERVICE_UNAVAILABLE;
+                    return;
+                }
+                // calc checksumm in transmitter memory -> ip_add_bytes_to_ip_checksum()
+                // update tcp_tx_data_byte_length variable
+                tcp_writen_directly(ptx_pos, bytes_actualy_read);
+                http_socket[socket_number].file_bytes_sent_last_time = bytes_actualy_read;
+            }
+#ifdef HTTP_DYNAMIC_DATA_FUNCTION
         }
+#endif
+
 #else
 		bytes_sent = 0;
 		file_offset = 0;
