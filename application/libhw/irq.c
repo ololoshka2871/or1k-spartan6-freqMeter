@@ -50,6 +50,7 @@ static struct src_handler ISRs[IS_Count] = {
 { IS_BOOT_SPI, NULL },
 { IS_GPIO, NULL },
 { IS_MDIO, NULL },
+{ IS_I2C, NULL },
 { IS_MINIMAC_TX, NULL },
 { IS_MINIMAC_RX, NULL },
 };

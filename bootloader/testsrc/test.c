@@ -37,6 +37,7 @@
 #include "freqmeters.h"
 #include "minimac.h"
 #include "mdio.h"
+#include "iicmb.h"
 
 static void GDB_STUB_SECTION_TEXT test_freqmeter() {
     fm_init();
@@ -81,6 +82,14 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
     }
 }
 
+static void GDB_STUB_SECTION_TEXT test_i2c() {
+    iicmb_init();
+
+    uint8_t res[10];
+    iicmb_read_bus(0, 0x10, res);
+    iicmb_read_bus_mul(0, 0, res, sizeof(res));
+}
+
 static void GDB_STUB_SECTION_TEXT test_minmac_slotlogick() {
     miniMAC_control(true, true);
 
@@ -111,5 +120,9 @@ void GDB_STUB_SECTION_TEXT start_tests() {
 
 #ifdef SIM_TEST_MINIMAC
     test_minmac();
+#endif
+
+#ifdef SIM_TEST_I2C
+    test_i2c();
 #endif
 }

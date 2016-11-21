@@ -51,6 +51,9 @@ module tb_top;
 
         wire [11:0] test_sig;
 
+        wire sda;
+        wire scl;
+
         assign test_sig[0] = devided_clocks[3] & devided_clocks[8];
         assign test_sig[1] = devided_clocks[2] & devided_clocks[9];
         assign test_sig[2] = devided_clocks[1] & devided_clocks[0];
@@ -89,8 +92,17 @@ module tb_top;
             .phy_mdclk(mii_mdclk),
             .phy_mdio(mii_mdio),
 
-            .Fin(Fin[`F_INPUTS_COUNT-1:0])
+            .Fin(Fin[`F_INPUTS_COUNT-1:0]),
+
+            .i2c_sda(sda),
+            .i2c_scl(scl)
 	);
+
+        PULLUP PULLUP_sda (
+            .O(sda)
+        ), PULLUP_scl (
+            .O(scl)
+        );
 
 	initial begin
             // Initialize Inputs

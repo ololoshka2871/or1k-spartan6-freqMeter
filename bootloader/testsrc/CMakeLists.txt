@@ -64,5 +64,9 @@ if (SIM_TEST_MDIO)
     add_definitions(-DSIM_TEST_MDIO)
 endif()
 
+if (SIM_TEST_I2C)
+    add_definitions(-DSIM_TEST_I2C)
+endif()
+
 include_directories(. ${GDB_STUB_DIR})
 add_library(testsrc STATIC ${TEST_SRC})

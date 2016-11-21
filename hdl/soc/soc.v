@@ -72,13 +72,21 @@ module soc
     sck_o,
     mosi_o,
     miso_i,
-    spi_cs_o,
+    spi_cs_o
 
     // MDIO
 `ifdef ETHERNET_ENABLED
+    ,
     mdio,
     mdclk_o
 `endif
+
+`ifdef I2C_ENABLED
+    ,
+    i2c_sda,
+    i2c_scl
+`endif
+
 );
 
 //-----------------------------------------------------------------
@@ -89,6 +97,7 @@ parameter  [31:0]   EXTERNAL_INTERRUPTS  = 1;
 parameter           UART0_BAUD           = 115200;
 parameter           UART1_BAUD           = 115200;
 parameter           MDIO_BAUD            = 2500000;
+parameter           I2C_BAUD             = 100000;
 parameter           SYSTICK_INTR_MS      = 1;
 parameter           ENABLE_SYSTICK_TIMER = "ENABLED";
 parameter           ENABLE_HIGHRES_TIMER = "ENABLED";
@@ -123,6 +132,11 @@ output [6:0]            spi_cs_o /*verilator public*/;
 `ifdef ETHERNET_ENABLED
 inout                   mdio /*verilator public*/;
 output                  mdclk_o /*verilator public*/;
+`endif
+
+`ifdef I2C_ENABLED
+inout                   i2c_sda /*verilator public*/;
+inout                   i2c_scl /*verilator public*/;
 `endif
 
 //-----------------------------------------------------------------
@@ -169,6 +183,13 @@ wire               mdio_we;
 wire [31:0]        mdio_data_w;
 wire [31:0]        mdio_data_r;
 wire               mdio_intr;
+
+wire [3:0]         i2c_addr;
+wire               i2c_stb;
+wire               i2c_we;
+wire [31:0]        i2c_data_w;
+wire [31:0]        i2c_data_r;
+wire               i2c_intr;
 
 //-----------------------------------------------------------------
 // Peripheral Interconnect
@@ -232,12 +253,12 @@ u2_soc
     .periph5_we_o(mdio_we),
     .periph5_stb_o(mdio_stb),
 
-    // Unused = 0x12000600 - 0x120006FF
-    .periph6_addr_o(/*open*/),
-    .periph6_data_o(/*open*/),
-    .periph6_data_i(32'h00000000),
-    .periph6_we_o(/*open*/),
-    .periph6_stb_o(/*open*/),
+    // i2c = 0x12000600 - 0x120006FF
+    .periph6_addr_o(i2c_addr),
+    .periph6_data_o(i2c_data_w),
+    .periph6_data_i(i2c_data_r),
+    .periph6_we_o(i2c_we),
+    .periph6_stb_o(i2c_stb),
 
     // UART1 = 0x12000700 - 0x120007FF
     .periph7_addr_o(uart1_addr),
@@ -349,7 +370,7 @@ u_intr
     .intr3_i(spi_intr),
     .intr4_i(1'b0),
     .intr5_i(mdio_intr),
-    .intr6_i(1'b0),
+    .intr6_i(i2c_intr),
     .intr7_i(uart1_intr),
 
     .intr_ext_i(ext_intr_i),
@@ -413,6 +434,49 @@ wb_mdio
 `else
 assign mdio_data_r = 32'b0;
 assign mdio_intr = 1'b0;
+`endif
+
+//-----------------------------------------------------------------
+// I2C Controller
+//-----------------------------------------------------------------
+`ifdef I2C_ENABLED
+
+wire i2c_sda_ctl;
+wire i2c_scl_ctl;
+
+iicmb_m_wb
+#(
+    .g_bus_num(1),
+    .g_f_clk($itor(CLK_KHZ)),
+    .g_f_scl_0($itor(I2C_BAUD/1000))
+) i2c_ip (
+    .clk_i(clk_i),
+    .rst_i(rst_i),
+
+    .cyc_i(io_cyc_i),
+    .stb_i(i2c_stb),
+    .ack_o(/* open */),
+    .adr_i(i2c_addr[3:2]),
+    .we_i(i2c_we),
+    .dat_i(i2c_data_w[7:0]),
+    .dat_o(i2c_data_r[7:0]),
+
+    .irq(i2c_intr),
+
+    .scl_i(i2c_scl),
+    .sda_i(i2c_sda),
+    .scl_o(i2c_scl_ctl),
+    .sda_o(i2c_sda_ctl)
+);
+
+assign i2c_sda = !i2c_sda_ctl ? 1'b0 : 1'bz;
+assign i2c_scl = !i2c_scl_ctl ? 1'b0 : 1'bz;
+
+assign i2c_data_r[31:8] = 24'h0;
+
+`else
+assign i2c_data_r = 32'b0;
+assign i2c_intr = 1'b0;
 `endif
 
 //-------------------------------------------------------------------

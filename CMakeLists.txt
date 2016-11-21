@@ -87,7 +87,9 @@ set(PERIPHERIAL_ENABLE_UART0 ON
 set(PERIPHERIAL_ENABLE_UART1 OFF
     CACHE BOOL  "Enable UART1 IPCore at 0x12000700")
 set(PERIPHERIAL_ENABLE_ETHERNET ON
-    CACHE BOOL  "Enable ETHERNET IPCore 0x")
+    CACHE BOOL  "Enable ETHERNET IPCore at 0x12000500")
+set(PERIPHERIAL_ENABLE_ETHERNET_I2C  ON
+    CACHE BOOL  "Enable i2c IPCore at 0x12000600")
 #--- /peripherial ---
 
 #--- SERIALs ----
@@ -99,13 +101,15 @@ set(MDIO_BAUD               2500000
     CACHE STRING "MDIO speed")
 set(SPI_CLK_DEVIDER_LEN     4
     CACHE STRING "Boot SPI baud counter length (bits)")
+set(I2C_BAUD                100000
+    CACHE STRING "i2c speed")
 #--- /SERIALs ---
 
-set(MASTER_FREQ_COUNTER_LEN  30
+set(MASTER_FREQ_COUNTER_LEN  28
     CACHE STRING "Master clock counter length (in bits)")
 set(MASTER_HYBRID_COUNTER   ON
     CACHE BOOL "Use hybrid binary+gray counter for Master clock")
-set(INPUT_FREQ_COUNTER_LEN  24
+set(INPUT_FREQ_COUNTER_LEN  20
     CACHE STRING "Input clock counter length (in bits)")
 set(TEST_SIGNAL_EVERY_MS    1000
     CACHE STRING "Test input signal present aproximaly every")
@@ -177,6 +181,8 @@ set(SIM_TEST_MINIMAC_SLOT_LOGICK OFF
     CACHE BOOL  "Bootloader firmware tests myminimac IP-core rx logick")
 set(SIM_TEST_MDIO           OFF
     CACHE BOOL  "Bootloader firmware tests myminimac IP-core MDIO interface")
+set(SIM_TEST_I2C            OFF
+    CACHE BOOL  "Bootloader firmware tests I2C interface")
 
 #----------------------------------/config--------------------------------------
 

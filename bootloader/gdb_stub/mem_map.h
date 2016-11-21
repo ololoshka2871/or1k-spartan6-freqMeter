@@ -23,6 +23,7 @@
 #define SPI_BASE                (IO_BASE + 0x300)
 #define SEG7_DISP_BASE          (IO_BASE + 0x400)
 #define GPIO_BASE               (IO_BASE + 0x500)
+#define IICMB_BASE_ADDR         (IO_BASE + 0x600)
 #define UART1_BASE              (IO_BASE + 0x700)
 
 //-----------------------------------------------------------------
@@ -34,6 +35,7 @@
 #define IRQ_BOOT_SPI		3
 #define IRQ_GPIO		4
 #define IRQ_MDIO                5
+#define IRQ_I2C                 6
 #define IRQ_UART1               7
 
 #define IRQ_FREQMETERS          8
@@ -73,5 +75,8 @@
 #define SPR_SR_GIE              (1 << 2)
 #define SPR_SR_ICACHE_FLUSH     (1 << 17)
 #define SPR_SR_DCACHE_FLUSH     (1 << 18)
+
+#define IOWR_8DIRECT(base, offset, val)     *((volatile unsigned long*)((base) + ((offset) << 2))) = (val)
+#define IORD_8DIRECT(base, offset)          *((volatile unsigned long*)((base) + ((offset) << 2)))
 
 #endif

@@ -19,6 +19,7 @@ enum InterruptSources {
     IS_BOOT_SPI = IRQ_BOOT_SPI,
     IS_GPIO = IRQ_GPIO,
     IS_MDIO = IRQ_MDIO,
+    IS_I2C = IRQ_I2C,
     IS_UART1 = IRQ_UART1,
 
     // ext

@@ -55,6 +55,7 @@
 @UART1_ENABLED_STR@
 @TIMER_ENABLED_STR@
 @ETHERNET_ENABLED_STR@
+@I2C_ENABLED_STR@
 
 // leds
 `define     LEDS_COUNT              @LEDS_COUNT@
@@ -70,6 +71,9 @@
 
 // mdio
 `define     MDIO_BAUD               @MDIO_BAUD@
+
+// i2c
+`define     I2C_BAUD                @I2C_BAUD@
 
 // tests
 `define     TEST_IMAGE_FOR_DMA_MEMORY_NAME "@TEST_IMAGE_FOR_DMA_MEMORY_NAME@"

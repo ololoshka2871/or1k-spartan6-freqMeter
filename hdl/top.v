@@ -60,10 +60,11 @@ module top
     inout  wire         flash_CS,      // spi flash CS wire
     output wire         sck_o,         // serial clock output
     output wire         mosi_o,        // MasterOut SlaveIN
-    input  wire         miso_i,        // MasterIn SlaveOut
+    input  wire         miso_i         // MasterIn SlaveOut
 
     // Ethernet RMII interface
 `ifdef ETHERNET_ENABLED
+    ,
     input  wire         phy_rmii_clk,   // 50 MHZ input
     output wire         phy_mdclk,      // MDCLK
     inout  wire         phy_mdio,       // MDIO
@@ -71,6 +72,12 @@ module top
     output wire [1:0]   phy_rmii_tx_data,// transmit data bis
     input  wire [1:0]   phy_rmii_rx_data,// ressive data bus
     output wire         phy_tx_en       // transmitter enable
+`endif
+
+`ifdef I2C_ENABLED
+    ,
+    inout  wire         i2c_sda,        // I2C SDA
+    inout  wire         i2c_scl         // I2C SCL
 `endif
 
 `ifdef USE_PHISICAL_INPUTS
@@ -315,6 +322,7 @@ soc
     .UART0_BAUD(`UART0_BAUD),
     .UART1_BAUD(`UART1_BAUD),
     .MDIO_BAUD(`MDIO_BAUD),
+    .I2C_BAUD(`I2C_BAUD),
     .EXTERNAL_INTERRUPTS(3)
 )
 u_soc
@@ -345,10 +353,17 @@ u_soc
     .sck_o(sck_o),
     .mosi_o(mosi_o),
     .miso_i(miso_i),
-    .spi_cs_o(spi_cs_o),
+    .spi_cs_o(spi_cs_o)
 `ifdef ETHERNET_ENABLED
+    ,
     .mdclk_o(phy_mdclk),
     .mdio(phy_mdio)
+`endif
+
+`ifdef I2C_ENABLED
+    ,
+    .i2c_sda(i2c_sda),
+    .i2c_scl(i2c_scl)
 `endif
 );
 

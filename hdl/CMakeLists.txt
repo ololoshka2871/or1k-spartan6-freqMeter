@@ -58,12 +58,14 @@ Verilog_GenControlMacro(UART1_ENABLED_STR "UART1_ENABLED" ${PERIPHERIAL_ENABLE_U
 Verilog_GenControlMacro(TIMER_ENABLED_STR "TIMER_ENABLED" ${PERIPHERIAL_ENABLE_TIMER})
 Verilog_GenControlMacro(ETHERNET_ENABLED_STR "ETHERNET_ENABLED" ${PERIPHERIAL_ENABLE_ETHERNET})
 Verilog_GenControlMacro(MASTER_HYBRID_COUNTER_STR "MASTER_HYBRID_COUNTER" ${MASTER_HYBRID_COUNTER})
+Verilog_GenControlMacro(I2C_ENABLED_STR "I2C_ENABLED" ${PERIPHERIAL_ENABLE_ETHERNET_I2C})
 
 #---------------------------------files-----------------------------------------
 
 add_subdirectory(ucf)
 add_subdirectory(altor32)
 add_subdirectory(soc)
+add_subdirectory(iicmb)
 add_subdirectory(memory)
 add_subdirectory(mdio)
 add_subdirectory(myminimac)
@@ -92,6 +94,7 @@ build_prj(SOC_V_PRJ	    "verilog soc	%f\n"	"${SOC_HDL_V}")
 build_prj(SOC_VHDL_PRJ	    "vhdl    soc        %f\n"	"${SOC_HDL_VHDL}")
 build_prj(MEMORY_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_V}")
 build_prj(MDIO_PRJ	    "verilog mdio	%f\n"	"${MDIO_HDL_V}")
+build_prj(I2C_PRJ           "vhdl    i2c        %f\n"   "${I2C_HDL_VHDL}")
 build_prj(MYMINMAC_PRJ	    "verilog myminimac	%f\n"	"${MYMINMAC_HDL_V}")
 build_prj(MYMINMAC_VHDL_PRJ "vhdl    myminimac	%f\n"	"${MYMINMAC_HDL_VHDL}")
 build_prj(UTILS_PRJ	    "verilog utils	%f\n"	"${UTILS_HDL_V}")
@@ -103,6 +106,7 @@ set(PRJ_TEXT
     ${SOC_V_PRJ}
     ${SOC_VHDL_PRJ}
     ${MDIO_PRJ}
+    ${I2C_PRJ}
     ${MYMINMAC_PRJ}
     ${MYMINMAC_VHDL_PRJ}
     ${UTILS_PRJ}
@@ -133,7 +137,7 @@ configure_file(${UT_IN_FILE_NAME} ${UT_FILE_NAME} @ONLY)
 #-------------------------------------sym---------------------------------------
 add_subdirectory(testbench)
 
-set(prj_libs altor32 soc memory utils work mdio myminimac)
+set(prj_libs altor32 soc memory utils work mdio i2c myminimac)
 set(testlibs_list)
 foreach(l ${prj_libs})
     list(APPEND testlibs_list -lib ${l})

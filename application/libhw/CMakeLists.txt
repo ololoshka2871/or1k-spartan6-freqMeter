@@ -45,6 +45,7 @@ SET(LIBHW_SOURCES
     mdio.c
     prog_timer.c
     rodata.c
+    iicmb.c
     )
 
 include_directories(. ${LIBBASE_INCLUDE_DIR})
