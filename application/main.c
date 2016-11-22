@@ -48,6 +48,8 @@
 
 #include "ETH_config.h"
 
+#include "rtc.h"
+
 const char hostname[15] =
 #ifdef ETHERNET_HOSTNAME
         ETHERNET_HOSTNAME;
@@ -172,6 +174,7 @@ int main(void)
     interrupts_init();
     progtimer_init();
     fm_init();
+    rtc_init();
 
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
         fm_setChanelReloadValue(i, 100, false);

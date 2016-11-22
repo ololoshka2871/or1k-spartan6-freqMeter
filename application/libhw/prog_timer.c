@@ -248,3 +248,14 @@ progtimer_time_t progtimer_ms2ticks( progtimer_time_t time_ms )
 {
     return time_ms / PROGTIMER_PERIOD_MS;
 }
+
+/************************************************************************
+* DESCRIPTION: Set curent time ticks
+*************************************************************************/
+void progtimer_setclock( progtimer_time_t time_ms )
+{
+    __or1k_disable_interrupts();
+    _current_time = time_ms / PROGTIMER_PERIOD_MS;
+    progtimer_reset_all();
+    __or1k_enable_interrupts();
+}

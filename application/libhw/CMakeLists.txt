@@ -46,6 +46,9 @@ SET(LIBHW_SOURCES
     prog_timer.c
     rodata.c
     iicmb.c
+    i2c.c
+    ds1338z.c
+    rtc.c
     )
 
 include_directories(. ${LIBBASE_INCLUDE_DIR})
@@ -66,6 +69,18 @@ set(difenitions
 
 if(MASTER_HYBRID_COUNTER)
     list(APPEND difenitions MASTER_HYBRID_COUNTER)
+endif()
+
+if(PERIPHERIAL_ENABLE_I2C)
+    list(APPEND difenitions ENABLE_I2C=1)
+else()
+    list(APPEND difenitions ENABLE_I2C=0)
+endif()
+
+if(PERIPHERIAL_ENABLE_GPIO)
+    list(APPEND difenitions ENABLE_GPIO=1)
+else()
+    list(APPEND difenitions ENABLE_GPIO=0)
 endif()
 
 add_library(hw STATIC ${LIBHW_SOURCES})

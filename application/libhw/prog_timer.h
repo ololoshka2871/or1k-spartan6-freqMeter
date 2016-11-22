@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define PROGTIMER_PERIOD_MS        (100U) /* Do not change it.*/
+#define PROGTIMER_PERIOD_MS        (1U) /* Do not change it.*/
 #define PROGTIMER_TICKS_IN_HOUR    ((1000U*60U*60U)/PROGTIMER_PERIOD_MS)
 #define PROGTIMER_TICKS_IN_MIN     ((1000U*60U)/PROGTIMER_PERIOD_MS)
 #define PROGTIMER_TICKS_IN_SEC     (1000U/PROGTIMER_PERIOD_MS)
@@ -24,6 +24,8 @@ progtimer_time_t progtimer_ms2ticks( progtimer_time_t time_ms );
 progtimer_time_t progtimer_get_interval( progtimer_time_t start, progtimer_time_t end );
 progtimer_desc_t progtimer_new( progtimer_time_t period_ticks, void (*handler)(void* cookie), void* cookie );
 void progtimer_delay( progtimer_time_t delay_ticks );
+void progtimer_reset_all( void );
+void progtimer_setclock( progtimer_time_t time_ms );
 
 #if defined(__cplusplus)
 }
