@@ -31,16 +31,18 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-include_directories(. ${IBEXUK_IP_INCLUDE_DIRS} ${LIBHW_INCLUDE_DIR})
 
-add_definitions(
-    -DUDP_SERVER_PORT=${ETHERNET_UDP_SERVER_PORT}
+file(GLOB_RECURSE
+    I2C_HDL_VHDL
+    FOLLOW_SYMLINKS
+    "*.vhd"
     )
 
-set(SERVERS_SRC
-    udp_server.c
-    #tcp_server.c
-    http_server.c
+# Fake target: add sources to project tree (Qt Creator)
+add_custom_target(i2c_sources
+    SOURCES
+        ${I2C_HDL_VHDL}
     )
 
-add_library(servers STATIC ${SERVERS_SRC})
+set(I2C_HDL_VHDL		    ${I2C_HDL_VHDL}		PARENT_SCOPE)
+set(I2C_INCLUDE_PATH                ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)

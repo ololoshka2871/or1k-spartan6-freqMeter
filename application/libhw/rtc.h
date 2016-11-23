@@ -4,7 +4,7 @@
 #include <sys/time.h>
 
 void rtc_init();
-int clock_gettime(clockid_t clockid, struct tm *tm);
-int clock_settime(clockid_t clockid, const struct tm *tm);
+int clock_gettime(clockid_t clockid, struct timespec *ts);
+int clock_settime(clockid_t clockid, const struct timespec *ts);
 
 #endif // RTC_H

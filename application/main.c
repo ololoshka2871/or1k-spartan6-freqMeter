@@ -193,7 +193,7 @@ int main(void)
         tcp_ip_process_stack();
 
         process_udp_server();
-        process_tcp_server();
+        //process_tcp_server();
     }
     return 0;
 }

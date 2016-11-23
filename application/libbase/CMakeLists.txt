@@ -37,6 +37,7 @@ SET(LIBBASE_SOURCES
     assert_trap.c
     printf-warper.c
     graycode.c
+    bcd.c
     )
 
 include_directories(.)
