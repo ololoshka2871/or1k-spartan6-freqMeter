@@ -42,7 +42,15 @@ add_definitions(
     -DSIM
     -DF_REF=${REFERENCE_CLOCK_HZ}
     -DFREQMETERS_COUNT=24
+    -DF_CPU=${CPU_CLOCK_HZ}
+    -DBB_I2C_BAUD=${I2C_BAUD}
+    -DBB_I2C_SDA_PIN=6
+    -DBB_I2C_SCL_PIN=7
     )
+
+if (PERIPHERIAL_ENABLE_I2C)
+     add_definitions(-DIICMB_I2C)
+endif()
 
 if (SIM_TEST_FREQMETER)
     add_definitions(-DSIM_TEST_FREQMETER)
@@ -66,6 +74,10 @@ endif()
 
 if (SIM_TEST_I2C)
     add_definitions(-DSIM_TEST_I2C)
+endif()
+
+if (SIM_TEST_GPIO)
+    add_definitions(-DSIM_TEST_GPIO)
 endif()
 
 include_directories(. ${GDB_STUB_DIR})

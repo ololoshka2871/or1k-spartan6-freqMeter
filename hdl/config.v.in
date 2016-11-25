@@ -57,9 +57,7 @@
 @ETHERNET_ENABLED_STR@
 @GPIO_ENABLED_STR@
 @I2C_ENABLED_STR@
-
-// leds
-`define     LEDS_COUNT              @LEDS_COUNT@
+@I2C_PRESENT_STR@
 
 // uarts
 `define     UART0_BAUD              @UART0_BAUD@
@@ -75,6 +73,12 @@
 
 // i2c
 `define     I2C_BAUD                @I2C_BAUD@
+
+// gpio
+@GPIO_PRESENT_STR@
+`define     GPIO_COUNT              @GPIO_COUNT@
+@I2C_OVER_GPIO_SDA_PIN_STR@
+@I2C_OVER_GPIO_SCL_PIN_STR@
 
 // tests
 `define     TEST_IMAGE_FOR_DMA_MEMORY_NAME "@TEST_IMAGE_FOR_DMA_MEMORY_NAME@"

@@ -206,7 +206,7 @@ freqmeters3
     .rst_i(rst_i),
     .cyc_i(freqmeter_cyc),
     .stb_i(freqmeter_stb),
-    .adr_i(freqmeter_addr),
+    .adr_i(freqmeter_addr[9:0]),
     .we_i(freqmeter_we),
     .dat_i(freqmeter_data_w),
     .dat_o(freqmeter_data_r),

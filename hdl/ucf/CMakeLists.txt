@@ -36,6 +36,14 @@ cmake_minimum_required(VERSION 3.0.2)
 set(UCF_FILE_NAME_IN    "${CMAKE_CURRENT_SOURCE_DIR}/xilinx-${PART_NAME}-${BOARD_NAME}.ucf.in")
 set(UCF_FILE_NAME       "${CMAKE_CURRENT_BINARY_DIR}/xilinx-${PART_NAME}-${BOARD_NAME}.ucf")
 
+if(NOT PERIPHERIAL_ENABLE_GPIO)
+    set(GPIO_DISABLE "#")
+endif()
+
+if((NOT PERIPHERIAL_ENABLE_I2C) AND (NOT PERIPHERIAL_ENABLE_GPIO))
+    set(I2C_DISABLE "#")
+endif()
+
 configure_file(${UCF_FILE_NAME_IN} ${UCF_FILE_NAME} @ONLY)
 
 file(STRINGS ${UCF_FILE_NAME_IN} F_INPUTS_COUNT
@@ -43,10 +51,35 @@ file(STRINGS ${UCF_FILE_NAME_IN} F_INPUTS_COUNT
     )
 list(LENGTH F_INPUTS_COUNT F_INPUTS_COUNT)
 
-file(STRINGS ${UCF_FILE_NAME_IN} LEDS_COUNT
-    REGEX "^NET.*leds_io\\[.*\\].*LOC = "
+file(STRINGS ${UCF_FILE_NAME} GPIO_COUNT
+    REGEX "^NET.*gpio\\[.*\\].*LOC = "
     )
-list(LENGTH LEDS_COUNT LEDS_COUNT)
+list(LENGTH GPIO_COUNT GPIO_COUNT)
+if (GPIO_COUNT EQUAL 0)
+    set(GPIO_PRESENT        0)
+else()
+    set(GPIO_PRESENT        1)
+endif()
+
+if ((NOT PERIPHERIAL_ENABLE_I2C) AND PERIPHERIAL_ENABLE_GPIO)
+    file(STRINGS ${UCF_FILE_NAME} I2C_COUNT
+        REGEX "^NET.*i2c_.*LOC = "
+        )
+    list(LENGTH I2C_COUNT I2C_COUNT)
+    math(EXPR GPIO_COUNT "${GPIO_COUNT} + ${I2C_COUNT}")
+endif()
+
+if (PERIPHERIAL_ENABLE_GPIO)
+    message(STATUS "GPIO count: ${GPIO_COUNT}")
+    if (NOT PERIPHERIAL_ENABLE_I2C)
+        math(EXPR I2C_OVER_GPIO_SDA_PIN "${GPIO_COUNT} - 2")
+        math(EXPR I2C_OVER_GPIO_SCL_PIN "${GPIO_COUNT} - 1")
+
+        message(STATUS "I2C over GPIO (bitbang) SDA => GPIO[${I2C_OVER_GPIO_SDA_PIN}]\tSCL => GPIO[${I2C_OVER_GPIO_SCL_PIN}]")
+    endif()
+else()
+    message(STATUS "GPIO disabled")
+endif()
 
 #-------------------------------------ucp---------------------------------------
 
@@ -92,7 +125,11 @@ add_custom_target(constraints_src
 set(UCF_FILE_NAME           ${UCF_FILE_NAME}            PARENT_SCOPE)
 set(USER_CODE_FLASH_OFFSET  ${USER_CODE_FLASH_OFFSET}   PARENT_SCOPE)
 set(F_INPUTS_COUNT          ${F_INPUTS_COUNT}           PARENT_SCOPE)
-set(LEDS_COUNT              ${LEDS_COUNT}               PARENT_SCOPE)
+set(GPIO_COUNT              ${GPIO_COUNT}               PARENT_SCOPE)
 set(USE_PHISICAL_INPUTS     ${USE_PHISICAL_INPUTS}      PARENT_SCOPE)
 set(MEMORY_UNIT_SIZE        ${MEMORY_UNIT_SIZE}         PARENT_SCOPE)
 set(MEMORY_UNIT_SIZE_BYTES  ${MEMORY_UNIT_SIZE_BYTES}   PARENT_SCOPE)
+
+set(I2C_OVER_GPIO_SDA_PIN   ${I2C_OVER_GPIO_SDA_PIN}    PARENT_SCOPE)
+set(I2C_OVER_GPIO_SCL_PIN   ${I2C_OVER_GPIO_SCL_PIN}    PARENT_SCOPE)
+set(GPIO_PRESENT            ${GPIO_PRESENT}             PARENT_SCOPE)

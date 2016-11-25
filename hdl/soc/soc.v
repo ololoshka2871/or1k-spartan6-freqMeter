@@ -81,10 +81,15 @@ module soc
     mdclk_o
 `endif
 
-`ifdef I2C_ENABLED
+`ifdef I2C_PRESENT
     ,
     i2c_sda,
     i2c_scl
+`endif
+
+`ifdef GPIO_PRESENT
+    ,
+    gpio
 `endif
 
 );
@@ -134,9 +139,13 @@ inout                   mdio /*verilator public*/;
 output                  mdclk_o /*verilator public*/;
 `endif
 
-`ifdef I2C_ENABLED
+`ifdef I2C_PRESENT
 inout                   i2c_sda /*verilator public*/;
 inout                   i2c_scl /*verilator public*/;
+`endif
+
+`ifdef GPIO_PRESENT
+inout [`GPIO_COUNT-1:0] gpio /*verilator public*/;
 `endif
 
 //-----------------------------------------------------------------
@@ -177,19 +186,26 @@ wire               spi_we;
 wire               spi_stb;
 wire               spi_intr;
 
-wire [3:0]         mdio_addr;
+wire [7:0]         mdio_addr;
 wire               mdio_stb;
 wire               mdio_we;
 wire [31:0]        mdio_data_w;
 wire [31:0]        mdio_data_r;
 wire               mdio_intr;
 
-wire [3:0]         i2c_addr;
+wire [7:0]         i2c_addr;
 wire               i2c_stb;
 wire               i2c_we;
 wire [31:0]        i2c_data_w;
 wire [31:0]        i2c_data_r;
 wire               i2c_intr;
+
+wire [7:0]         gpio_addr;
+wire               gpio_stb;
+wire               gpio_we;
+wire [31:0]        gpio_dat_w;
+wire [31:0]        gpio_dat_r;
+wire               gpio_intr;
 
 //-----------------------------------------------------------------
 // Peripheral Interconnect
@@ -239,12 +255,12 @@ u2_soc
     .periph3_we_o(spi_we),
     .periph3_stb_o(spi_stb),
 
-    // Unused = 0x12000400 - 0x120004FF
-    .periph4_addr_o(/*open*/),
-    .periph4_data_o(/*open*/),
-    .periph4_data_i(32'h00000000),
-    .periph4_we_o(/*open*/),
-    .periph4_stb_o(/*open*/),
+    // GPIO = 0x12000400 - 0x120004FF
+    .periph4_addr_o(gpio_addr),
+    .periph4_data_o(gpio_dat_w),
+    .periph4_data_i(gpio_dat_r),
+    .periph4_we_o(gpio_we),
+    .periph4_stb_o(gpio_stb),
 
     // MDIO = 0x12000500 - 0x120005FF
     .periph5_addr_o(mdio_addr),
@@ -421,7 +437,7 @@ wb_mdio
     .rst_i(rst_i),
     .cyc_i(io_cyc_i),
     .stb_i(mdio_stb),
-    .adr_i(mdio_addr),
+    .adr_i(mdio_addr[2:0]),
     .we_i(mdio_we),
     .dat_i(mdio_data_w),
     .dat_o(mdio_data_r),
@@ -477,6 +493,62 @@ assign i2c_data_r[31:8] = 24'h0;
 `else
 assign i2c_data_r = 32'b0;
 assign i2c_intr = 1'b0;
+`endif
+
+//-----------------------------------------------------------------
+// GPIO Controller
+//-----------------------------------------------------------------
+`ifdef GPIO_ENABLED
+
+wire [`GPIO_COUNT-1:0] gpio_oe;
+wire [`GPIO_COUNT-1:0] gpio_o;
+
+wire [`GPIO_COUNT-1:0] _gpio;
+
+gpio_top
+#(
+    .dw(32),
+    .gw(`GPIO_COUNT)
+) gpio_ip (
+    .wb_clk_i(clk_i),
+    .wb_rst_i(rst_i),
+
+    .wb_cyc_i(io_cyc_i),
+    .wb_adr_i(gpio_addr),
+    .wb_dat_i(gpio_dat_w),
+    .wb_sel_i(4'b1111),
+    .wb_we_i(gpio_we),
+    .wb_stb_i(gpio_stb),
+    .wb_dat_o(gpio_dat_r),
+    .wb_ack_o( /* open */ ),
+    .wb_err_o( /* open */ ),
+    .wb_inta_o(gpio_intr),
+
+    .ext_pad_i(_gpio),
+    .ext_pad_o(gpio_o),
+    .ext_padoe_o(gpio_oe)
+);
+
+genvar gpio_index;
+
+generate
+    for(gpio_index = 0; gpio_index < `GPIO_COUNT; gpio_index = gpio_index + 1) begin : generate_GPIOS
+        assign _gpio[gpio_index] = gpio_oe[gpio_index] ? gpio_o[gpio_index] : 1'bz;
+`ifdef GPIO_PRESENT
+        assign gpio[gpio_index] = _gpio[gpio_index];
+`endif
+    end
+endgenerate
+
+`ifdef I2C_ENABLED
+`else
+assign i2c_sda = _gpio[`I2C_OVER_GPIO_SDA_PIN];
+assign i2c_scl = _gpio[`I2C_OVER_GPIO_SCL_PIN];
+`endif
+
+`else
+assign gpio_data_r = 32'b0;
+assign gpio_intr = 1'b0;
 `endif
 
 //-------------------------------------------------------------------

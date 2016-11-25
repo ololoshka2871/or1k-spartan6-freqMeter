@@ -87,7 +87,7 @@ set(PERIPHERIAL_ENABLE_UART0 ON
 set(PERIPHERIAL_ENABLE_UART1 OFF
     CACHE BOOL  "Enable UART1 IPCore at 0x12000700")
 set(PERIPHERIAL_ENABLE_GPIO  ON
-    CACHE BOOL  "Enable i2c IPCore at 0x12000500")
+    CACHE BOOL  "Enable i2c IPCore at 0x12000400")
 set(PERIPHERIAL_ENABLE_I2C   OFF
     CACHE BOOL  "Enable i2c IPCore at 0x12000600")
 set(PERIPHERIAL_ENABLE_ETHERNET ON
@@ -185,6 +185,8 @@ set(SIM_TEST_MDIO           OFF
     CACHE BOOL  "Bootloader firmware tests myminimac IP-core MDIO interface")
 set(SIM_TEST_I2C            OFF
     CACHE BOOL  "Bootloader firmware tests I2C interface")
+set(SIM_TEST_GPIO           OFF
+    CACHE BOOL  "Bootloader firmware tests GPIO pins")
 
 #----------------------------------/config--------------------------------------
 

@@ -28,8 +28,19 @@ NET "mosi_o"                    LOC = P64 | IOSTANDARD = "LVCMOS33";
 NET "miso_i"                    LOC = P65 | IOSTANDARD = "LVCMOS33" | PULLUP;
 
 # i2c
-NET "i2c_sda"                   LOC = P87 | IOSTANDARD = "LVCMOS33" | PULLUP;
-NET "i2c_scl"                   LOC = P88 | IOSTANDARD = "LVCMOS33" | PULLUP;
+@I2C_DISABLE@NET "i2c_sda"      LOC = P87 | IOSTANDARD = "LVCMOS33" | PULLUP;
+@I2C_DISABLE@NET "i2c_scl"      LOC = P88 | IOSTANDARD = "LVCMOS33" | PULLUP;
+
+# GPIO
+#leds
+@GPIO_DISABLE@NET "gpio[0]"     LOC = P94 | IOSTANDARD = "LVCMOS33";
+@GPIO_DISABLE@NET "gpio[1]"     LOC = P98 | IOSTANDARD = "LVCMOS33";
+@GPIO_DISABLE@NET "gpio[2]"     LOC = P97 | IOSTANDARD = "LVCMOS33";
+
+#buttons
+@GPIO_DISABLE@NET "gpio[3]"     LOC = P17 | IOSTANDARD = "LVCMOS33";
+@GPIO_DISABLE@NET "gpio[4]"     LOC = P21 | IOSTANDARD = "LVCMOS33";
+@GPIO_DISABLE@NET "gpio[5]"     LOC = P15 | IOSTANDARD = "LVCMOS33";
 
 # RMII
 NET "phy_tx_en"                 LOC = P50 | IOSTANDARD = "LVCMOS33" | IOB = True;

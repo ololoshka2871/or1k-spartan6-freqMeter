@@ -74,10 +74,15 @@ module top
     output wire         phy_tx_en       // transmitter enable
 `endif
 
-`ifdef I2C_ENABLED
+`ifdef I2C_PRESENT
     ,
     inout  wire         i2c_sda,        // I2C SDA
     inout  wire         i2c_scl         // I2C SCL
+`endif
+
+`ifdef GPIO_PRESENT
+    ,
+    inout wire [`GPIO_COUNT-1:0]     gpio
 `endif
 
 `ifdef USE_PHISICAL_INPUTS
@@ -360,10 +365,15 @@ u_soc
     .mdio(phy_mdio)
 `endif
 
-`ifdef I2C_ENABLED
+`ifdef I2C_PRESENT
     ,
     .i2c_sda(i2c_sda),
     .i2c_scl(i2c_scl)
+`endif
+
+`ifdef GPIO_PRESENT
+    ,
+    .gpio(gpio)
 `endif
 );
 

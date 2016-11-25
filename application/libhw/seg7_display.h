@@ -38,6 +38,8 @@
 
 #include "mem_map.h"
 
+#ifdef SEG7_DISP_BASE
+
 #define sA                  (1 << 0)
 #define sB                  (1 << 1)
 #define sC                  (1 << 2)
@@ -69,5 +71,7 @@ void seg7_dpSet(const enum Seg7Segment segment, bool dpState);
 void seg7_printHex(uint16_t value);
 
 enum Seg7Segment seg7_num2Segment(const uint8_t num);
+
+#endif
 
 #endif // SEG7_DISP_H

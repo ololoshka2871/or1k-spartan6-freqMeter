@@ -55,7 +55,7 @@ GPIO gpio_port_init(enum GPIO_PORTS port, uint32_t direction) {
 }
 
 
-void gpio_port_set_dir(GPIO gpio, uint32_t direction) {
+void gpio_port_set_dir_all(GPIO gpio, uint32_t direction) {
 	volatile struct sGPIO* p = (volatile struct sGPIO*)gpio;
 	p->OE = direction;
 }
@@ -64,6 +64,14 @@ void gpio_port_set_dir(GPIO gpio, uint32_t direction) {
 void gpio_port_set_all(GPIO gpio, uint32_t val) {
 	volatile struct sGPIO* p = (volatile struct sGPIO*)gpio;
 	p->OUT = val;
+}
+
+
+void gpio_port_set_dir(GPIO gpio, uint32_t set_out_mask, uint32_t set_in_mask) {
+    uint32_t dir = gpio_port_get_dir(gpio);
+    dir &= ~set_in_mask;
+    dir |= set_out_mask;
+    gpio_port_set_all(gpio, dir);
 }
 
 
@@ -80,3 +88,7 @@ uint32_t gpio_port_get_val(GPIO gpio) {
 }
 
 
+uint32_t gpio_port_get_dir(GPIO gpio) {
+    volatile struct sGPIO* p = (volatile struct sGPIO*)gpio;
+    return p->OE;
+}

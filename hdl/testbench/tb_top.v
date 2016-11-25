@@ -51,6 +51,8 @@ module tb_top;
 
         wire [11:0] test_sig;
 
+        wire [`GPIO_COUNT-1:0]     gpio;
+
         wire sda;
         wire scl;
 
@@ -95,7 +97,9 @@ module tb_top;
             .Fin(Fin[`F_INPUTS_COUNT-1:0]),
 
             .i2c_sda(sda),
-            .i2c_scl(scl)
+            .i2c_scl(scl),
+
+            .gpio(gpio)
 	);
 
         PULLUP PULLUP_sda (

@@ -32,6 +32,9 @@
 
 
 #include "seg7_display.h"
+
+#ifdef SEG7_DISP_BASE
+
 static const uint8_t digit2seg7_code[] = {
     sA | sB | sC | sD | sE | sF     , // 0
          sB | sC                    , // 1
@@ -164,3 +167,5 @@ void seg7_printHex(uint16_t value) {
 enum Seg7Segment seg7_num2Segment(const uint8_t num) {
     return SEG7_DISP_BASE + num * 4;
 }
+
+#endif

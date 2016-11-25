@@ -58,8 +58,16 @@ Verilog_GenControlMacro(UART1_ENABLED_STR "UART1_ENABLED" ${PERIPHERIAL_ENABLE_U
 Verilog_GenControlMacro(TIMER_ENABLED_STR "TIMER_ENABLED" ${PERIPHERIAL_ENABLE_TIMER})
 Verilog_GenControlMacro(ETHERNET_ENABLED_STR "ETHERNET_ENABLED" ${PERIPHERIAL_ENABLE_ETHERNET})
 Verilog_GenControlMacro(MASTER_HYBRID_COUNTER_STR "MASTER_HYBRID_COUNTER" ${MASTER_HYBRID_COUNTER})
-Verilog_GenControlMacro(I2C_ENABLED_STR "I2C_ENABLED" ${PERIPHERIAL_ENABLE_I2C})
-Verilog_GenControlMacro(GPIO_ENABLED_STR "GPIO_ENABLED" ${PERIPHERIAL_ENABLE_GPIO})
+Verilog_GenControlMacro(I2C_ENABLED_STR   "I2C_ENABLED"   ${PERIPHERIAL_ENABLE_I2C})
+Verilog_GenControlMacro(GPIO_ENABLED_STR  "GPIO_ENABLED"  ${PERIPHERIAL_ENABLE_GPIO})
+
+if (PERIPHERIAL_ENABLE_I2C OR PERIPHERIAL_ENABLE_GPIO)
+    set(I2C_PRESENT_STR "`define I2C_PRESENT")
+    set(I2C_PRESENT                         1)
+else()
+    set(I2C_PRESENT_STR "// Macro I2C_PRESENT is not defined")
+    set(I2C_PRESENT                         0)
+endif()
 
 #---------------------------------files-----------------------------------------
 
@@ -71,6 +79,22 @@ add_subdirectory(memory)
 add_subdirectory(mdio)
 add_subdirectory(myminimac)
 add_subdirectory(utils)
+
+#--------------------------------config-----------------------------------------
+
+Verilog_GenControlMacro(GPIO_PRESENT_STR "GPIO_PRESENT" ${GPIO_PRESENT})
+
+if(I2C_OVER_GPIO_SDA_PIN)
+    set(I2C_OVER_GPIO_SDA_PIN_STR "`define I2C_OVER_GPIO_SDA_PIN ${I2C_OVER_GPIO_SDA_PIN}")
+else()
+    set(I2C_OVER_GPIO_SDA_PIN_STR "// SDA is not gpio pin")
+endif()
+
+if(I2C_OVER_GPIO_SCL_PIN)
+    set(I2C_OVER_GPIO_SCL_PIN_STR "`define I2C_OVER_GPIO_SCL_PIN ${I2C_OVER_GPIO_SCL_PIN}")
+else()
+    set(I2C_OVER_GPIO_SCL_PIN_STR "// SCL is not gpio pin")
+endif()
 
 #-------------------------------top module--------------------------------------
 
@@ -219,3 +243,7 @@ set(FREQMETERS_BASE         ${FREQMETERS_BASE}          PARENT_SCOPE)
 
 set(TESTBENCH_TOP           ${TESTBENCH_TOP}            PARENT_SCOPE)
 set(TESTBENCH_INCLUDE       ${test_include_path}        PARENT_SCOPE)
+
+set(I2C_OVER_GPIO_SDA_PIN   ${I2C_OVER_GPIO_SDA_PIN}    PARENT_SCOPE)
+set(I2C_OVER_GPIO_SCL_PIN   ${I2C_OVER_GPIO_SCL_PIN}    PARENT_SCOPE)
+set(GPIO_PRESENT            ${GPIO_PRESENT}             PARENT_SCOPE)

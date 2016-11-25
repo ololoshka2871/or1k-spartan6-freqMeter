@@ -46,6 +46,7 @@ SET(LIBHW_SOURCES
     prog_timer.c
     rodata.c
     iicmb.c
+    bb_i2c.c
     i2c.c
     ds1338z.c
     rtc.c
@@ -65,6 +66,10 @@ set(difenitions
     RODATA_FILENAME_LEN=${SITE_FILENAME_MAX}
     RODATA_FILEEXT_LEN=${SITE_FILEEXT_MAX}
     RODATA_CACHE_SIZE=${SITE_STATIC_CACHE}
+    BB_I2C_PORT=GPIO_PORTA
+    BB_I2C_SDA_PIN=${I2C_OVER_GPIO_SDA_PIN}
+    BB_I2C_SCL_PIN=${I2C_OVER_GPIO_SCL_PIN}
+    GPIO_ENABLED=${GPIO_PRESENT}
     )
 
 if(MASTER_HYBRID_COUNTER)

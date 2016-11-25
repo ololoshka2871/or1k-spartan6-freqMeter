@@ -37,18 +37,18 @@
 #include "freqmeters.h"
 #include "mdio.h"
 #include "prog_timer.h"
+#include "rtc.h"
+#include "GPIO.h"
+#include "prog_timer.h"
 
 #include "main.h"
 #include "eth-main.h"
-
 #include "eth-dhcp.h"
-
 #include "udp_server.h"
 #include "tcp_server.h"
-
 #include "ETH_config.h"
 
-#include "rtc.h"
+
 
 const char hostname[15] =
 #ifdef ETHERNET_HOSTNAME
@@ -169,12 +169,29 @@ static void init_tcpip() {
     tcp_ip_initialise();
 }
 
+#define LED_MASK    (0b111)
+
+static void led_blinker(void* cookie) {
+    (void)cookie;
+    uint32_t v = gpio_port_get_val(GPIO_PORTA) & LED_MASK;
+    uint32_t new_v = (v & (LED_MASK >> 1)) ? (v << 1) : 1;
+
+    gpio_port_set_val(GPIO_PORTA, new_v, v);
+}
+
 int main(void)
 {
     interrupts_init();
     progtimer_init();
     fm_init();
+
+#if GPIO_ENABLED
+    gpio_port_init(GPIO_PORTA, LED_MASK);
+    progtimer_new(1000, led_blinker, NULL);
+#endif
+
     rtc_init();
+
 
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
         fm_setChanelReloadValue(i, 100, false);

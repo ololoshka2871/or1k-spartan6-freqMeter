@@ -32,17 +32,18 @@
 
 #else
 #warning "No i2c implementation avalable, all calls will have no effect!"
+#define I2C_DISABLED
 
 #define i2c_init()
 #define i2c_disable()
 
-#define i2c_cmd_wait(n)
-#define i2c_cmd_write(n)
-#define i2c_cmd_read_ack(n)
-#define i2c_cmd_read_nak(n)
-#define i2c_cmd_start
-#define i2c_cmd_stop
-#define i2c_cmd_set_bus(n)
+#define i2c_cmd_wait(n)                     rsp_done
+#define i2c_cmd_write(n)                    rsp_done
+#define i2c_cmd_read_ack(n)                 rsp_done
+#define i2c_cmd_read_nak(n)                 rsp_done
+#define i2c_cmd_start()                     rsp_done
+#define i2c_cmd_stop()                      rsp_done
+#define i2c_cmd_set_bus(n)                  rsp_done
 #endif
 
 /* High-level operations: ****************************************************/

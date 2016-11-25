@@ -21,8 +21,8 @@
 #define TIMER_BASE              (IO_BASE + 0x100)
 #define INTR_BASE               (IO_BASE + 0x200)
 #define SPI_BASE                (IO_BASE + 0x300)
-#define SEG7_DISP_BASE          (IO_BASE + 0x400)
-#define GPIO_BASE               (IO_BASE + 0x500)
+#define GPIO_BASE               (IO_BASE + 0x400)
+#define MDIO_BASE               (IO_BASE + 0x500)
 #define IICMB_BASE_ADDR         (IO_BASE + 0x600)
 #define UART1_BASE              (IO_BASE + 0x700)
 

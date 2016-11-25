@@ -48,6 +48,44 @@
 #define DAYS_IN_YEAR            (365)
 #define UNIX_MILENUUM           ((time_t)946684800UL)
 
+#ifdef I2C_DISABLED
+
+enum enDS1338z_err ds1338z_init() { return DS1338Z_OK; }
+enum enDS1338z_err ds1338z_getRawClockData(struct sDS1338z_clock_data *p) {
+    p->day = 1;
+    p->DoW = 1;
+    p->hour = 0;
+    p->minute = 0;
+    p->month = 1;
+    p->second = 0;
+    p->year = 0;
+    return DS1338Z_OK;
+}
+
+enum enDS1338z_err ds1338z_getUnixTime(time_t *tm) {
+    *tm = UNIX_MILENUUM;
+    return DS1338Z_OK;
+}
+
+enum enDS1338z_err ds1338z_setRawClockData(const struct sDS1338z_clock_data *p) {
+    return DS1338Z_OK;
+}
+
+enum enDS1338z_err ds1338z_setUnixTime(const time_t *tm) {
+    return DS1338Z_OK;
+}
+
+enum enDS1338z_err ds1338z_readNVRAM(void *dest, uint8_t offset, uint8_t size) {
+    memset(dest, 0, size);
+    return DS1338Z_OK;
+}
+
+enum enDS1338z_err ds1338z_writeNVRAM(uint8_t offset, void *src, uint8_t size) {
+    return DS1338Z_OK;
+}
+
+#else
+
 const uint8_t daysinmonth[] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 
 
@@ -161,3 +199,4 @@ enum enDS1338z_err ds1338z_writeNVRAM(uint8_t offset, void *src, uint8_t size) {
                              src, size)) == rsp_done ?
                 DS1338Z_OK : DS1338Z_ERROR;
 }
+#endif

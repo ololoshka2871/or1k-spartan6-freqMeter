@@ -83,6 +83,8 @@ add_custom_command(
 INCLUDE("or1k_toolchain")
 
 add_definitions(
+    -DF_CPU=${CPU_CLOCK_HZ}
+    -DBB_I2C_BAUD=${I2C_BAUD}
     -DFREQMETERS_COUNT=${F_INPUTS_COUNT}
     -DF_REF=${REFERENCE_CLOCK_HZ}UL
     )

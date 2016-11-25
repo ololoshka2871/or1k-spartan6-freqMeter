@@ -115,7 +115,7 @@ myminimac_ctlif_cd
     .irq_rx(irq_rx),
     .irq_tx(irq_tx),
 
-    .csr_a(csr_adr_i),
+    .csr_a(csr_adr_i[5:0]),
     .csr_we(csr_we_i),
     .csr_di(csr_dat_i),
     .csr_do(csr_dat_o),

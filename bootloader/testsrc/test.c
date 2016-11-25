@@ -37,7 +37,8 @@
 #include "freqmeters.h"
 #include "minimac.h"
 #include "mdio.h"
-#include "iicmb.h"
+#include "GPIO.h"
+#include "i2c.h"
 
 static void GDB_STUB_SECTION_TEXT test_freqmeter() {
     fm_init();
@@ -83,11 +84,12 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
 }
 
 static void GDB_STUB_SECTION_TEXT test_i2c() {
-    iicmb_init();
-
     uint8_t res[10];
-    iicmb_read_bus(0, 0x10, res);
-    iicmb_read_bus_mul(0, 0, res, sizeof(res));
+#ifndef IICMB_I2C
+    gpio_port_init(GPIO_PORTA, 0);
+#endif
+    i2c_read_bus(0, 0x10, res);
+    i2c_read_bus_mul(0, 0, res, sizeof(res));
 }
 
 static void GDB_STUB_SECTION_TEXT test_minmac_slotlogick() {
@@ -99,6 +101,13 @@ static void GDB_STUB_SECTION_TEXT test_minmac_slotlogick() {
     while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_TX)));
     miniMAC_slot_complite_and_send(ptx_slot);
     miniMAC_reset_rx_slot(MINIMAC_RX_SLOT0);
+}
+
+static void GDB_STUB_SECTION_TEXT test_gpio() {
+    GPIO gpio = gpio_port_init(GPIO_PORTA, 0xffffffff);
+
+    gpio_port_set_all(gpio, 0xA5A5A5A5);
+    gpio_port_set_all(gpio, ~0xA5A5A5A5);
 }
 
 void GDB_STUB_SECTION_TEXT start_tests() {
@@ -124,5 +133,9 @@ void GDB_STUB_SECTION_TEXT start_tests() {
 
 #ifdef SIM_TEST_I2C
     test_i2c();
+#endif
+
+#ifdef SIM_TEST_GPIO
+    test_gpio();
 #endif
 }

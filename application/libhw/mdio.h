@@ -36,7 +36,6 @@
 #include "mem_map.h"
 #include <stdint.h>
 
-#define MDIO_BASE               (IO_BASE + 0x500)
 #define MDIO_REG_CTL            (*(REG32 (MDIO_BASE + 0x0)))
 #define MDIO_REG_CTL_START      (1 << 31)
 #define MDIO_REG_CTL_RW         (1 << 30)

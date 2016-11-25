@@ -42,13 +42,15 @@
 #define GPIO_CTRL_INTS		(1 << 1)
 
 enum GPIO_PORTS {
-	GPIO_PORTA = GPIO_BASE + 0,
+    GPIO_PORTA = GPIO_BASE + 0,
 };
 
 typedef volatile void* GPIO;
 
 GPIO gpio_port_init(enum GPIO_PORTS port, uint32_t direction);
-void gpio_port_set_dir(GPIO gpio, uint32_t direction);
+void gpio_port_set_dir_all(GPIO gpio, uint32_t direction);
+uint32_t gpio_port_get_dir(GPIO gpio);
+void gpio_port_set_dir(GPIO gpio, uint32_t set_out_mask, uint32_t set_in_mask);
 void gpio_port_set_all(GPIO gpio, uint32_t val);
 void gpio_port_set_val(GPIO gpio, uint32_t set_mask, uint32_t unset_mask);
 uint32_t gpio_port_get_val(GPIO gpio);
