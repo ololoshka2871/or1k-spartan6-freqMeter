@@ -33,9 +33,15 @@
 #include <assert.h>
 
 #include "GPIO.h"
+#ifndef SIM
 #include "timer.h"
+#endif
+
+#include "i2c.h"
 
 #include "bb_i2c.h"
+
+#if !ENABLE_I2C || I2C_DISABLED
 
 #ifndef BB_I2C_PORT
 #warning "BB_I2C_PORT not defined, assuming PORTA"
@@ -70,12 +76,14 @@
 #define SCL_0()                 gpio_port_set_dir(i2c_gpio_port, BB_I2C_SCL_PIN_MASK, 0)
 #define SCL_1()                 gpio_port_set_dir(i2c_gpio_port, 0, BB_I2C_SCL_PIN_MASK)
 
-#define SCL_STATUS()            (gpio_port_get_val(i2c_gpio_port & BB_I2C_SCL_PIN_MASK)
+#define SCL_STATUS()            (gpio_port_get_val(i2c_gpio_port) & BB_I2C_SCL_PIN_MASK)
 
 static GPIO i2c_gpio_port = NULL;
 
 static void bb_i2c_delay_05T() {
-    hires_timer_sleep(F_CPU / (BB_I2C_BAUD / 2));
+#ifndef SIM
+    hires_timer_sleep(F_CPU / (7 /*experimental*/ * BB_I2C_BAUD / 2));
+#endif
 }
 
 void bb_i2c_init(void) {
@@ -196,6 +204,10 @@ rsp_tt bb_i2c_cmd_start(void) {
     if (!SDA_STATUS())
         return rsp_arb_lost;
 
+    if (!SCL_STATUS()) {
+        bb_i2c_delay_05T();
+        SCL_1();
+    }
     //wait for 1/2 clock first
     bb_i2c_delay_05T();
     //pull SDA low
@@ -226,3 +238,5 @@ rsp_tt bb_i2c_cmd_stop(void) {
 rsp_tt bb_i2c_cmd_set_bus(unsigned char n) {
     return rsp_done;
 }
+
+#endif

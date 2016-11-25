@@ -108,6 +108,15 @@ module tb_top;
             .O(scl)
         );
 
+        genvar gpio_p;
+
+        generate
+            for (gpio_p = 0; gpio_p < `GPIO_COUNT - 2; gpio_p = gpio_p + 1)
+                PULLDOWN PULLDOWN_gpio (
+                    .O(gpio[gpio_p])
+                );
+        endgenerate
+
 	initial begin
             // Initialize Inputs
             clk = 0;

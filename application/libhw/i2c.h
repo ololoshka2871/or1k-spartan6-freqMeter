@@ -6,8 +6,8 @@
 
 #if ENABLE_I2C
 // hw i2c
-#define i2c_init()                          iicmb_init()
-#define i2c_disable()                       iicmb_disable()
+#define i2c_init                            iicmb_init
+#define i2c_disable                         iicmb_disable
 
 #define i2c_cmd_wait(n)                     iicmb_cmd_wait(n)
 #define i2c_cmd_write(n)                    iicmb_cmd_write(n)
@@ -19,8 +19,8 @@
 
 #elif ENABLE_GPIO
 // bitbang i2c
-#define i2c_init()                          bb_i2c_init()
-#define i2c_disable()                       bb_i2c_disable()
+#define i2c_init                            bb_i2c_init
+#define i2c_disable                         bb_i2c_disable
 
 #define i2c_cmd_wait(n)                     bb_i2c_cmd_wait(n)
 #define i2c_cmd_write(n)                    bb_i2c_cmd_write(n)

@@ -71,7 +71,7 @@ void gpio_port_set_dir(GPIO gpio, uint32_t set_out_mask, uint32_t set_in_mask) {
     uint32_t dir = gpio_port_get_dir(gpio);
     dir &= ~set_in_mask;
     dir |= set_out_mask;
-    gpio_port_set_all(gpio, dir);
+    gpio_port_set_dir_all(gpio, dir);
 }
 
 

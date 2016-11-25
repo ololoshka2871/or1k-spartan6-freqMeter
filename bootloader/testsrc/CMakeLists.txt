@@ -48,6 +48,18 @@ add_definitions(
     -DBB_I2C_SCL_PIN=7
     )
 
+if(PERIPHERIAL_ENABLE_I2C)
+    add_definitions(-DENABLE_I2C=1)
+else()
+    add_definitions(-DENABLE_I2C=0)
+endif()
+
+if(PERIPHERIAL_ENABLE_GPIO)
+    add_definitions(-DENABLE_GPIO=1)
+else()
+    add_definitions(-DENABLE_GPIO=0)
+endif()
+
 if (PERIPHERIAL_ENABLE_I2C)
      add_definitions(-DIICMB_I2C)
 endif()

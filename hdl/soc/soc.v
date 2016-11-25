@@ -502,8 +502,7 @@ assign i2c_intr = 1'b0;
 
 wire [`GPIO_COUNT-1:0] gpio_oe;
 wire [`GPIO_COUNT-1:0] gpio_o;
-
-wire [`GPIO_COUNT-1:0] _gpio;
+wire [`GPIO_COUNT-1:0] gpio_i;
 
 gpio_top
 #(
@@ -524,7 +523,7 @@ gpio_top
     .wb_err_o( /* open */ ),
     .wb_inta_o(gpio_intr),
 
-    .ext_pad_i(_gpio),
+    .ext_pad_i(gpio_i),
     .ext_pad_o(gpio_o),
     .ext_padoe_o(gpio_oe)
 );
@@ -533,18 +532,49 @@ genvar gpio_index;
 
 generate
     for(gpio_index = 0; gpio_index < `GPIO_COUNT; gpio_index = gpio_index + 1) begin : generate_GPIOS
-        assign _gpio[gpio_index] = gpio_oe[gpio_index] ? gpio_o[gpio_index] : 1'bz;
-`ifdef GPIO_PRESENT
-        assign gpio[gpio_index] = _gpio[gpio_index];
+`ifdef I2C_ENABLED
+    // i2c independent module, so if gpio exists create it
+    `ifdef GPIO_PRESENT
+        IOBUF
+        #(
+            .DRIVE(12), // Specify the output drive strength
+            .IOSTANDARD("DEFAULT"), // Specify the I/O standard
+            .SLEW("SLOW") // Specify the output slew rate
+        ) IOBUF_inst (
+            .O(gpio_i[gpio_index]),   // Buffer output
+            .IO(_gpio[gpio_index]),   // Buffer inout port (connect directly to top-level port)
+            .I(gpio_o[gpio_index]),   // Buffer input
+            .T(~gpio_oe[gpio_index])  // 3-state enable input, high=input, low=output
+        );
+    `endif
+`else
+    `ifdef I2C_PRESENT // use gpio pins as i2c
+        if ((gpio_index == `I2C_OVER_GPIO_SDA_PIN) || (gpio_index == `I2C_OVER_GPIO_SCL_PIN)) begin
+            if (gpio_index == `I2C_OVER_GPIO_SDA_PIN) begin
+                assign gpio_i[gpio_index] = i2c_sda;
+                assign i2c_sda = gpio_oe[gpio_index] ? 1'b0 : 1'bz;
+            end else begin
+                assign gpio_i[gpio_index] = i2c_scl;
+                assign i2c_scl = gpio_oe[gpio_index] ? 1'b0 : 1'bz;
+            end
+        end else
+    `endif
+        begin
+            IOBUF
+            #(
+                .DRIVE(12), // Specify the output drive strength
+                .IOSTANDARD("DEFAULT"), // Specify the I/O standard
+                .SLEW("SLOW") // Specify the output slew rate
+            ) IOBUF_inst (
+                .O(gpio_i[gpio_index]),   // Buffer output
+                .IO(gpio[gpio_index]),   // Buffer inout port (connect directly to top-level port)
+                .I(gpio_o[gpio_index]),   // Buffer input
+                .T(~gpio_oe[gpio_index])  // 3-state enable input, high=input, low=output
+            );
+        end
 `endif
     end
 endgenerate
-
-`ifdef I2C_ENABLED
-`else
-assign i2c_sda = _gpio[`I2C_OVER_GPIO_SDA_PIN];
-assign i2c_scl = _gpio[`I2C_OVER_GPIO_SCL_PIN];
-`endif
 
 `else
 assign gpio_data_r = 32'b0;

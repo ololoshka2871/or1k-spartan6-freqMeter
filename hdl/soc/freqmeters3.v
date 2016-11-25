@@ -265,7 +265,7 @@ dmem_mux4
     .out3_stall_i(1'b0),
 
     // Input 0x11000000 - 0x11000FFF
-    .mem_addr_i({23'h0, adr_i}),
+    .mem_addr_i({22'h0, adr_i}),
     .mem_data_i(dat_i),
     .mem_data_o(dat_o),
     .mem_sel_i(4'b1111),

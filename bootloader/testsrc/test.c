@@ -88,6 +88,8 @@ static void GDB_STUB_SECTION_TEXT test_i2c() {
 #ifndef IICMB_I2C
     gpio_port_init(GPIO_PORTA, 0);
 #endif
+    i2c_init();
+
     i2c_read_bus(0, 0x10, res);
     i2c_read_bus_mul(0, 0, res, sizeof(res));
 }
