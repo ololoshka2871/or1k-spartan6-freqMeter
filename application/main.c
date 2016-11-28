@@ -45,7 +45,7 @@
 #include "eth-main.h"
 #include "eth-dhcp.h"
 #include "udp_server.h"
-#include "tcp_server.h"
+#include "websoc_server.h"
 #include "ETH_config.h"
 
 
@@ -209,8 +209,13 @@ int main(void)
         Process_freqmeters();
         tcp_ip_process_stack();
 
+#ifdef PROCESS_SERVER_UDP
         process_udp_server();
-        //process_tcp_server();
+#endif
+
+#ifdef PROCESS_SERVER_WEBSOC
+        process_websoc_server();
+#endif
     }
     return 0;
 }

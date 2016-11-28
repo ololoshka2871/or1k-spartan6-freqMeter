@@ -66,6 +66,7 @@ add_custom_target(tools.editor
         decodeChanels.py
         test_data_querryer.py
         gen-callgraph.py
+        ws_tester.html
     )
 
 set(tools_DIR       ${CMAKE_CURRENT_SOURCE_DIR}         PARENT_SCOPE)

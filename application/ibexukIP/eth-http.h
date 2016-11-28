@@ -109,7 +109,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //--------------------------------------------
 //The function name in your application that will provide the dynamic html for .htm files being transmitted which contain the special tilde ~my_varaible_name-
 //dynamic data markers.  Comment out if not required.
-#define	HTTP_DYNAMIC_DATA_FUNCTION		process_http_dynamic_data
+//#define	HTTP_DYNAMIC_DATA_FUNCTION		process_http_dynamic_data
 
 //Your function definition needs to be:
 //		BYTE *my_function_name (BYTE *variable_name, BYTE tcp_socket_number)

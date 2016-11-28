@@ -131,6 +131,19 @@ set(CPU_CLOCK_DEVIDER       24
 set(SYSTEM_HEAP_SIZE        4096
     CACHE STRING "System memory heap size")
 
+#---------------------------------------Servers---------------------------------
+
+set(SERVER_UDP              OFF
+    CACHE BOOL   "Enable UDP server")
+set(SERVER_UDP_PORT         9128
+    CACHE STRING "Enable UDP server port number")
+set(SERVER_WEBSOC           OFF
+    CACHE BOOL   "Enable WebSocket server")
+set(SERVER_WEBSOC_PORT      3897
+    CACHE STRING "Enable WebSocket server port number")
+set(SERVER_HTTP             OFF
+    CACHE BOOL   "Enable HTTP server")
+
 #-------------------------------------------------------------------------------
 
 set(ETHERNET_MAC_ADDRESS_MSB  0c
@@ -156,9 +169,6 @@ set(ETHERNET_USE_DHCP       YES
 
 set(ETHERNET_SKIP_UDP_CHECKSUMS YES
     CACHE BOOL   "Disable UDP checksums calculation and check")
-
-set(ETHERNET_UDP_SERVER_PORT    9128
-    CACHE STRING "UDP server port number")
 
 #-------------------------------------------------------------------------------
 

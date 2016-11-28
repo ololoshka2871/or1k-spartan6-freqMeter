@@ -89,6 +89,14 @@ add_definitions(
     -DF_REF=${REFERENCE_CLOCK_HZ}UL
     )
 
+if(SERVER_UDP)
+    add_definitions(-DPROCESS_SERVER_UDP)
+endif()
+
+if(SERVER_WEBSOC)
+    add_definitions(-DPROCESS_SERVER_WEBSOC)
+endif()
+
 add_custom_target(mkldscript DEPENDS ${LD_SCRIPT_FILE})
 
 add_subdirectory(libbase)

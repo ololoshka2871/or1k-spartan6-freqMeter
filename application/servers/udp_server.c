@@ -44,7 +44,7 @@
 //RETURN THE SOCKET BACK TO BROADCAST READY TO RECEIVE FROM ANYONE AGAIN
 #define SOCK_RESET(s)    udp_socket[(s)].remote_device_info.ip_address.Val = 0xffffffff
 
-enum enUDPServer_sm {
+enum enWEBSOCServer_sm {
     SM_OPEN_SOCKET,
     SM_PROCESS_SOCKET,
     SM_TX_RESPONSE
@@ -52,7 +52,7 @@ enum enUDPServer_sm {
 
 void process_udp_server() {
     static BYTE our_udp_socket = UDP_INVALID_SOCKET;
-    static enum enUDPServer_sm our_udp_server_state = SM_OPEN_SOCKET;
+    static enum enWEBSOCServer_sm our_udp_server_state = SM_OPEN_SOCKET;
 
     if (!nic_linked_and_ip_address_valid)
     {

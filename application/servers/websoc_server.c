@@ -35,39 +35,74 @@
 #include "eth-main.h"
 #include "eth-tcp.h"
 
+#include "sha1.h"
+#include "base64.h"
+
 #include "prog_timer.h"
 
-#include "tcp_server.h"
+#include "websoc_server.h"
+
+#ifndef WEBSOC_SERVER_PORT
+#warning "WEBSOC_SERVER_PORT not defined, assume 3897"
+#define WEBSOC_SERVER_PORT      (3897)
+#endif
 
 #define TCP_TIMEOUT             10000
 #define TCP_TIMEOUT_TICK        (TCP_TIMEOUT/10)
 
-enum enUDPServer_sm {
+#define CONST_STR_LEN(str)      (sizeof(str) - 1)
+
+enum enWEBSOCServer_sm {
     SM_OPEN_SOCKET,
     SM_WAIT_FOR_CONNECTION,
     SM_PROCESS_CONNECTION,
+    SM_TX_HANDSHAKE_RESPONSE,
     SM_TX_RESPONSE
 };
+
+#if 1
+static const char websoc_ansver_part1[] =
+"HTTP/1.1 101 Web Socket Protocol Handshake\r\
+Upgrade: WebSocket\r\
+Connection: Upgrade\r\
+Sec-WebSocket-Accept: ";
+#else
+static const char websoc_ansver_part1[] =
+"HTTP/1.1 101 Web Socket Protocol Handshake\r\
+Upgrade: WebSocket\r\
+Connection: Upgrade\r\
+WebSocket-Origin: http://localhost:8888\r\
+WebSocket-Location: ws://localhost:9876/\r\
+Sec-WebSocket-Accept: ";
+#endif
+
+static const char websoc_ansver_part2[] =
+"WebSocket-Protocol: sample\r\n\r\n";
+
+static const char websoc_magick[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+static const char websoc_key_str[] = "Sec-WebSocket-Key: ";
 
 static uint32_t tcp_server_socket_timeout_timer;
 static progtimer_desc_t tcp_timer;
 
-void tcp_timeout_timer_cb(void* p) {
+void websoc_timeout_timer_cb(void* p) {
     if (tcp_server_socket_timeout_timer)
         tcp_server_socket_timeout_timer -= TCP_TIMEOUT_TICK;
 }
 
-void process_tcp_server() {
+void process_websoc_server() {
     static BYTE our_tcp_server_socket = TCP_INVALID_SOCKET;
     static BYTE our_tcp_server_state = SM_OPEN_SOCKET;
 
-#if 0
     BYTE data;
+    static BYTE result_key[29]; // gJomYRcKbXDXWqpzypIPbhOZgh4=
+#if 0
     BYTE array_buffer[4];
 #endif
 
     if (!tcp_timer) {
-        tcp_timer = progtimer_new(TCP_TIMEOUT_TICK, tcp_timeout_timer_cb, NULL);
+        tcp_timer = progtimer_new(TCP_TIMEOUT_TICK, websoc_timeout_timer_cb, NULL);
     }
 
     if (!nic_linked_and_ip_address_valid)
@@ -87,7 +122,7 @@ void process_tcp_server() {
         //We shouldn't have a socket currently, but make sure
         if (our_tcp_server_socket != TCP_INVALID_SOCKET)
             tcp_close_socket(our_tcp_server_socket);
-        our_tcp_server_socket = tcp_open_socket_to_listen(8923);
+        our_tcp_server_socket = tcp_open_socket_to_listen(WEBSOC_SERVER_PORT);
         if (our_tcp_server_socket != TCP_INVALID_SOCKET)
         {
             our_tcp_server_state = SM_WAIT_FOR_CONNECTION;
@@ -124,23 +159,49 @@ void process_tcp_server() {
             //SOCKET HAS RECEIVED A PACKET - PROCESS IT
             tcp_server_socket_timeout_timer = TCP_TIMEOUT; //Reset our timeout timer
             //READ THE PACKET AS REQURIED
-#if 0
-            if (tcp_read_next_rx_byte(&data) == 0)
-            {
-                //Error - no more bytes in rx packet
+
+            BYTE websoc_client_key[24]; //SNQkjtF7mjPrc5mwhMSafw==
+            // finding "Sec-WebSocket-Key:"
+            BYTE* pMacher = (BYTE*)websoc_key_str;
+            BYTE  key_found = FALSE;
+            while(tcp_read_next_rx_byte(&data) != 0) {
+                if (*pMacher == data) {
+                    ++pMacher;
+                    if (pMacher - (BYTE*)websoc_key_str == CONST_STR_LEN(websoc_key_str)) {
+                        key_found = TRUE;
+                        break;
+                    }
+                } else {
+                    pMacher = (BYTE*)websoc_key_str;
+                }
             }
-            //OR USE
-            if (tcp_read_rx_array (array_buffer, sizeof(array_buffer)) == 0)
-            {
-                //Error - no more bytes in rx packet
-            }
+
+            if (key_found &&
+                   (0 != tcp_read_rx_array(websoc_client_key, sizeof(websoc_client_key)))) {
+                SHA1_CTX ctx;
+                BYTE hash_out[20];
+
+
+                SHA1Init(&ctx);
+#if  1
+                SHA1Update(&ctx, websoc_client_key, sizeof(websoc_client_key));
+                SHA1Update(&ctx, (const unsigned char *)websoc_magick, CONST_STR_LEN(websoc_magick));
+#else // test, mast be 661295c9cbf9d6b2f6428414504a8deed3020641
+                static const char test_Str[] = "test string";
+                SHA1Update(&ctx, test_Str, CONST_STR_LEN(test_Str));
 #endif
-            //DUMP THE PACKET
+                SHA1Final(hash_out, &ctx);
+
+                Base64encode((char*)result_key, (const char*)hash_out, sizeof(hash_out));
+
+                our_tcp_server_state = SM_TX_HANDSHAKE_RESPONSE;
+            } else {
+                //SEND RESPONSE
+                //our_tcp_server_state = SM_TX_RESPONSE;
+            }
             tcp_dump_rx_packet();
-            //SEND RESPONSE
-            our_tcp_server_state = SM_TX_RESPONSE;
         }
-#if 0
+#if 1
         if (tcp_does_socket_require_resend_of_last_packet(our_tcp_server_socket))
         {
             //RE-SEND LAST PACKET TRANSMITTED
@@ -150,11 +211,28 @@ void process_tcp_server() {
             our_tcp_server_state = SM_TX_RESPONSE;
         }
 #endif
+
         if(!tcp_is_socket_connected(our_tcp_server_socket))
         {
             //THE CLIENT HAS DISCONNECTED
             our_tcp_server_state = SM_WAIT_FOR_CONNECTION;
         }
+        break;
+    case SM_TX_HANDSHAKE_RESPONSE:
+        //----- TX RESPONSE -----
+        if (!tcp_setup_socket_tx(our_tcp_server_socket))
+        {
+            //Can't tx right now - try again next time
+            break;
+        }
+        tcp_write_array((BYTE*)websoc_ansver_part1, CONST_STR_LEN(websoc_ansver_part1));
+        tcp_write_array(result_key, sizeof(result_key) - 1);
+        tcp_write_next_byte('\n');
+        tcp_write_array((BYTE*)websoc_ansver_part2, CONST_STR_LEN(websoc_ansver_part2));
+
+        //SEND THE PACKET
+        tcp_socket_tx_packet(our_tcp_server_socket);
+        our_tcp_server_state = SM_TX_RESPONSE;
         break;
     case SM_TX_RESPONSE:
         //----- TX RESPONSE -----

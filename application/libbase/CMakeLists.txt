@@ -38,6 +38,8 @@ SET(LIBBASE_SOURCES
     printf-warper.c
     graycode.c
     bcd.c
+    sha1.c
+    base64.c
     )
 
 include_directories(.)
@@ -46,6 +48,9 @@ add_definitions(
     -DSYSTEM_HEAP_SIZE=${SYSTEM_HEAP_SIZE}
     -DMACTX_HEAP_BASE=${MAC_TX_MEM_BASE}
     -DMACTX_HEAP_SIZE=${MAC_TX_MEM_SIZE}
+    -DBYTE_ORDER=__BYTE_ORDER__
+    -DLITTLE_ENDIAN=__ORDER_LITTLE_ENDIAN__
+    -DBIG_ENDIAN=__ORDER_BIG_ENDIAN__
     )
 
 add_library(base STATIC ${LIBBASE_SOURCES})

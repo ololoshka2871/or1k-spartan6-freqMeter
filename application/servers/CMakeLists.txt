@@ -31,15 +31,20 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-include_directories(. ${IBEXUK_IP_INCLUDE_DIRS} ${LIBHW_INCLUDE_DIR})
+include_directories(.
+    ${IBEXUK_IP_INCLUDE_DIRS}
+    ${LIBHW_INCLUDE_DIR}
+    ${LIBBASE_INCLUDE_DIR}
+    )
 
 add_definitions(
-    -DUDP_SERVER_PORT=${ETHERNET_UDP_SERVER_PORT}
+    -DUDP_SERVER_PORT=${SERVER_UDP_PORT}
+    -DWEBSOC_SERVER_PORT=${SERVER_WEBSOC_PORT}
     )
 
 set(SERVERS_SRC
     udp_server.c
-    #tcp_server.c
+    websoc_server.c
     http_server.c
     )
 

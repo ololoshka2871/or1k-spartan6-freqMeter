@@ -145,13 +145,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define STACK_USE_UDP				//(Comment out if not required)
 
 //----- TCP -----
-#define STACK_USE_TCP				//(Comment out if not required)
+@STACK_USE_TCP_STR@
+//#define STACK_USE_TCP				//(Comment out if not required)
 
 //----- NETBIOS -----
 //#define	STACK_USE_NETBIOS			//(Comment out if not required)
 
 //----- HTTP -----
-#define STACK_USE_HTTP				//(Comment out if not required)
+@STACK_USE_HTTP_STR@
+//#define STACK_USE_HTTP				//(Comment out if not required)
 //#define	STACK_USE_HTTP_CLIENT		//(Comment out if not required)
 
 //----- SNTP -----

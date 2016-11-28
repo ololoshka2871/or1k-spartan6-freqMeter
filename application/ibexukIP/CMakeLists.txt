@@ -35,6 +35,24 @@ set(CONFIG_FILE_IN       ${CMAKE_CURRENT_SOURCE_DIR}/main.h.in)
 set(CONFIG_FILE          ${CMAKE_CURRENT_BINARY_DIR}/main.h)
 configure_file(${CONFIG_FILE_IN} ${CONFIG_FILE} @ONLY)
 
+
+set(ETH_CONFIG_FILE_IN   ${CMAKE_CURRENT_SOURCE_DIR}/eth-main.h.in)
+set(ETH_CONFIG_FILE      ${CMAKE_CURRENT_BINARY_DIR}/eth-main.h)
+
+if (SERVER_HTTP)
+    set(STACK_USE_HTTP_STR "#define STACK_USE_HTTP")
+    set(STACK_USE_TCP_STR  "#define STACK_USE_TCP")
+else()
+    set(STACK_USE_HTTP_STR "// Macro STACK_USE_HTTP is not defined")
+    if (SERVER_WEBSOC)
+        set(STACK_USE_TCP_STR  "#define STACK_USE_TCP")
+    else()
+        set(STACK_USE_TCP_STR "// Macro STACK_USE_TCP is not defined")
+    endif()
+endif()
+
+configure_file(${ETH_CONFIG_FILE_IN} ${ETH_CONFIG_FILE} @ONLY)
+
 set(IBEXUK_IP_INCLUDE_DIRS
         ${CMAKE_CURRENT_BINARY_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}
@@ -52,12 +70,17 @@ set(IBEXUK_IP_SRC
     eth-icmp.c
     eth-ip.c
     eth-main.c
-    eth-tcp.c
     eth-udp.c
     eth-dhcp.c
-
-    eth-http.c
     )
+
+if (SERVER_HTTP)
+    list(APPEND IBEXUK_IP_SRC eth-http.c eth-tcp.c)
+else()
+    if (SERVER_WEBSOC)
+        list(APPEND IBEXUK_IP_SRC eth-tcp.c)
+    endif()
+endif()
 
 set(difenitions
     HTTP_MAX_FILENAME_LENGTH=${SITE_FILENAME_MAX}
