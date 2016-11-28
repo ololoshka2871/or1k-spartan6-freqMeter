@@ -15,9 +15,6 @@ NET "clk_i"                     LOC = P56 | IOSTANDARD = "LVCMOS33";
 NET "tx0"                       LOC = P12 | IOSTANDARD = "LVCMOS33";
 NET "rx0"                       LOC = P14 | IOSTANDARD = "LVCMOS33";
 
-#UART1
-NET "tx1"                       LOC = P95 | IOSTANDARD = "LVCMOS33";
-
 #reset CPU
 NET "rst_i"                     LOC = P16 | IOSTANDARD = "LVCMOS33" | PULLUP;
 

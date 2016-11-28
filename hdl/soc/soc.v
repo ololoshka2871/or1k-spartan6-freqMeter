@@ -158,12 +158,11 @@ wire               uart0_we;
 wire               uart0_stb;
 wire               uart0_intr;
 
-wire [7:0]         uart1_addr;
-wire [31:0]        uart1_data_w;
-wire [31:0]        uart1_data_r;
-wire               uart1_we;
-wire               uart1_stb;
-wire               uart1_intr;
+wire [7:0]         sha1_addr;
+wire [31:0]        sha1_data_w;
+wire [31:0]        sha1_data_r;
+wire               sha1_we;
+wire               sha1_stb;
 
 wire [7:0]         timer_addr;
 wire [31:0]        timer_data_o;
@@ -276,12 +275,12 @@ u2_soc
     .periph6_we_o(i2c_we),
     .periph6_stb_o(i2c_stb),
 
-    // UART1 = 0x12000700 - 0x120007FF
-    .periph7_addr_o(uart1_addr),
-    .periph7_data_o(uart1_data_w),
-    .periph7_data_i(uart1_data_r),
-    .periph7_we_o(uart1_we),
-    .periph7_stb_o(uart1_stb)
+    // SHA-1 = 0x12000700 - 0x120007FF
+    .periph7_addr_o(sha1_addr),
+    .periph7_data_o(sha1_data_w),
+    .periph7_data_i(sha1_data_r),
+    .periph7_we_o(sha1_we),
+    .periph7_stb_o(sha1_stb)
 );
 
 //-----------------------------------------------------------------
@@ -312,30 +311,25 @@ assign uart0_tx_o = 1'b1;
 `endif
 
 //-----------------------------------------------------------------
-// UART1
+// SHA-1
 //-----------------------------------------------------------------
-`ifdef UART1_ENABLED
-uart_periph
-#(
-    .UART_DIVISOR(((CLK_KHZ * 1000) / UART1_BAUD))
-)
-u_uart1
-(
-    .clk_i(clk_i),
-    .rst_i(rst_i),
-    .intr_o(uart1_intr),
-    .addr_i(uart1_addr),
-    .data_o(uart1_data_r),
-    .data_i(uart1_data_w),
-    .we_i(uart1_we),
-    .stb_i(uart1_stb),
-    .rx_i(uart1_rx_i),
-    .tx_o(uart1_tx_o)
+`ifdef SHA1_ENABLED
+sha1
+dut(
+    .clk(clk_i),
+    .reset_n(rst_i),
+
+    .cs(sha1_stb),
+    .we(sha1_we),
+
+    .address(sha1_addr),
+    .write_data(sha1_data_w),
+    .read_data(sha1_data_r),
+    .error(/* open */)
 );
 `else
-assign uart1_intr = 1'b0;
-assign uart1_data_r = 4'h000000;
-assign uart1_tx_o = 1'b1;
+assign sha1_data_r = 4'h000000;
+assign sha1_tx_o = 1'b1;
 `endif
 
 //-----------------------------------------------------------------
@@ -387,7 +381,7 @@ u_intr
     .intr4_i(1'b0),
     .intr5_i(mdio_intr),
     .intr6_i(i2c_intr),
-    .intr7_i(uart1_intr),
+    .intr7_i(1'b0),
 
     .intr_ext_i(ext_intr_i),
 
