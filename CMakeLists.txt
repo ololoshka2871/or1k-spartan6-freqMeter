@@ -133,7 +133,7 @@ set(SYSTEM_HEAP_SIZE        4096
 
 #---------------------------------------Servers---------------------------------
 
-set(SERVER_UDP              OFF
+set(SERVER_UDP              ON
     CACHE BOOL   "Enable UDP server")
 set(SERVER_UDP_PORT         9128
     CACHE STRING "Enable UDP server port number")
