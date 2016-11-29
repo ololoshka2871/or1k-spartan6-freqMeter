@@ -40,15 +40,13 @@
 #include "rtc.h"
 #include "GPIO.h"
 #include "prog_timer.h"
+#include "settings.h"
 
 #include "main.h"
 #include "eth-main.h"
 #include "eth-dhcp.h"
 #include "udp_server.h"
 #include "websoc_server.h"
-#include "ETH_config.h"
-
-
 
 const char hostname[15] =
 #ifdef ETHERNET_HOSTNAME
@@ -63,6 +61,9 @@ static uint32_t timestamps[FREQMETERS_COUNT];
 static uint32_t starts[FREQMETERS_COUNT];
 static uint32_t measure_time[FREQMETERS_COUNT];
 static double Fs[FREQMETERS_COUNT];
+
+#define FORCE_STATIC_IP_PIN         (1 << 3)
+#define IS_STATIC_IP_FORCED()       (~gpio_port_get_val(GPIO_PORTA) & FORCE_STATIC_IP_PIN)
 
 static void Process_freqmeters() {
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
@@ -134,36 +135,25 @@ static void configure_ethernet_PHY() {
 
 static void init_tcpip() {
     //----- CONFIGURE ETHERNET -----
-
-#ifdef DHCP_ON_STARTUP
-    // dhcp will try to get ip addr
-    eth_dhcp_using_manual_settings = 0;
-#else
-    eth_dhcp_using_manual_settings = 1;
-#endif
-
     eth_dhcp_our_name_pointer = (BYTE*)hostname;
 
-    our_ip_address.v[0] = ETH_IP0; //MSB
-    our_ip_address.v[1] = ETH_IP1;
-    our_ip_address.v[2] = ETH_IP2;
-    our_ip_address.v[3] = ETH_IP3; //LSB
-    our_subnet_mask.v[0] = ETH_NETMASK0; //MSB
-    our_subnet_mask.v[1] = ETH_NETMASK1;
-    our_subnet_mask.v[2] = ETH_NETMASK2;
-    our_subnet_mask.v[3] = ETH_NETMASK3; //LSB
-    our_gateway_ip_address.v[0] = ETH_GW0;
-    our_gateway_ip_address.v[1] = ETH_GW1;
-    our_gateway_ip_address.v[2] = ETH_GW2;
-    our_gateway_ip_address.v[3] = ETH_GW3;
+    if (settings.DHCP &&
+#if GPIO_ENABLED
+        !IS_STATIC_IP_FORCED()
+#endif
+        ) {
+        eth_dhcp_using_manual_settings = 0;
+    } else {
+        eth_dhcp_using_manual_settings = 1;
+    }
+
+    // ---- IP Addr settings
+    memcpy(our_ip_address.v, settings.IP_addr.u8, sizeof(IP_ADDR));
+    memcpy(our_subnet_mask.v, settings.IP_mask.u8, sizeof(IP_ADDR));
+    memcpy(our_gateway_ip_address.v, settings.IP_gateway.u8, sizeof(IP_ADDR));
 
     //----- SET OUR ETHENET UNIQUE MAC ADDRESS -----
-    our_mac_address.v[0] = ETH_MAC0;
-    our_mac_address.v[1] = ETH_MAC1;
-    our_mac_address.v[2] = ETH_MAC2;
-    our_mac_address.v[3] = ETH_MAC3;
-    our_mac_address.v[4] = ETH_MAC4;
-    our_mac_address.v[5] = ETH_MAC5;
+    memcpy(our_mac_address.v, settings.MAC_ADDR, sizeof(MAC_ADDR));
 
     //----- INITIALISE ETHERNET -----
     tcp_ip_initialise();
@@ -179,8 +169,7 @@ static void led_blinker(void* cookie) {
     gpio_port_set_val(GPIO_PORTA, new_v, v);
 }
 
-int main(void)
-{
+static void initAll() {
     interrupts_init();
     progtimer_init();
     fm_init();
@@ -191,18 +180,21 @@ int main(void)
 #endif
 
     rtc_init();
-
+    Settings_read();
 
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
         fm_setChanelReloadValue(i, 100, false);
         fm_enableChanel(i, true);
     }
+    irq_enable(IS_FREQMETERS);
 
     configure_ethernet_PHY();
     init_tcpip();
+}
 
-    irq_enable(IS_FREQMETERS);
-
+int main(void)
+{
+    initAll();
     EXIT_CRITICAL();
 
     while(1) {

@@ -18,7 +18,7 @@ struct sDS1338z_clock_data {
     uint8_t year;
 } __attribute__((packed));
 
-#define NVRAM_BASE          (sizeof(struct sDS1338z_clock_data))
+#define DS_1338Z_NVRAM_BASE (sizeof(struct sDS1338z_clock_data) + 1 /*control*/)
 
 enum enDS1338z_err ds1338z_init();
 

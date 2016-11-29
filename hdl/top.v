@@ -52,7 +52,10 @@ module top
     input               rx0,
     output              tx0,
 
-    output              tx1,
+`ifdef UART1_ENABLED_STR
+    input               rx1,
+    output              rx1,
+`endif
 
     // reset CPU key
     input wire          rst_i,
@@ -341,8 +344,10 @@ u_soc
     .uart0_tx_o(tx0),
     .uart0_rx_i(rx0),
 
-    .uart1_tx_o(tx1),
-    .uart1_rx_i(1'b1), // no input
+`ifdef UART1_ENABLED_STR
+    .uart0_tx_o(tx1),
+    .uart0_rx_i(rx1),
+`endif
 
     // Memory Port
     .io_addr_i(soc_addr),    

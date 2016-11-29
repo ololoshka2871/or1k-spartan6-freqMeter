@@ -50,9 +50,10 @@ SET(LIBHW_SOURCES
     i2c.c
     ds1338z.c
     rtc.c
+    settings.c
     )
 
-include_directories(. ${LIBBASE_INCLUDE_DIR})
+include_directories(. ${CMAKE_CURRENT_BINARY_DIR} ${LIBBASE_INCLUDE_DIR})
 
 set(difenitions
     MAC_TX_MEM_BASE=${MAC_TX_MEM_BASE}
@@ -86,6 +87,10 @@ if(PERIPHERIAL_ENABLE_GPIO)
     list(APPEND difenitions ENABLE_GPIO=1)
 else()
     list(APPEND difenitions ENABLE_GPIO=0)
+endif()
+
+if(ETHERNET_USE_DHCP)
+    list(APPEND difenitions DHCP_ON_STARTUP)
 endif()
 
 add_library(hw STATIC ${LIBHW_SOURCES})
