@@ -48,12 +48,12 @@ if (PYTHON_VERSION_MAJOR STRGREATER "2")
     endif()
 endif()
 
-set(PROTOCOL_DEFINITION     protocol.proto)
+set(PROTOBUF_PROTO_FILE     ${CMAKE_CURRENT_SOURCE_DIR}/protocol.proto)
 
-add_custom_target(protobuf_proto_def SOURCES ${PROTOCOL_DEFINITION})
+add_custom_target(protobuf_proto_def SOURCES ${PROTOBUF_PROTO_FILE})
 
 #works only with python2!
-nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTOCOL_DEFINITION})
+nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTOBUF_PROTO_FILE})
 
 set(PROTOCOL_SRC
     protobuf-protocol.c
@@ -70,3 +70,4 @@ include_directories(${_NANOPB_INCLUDE_DIRS})
 add_library(nanopb STATIC ${NANOPB_SRCS} ${PROTO_SRCS} ${PROTOCOL_SRC})
 
 set(NANOPB_INCLUDE_DIRS ${_NANOPB_INCLUDE_DIRS}     PARENT_SCOPE)
+set(PROTOBUF_PROTO_FILE ${PROTOBUF_PROTO_FILE}      PARENT_SCOPE)

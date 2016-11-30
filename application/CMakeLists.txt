@@ -220,3 +220,4 @@ endif(DOXYGEN_DOT_FOUND)
 add_custom_target(application DEPENDS ${application_BIN} firmware_summary)
 
 SET(APPLICATION_BINARY		${application_BIN}	    PARENT_SCOPE)
+set(PROTOBUF_PROTO_FILE         ${PROTOBUF_PROTO_FILE}      PARENT_SCOPE)

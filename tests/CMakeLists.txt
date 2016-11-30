@@ -29,13 +29,42 @@
 #*
 #****************************************************************************/
 
-add_custom_target(tools.editor
+set(PB_TESTER           ${CMAKE_CURRENT_SOURCE_DIR}/pb_tester.py)
+
+add_custom_target(tests.editor
     SOURCES
-        filter_debug_io_log.py
-        mkgdb_server.sh
-        merge_binary.py
-        calc_best_signal_test_devider.py
-        gen-callgraph.py
+        decodeDoubleDump.py
+        decodeChanels.py
+        test_data_querryer.py
+        ws_tester.html
+        ${PB_TESTER}
     )
 
-set(tools_DIR       ${CMAKE_CURRENT_SOURCE_DIR}         PARENT_SCOPE)
+find_program(PROTOC_EXECUTABLE protoc)
+
+string(REPLACE "(.*)\\.proto" "\\1_pb2.py" protocol_python_module ${PROTOBUF_PROTO_FILE})
+get_filename_component(protocol_proto_dir ${PROTOBUF_PROTO_FILE} DIRECTORY)
+
+if (PROTOC_EXECUTABLE)
+    add_custom_command(
+        OUTPUT ${protocol_python_module}
+        COMMAND ${PROTOC_EXECUTABLE}
+            -I${protocol_proto_dir}
+            --python_out=${CMAKE_CURRENT_BINARY_DIR}
+            ${PROTOBUF_PROTO_FILE}
+        DEPENDS ${PROTOBUF_PROTO_FILE}
+        )
+
+    add_custom_target(pb_tesetr.run
+        COMMAND
+            ${PYTHON_EXECUTABLE} ${PB_TESTER}
+        DEPENDS
+            ${PB_TESTER} ${protocol_python_module}
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_BINARY_DIR}
+        )
+else()
+    message(STATUS "protoc PROTOBUF compiler not found, protobuf test will not work")
+endif()
+
+set(tests_DIR       ${CMAKE_CURRENT_SOURCE_DIR}         PARENT_SCOPE)

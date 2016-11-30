@@ -384,3 +384,10 @@ make_impact_programm(${IMPACT_BATCH_FILE_CHIP} ${BIT_FILE})
 make_impact_flash(${IMPACT_BATCH_FILE_FLASH} ${MCS_FIRMWARE_IMAGE})
 
 #---------------------------------/programm-------------------------------------
+
+#------------------------------------tests--------------------------------------
+
+add_subdirectory(tests)
+
+#-----------------------------------/tests--------------------------------------
+
