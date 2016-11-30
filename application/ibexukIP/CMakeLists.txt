@@ -83,6 +83,7 @@ else()
 endif()
 
 set(difenitions
+    GROUP_WRITES=1
     HTTP_MAX_FILENAME_LENGTH=${SITE_FILENAME_MAX}
     HTTP_MAX_FILEEXT_LENGTH=${SITE_FILEEXT_MAX}
     )

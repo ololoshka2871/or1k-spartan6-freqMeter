@@ -31,22 +31,42 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-include_directories(.
-    ${IBEXUK_IP_INCLUDE_DIRS}
-    ${LIBHW_INCLUDE_DIR}
-    ${LIBBASE_INCLUDE_DIR}
-    ${NANOPB_INCLUDE_DIRS}
+set(NANOPB_DIST             ${CMAKE_CURRENT_SOURCE_DIR}/nanopb-dist)
+
+set(CMAKE_MODULE_PATH       ${CMAKE_MODULE_PATH} "${NANOPB_DIST}/extra")
+
+find_package(Nanopb REQUIRED)
+include_directories(${NANOPB_INCLUDE_DIRS})
+
+if (PYTHON_VERSION_MAJOR STRGREATER "2")
+    message(STATUS "Forsing python2 for nanopb")
+    find_program(PYTHON_2   python2)
+    if (NOT PYTHON_2)
+        message(STATUS "python2 not found, U can try use python3, but it was not works for me")
+    else()
+        set(PYTHON_EXECUTABLE ${PYTHON_2})
+    endif()
+endif()
+
+set(PROTOCOL_DEFINITION     protocol.proto)
+
+add_custom_target(protobuf_proto_def SOURCES ${PROTOCOL_DEFINITION})
+
+#works only with python2!
+nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTOCOL_DEFINITION})
+
+set(PROTOCOL_SRC
+    protobuf-protocol.c
     )
 
-add_definitions(
-    -DUDP_SERVER_PORT=${SERVER_UDP_PORT}
-    -DWEBSOC_SERVER_PORT=${SERVER_WEBSOC_PORT}
+set(_NANOPB_INCLUDE_DIRS
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${NANOPB_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
-set(SERVERS_SRC
-    udp_server.c
-    websoc_server.c
-    http_server.c
-    )
+include_directories(${_NANOPB_INCLUDE_DIRS})
 
-add_library(servers STATIC ${SERVERS_SRC})
+add_library(nanopb STATIC ${NANOPB_SRCS} ${PROTO_SRCS} ${PROTOCOL_SRC})
+
+set(NANOPB_INCLUDE_DIRS ${_NANOPB_INCLUDE_DIRS}     PARENT_SCOPE)

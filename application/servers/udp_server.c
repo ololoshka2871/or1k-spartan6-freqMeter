@@ -35,6 +35,8 @@
 #include "eth-main.h"
 #include "eth-udp.h"
 
+#include "protobuf-protocol.h"
+
 #include "udp_server.h"
 
 #ifndef UDP_SERVER_PORT
@@ -47,7 +49,8 @@
 enum enWEBSOCServer_sm {
     SM_OPEN_SOCKET,
     SM_PROCESS_SOCKET,
-    SM_TX_RESPONSE
+    SM_TX_RESPONSE,
+    SM_TX_ERROR_MSG
 };
 
 void process_udp_server() {
@@ -80,44 +83,21 @@ void process_udp_server() {
         //----- PROCESS SOCKET -----
         if (udp_check_socket_for_rx(our_udp_socket))
         {
-#if 0
-            //SOCKET HAS RECEIVED A PACKET - PROCESS IT
-            //READ THE PACKET AS REQURIED
-            if (!udp_read_next_rx_byte(&data))
-            {
-                //Error - no more bytes in rx packet
-            }
-            //OR USE
-            if (!udp_read_rx_array (array_buffer, sizeof(array_buffer)))
-            {
-                //Error - no more bytes in rx packet
-            }
-#endif
+            enum enWEBSOCServer_sm newstate;
+            if (protobuf_handle_request(udp_read_rx_array) == PB_OK)
+                newstate = SM_TX_RESPONSE;
+            else
+                newstate = SM_TX_ERROR_MSG;
+
             //DUMP THE PACKET
             udp_dump_rx_packet();
             //SEND RESPONSE
-            our_udp_server_state = SM_TX_RESPONSE;
+            our_udp_server_state = newstate;
         }
         break;
     case SM_TX_RESPONSE:
         //----- TX RESPONSE -----
         //SETUP TX
-#if 0
-        //To respond to the sender leave our sockets remote device info as
-        //this already contains the remote device settings
-        //Or to broadcast on our subnet do this:
-        udp_socket[our_udp_socket].remote_device_info.ip_address.Val =
-                our_ip_address.Val | ~our_subnet_mask.Val;
-        udp_socket[our_udp_socket].remote_device_info.mac_address.v[0] = 0xff;
-        udp_socket[our_udp_socket].remote_device_info.mac_address.v[1] = 0xff;
-        udp_socket[our_udp_socket].remote_device_info.mac_address.v[2] = 0xff;
-        udp_socket[our_udp_socket].remote_device_info.mac_address.v[3] = 0xff;
-        udp_socket[our_udp_socket].remote_device_info.mac_address.v[4] = 0xff;
-        udp_socket[our_udp_socket].remote_device_info.mac_address.v[5] = 0xff;
-
-        udp_socket[our_udp_socket].remote_port = 6450;
-        udp_socket[our_udp_socket].local_port = 6451;
-#endif
         if (!udp_setup_tx(our_udp_socket))
         {
             //Can't tx right now - try again next time
@@ -128,12 +108,29 @@ void process_udp_server() {
             break;
         }
         //WRITE THE UDP DATA
-        udp_write_next_byte('H');
-        udp_write_next_byte('i');
+        udp_write_next_byte('O');
+        udp_write_next_byte('K');
         udp_write_next_byte('\n');
         udp_write_next_byte(0x00);
         //You can also use udp_write_array()
         //SEND THE PACKET
+        udp_tx_packet();
+
+        SOCK_RESET(our_udp_socket);
+        our_udp_server_state = SM_PROCESS_SOCKET;
+        break;
+    case SM_TX_ERROR_MSG:
+        if (!udp_setup_tx(our_udp_socket)) {
+            break;
+        }
+        udp_write_next_byte('E');
+        udp_write_next_byte('r');
+        udp_write_next_byte('r');
+        udp_write_next_byte('o');
+        udp_write_next_byte('r');
+        udp_write_next_byte('\n');
+        udp_write_next_byte(0x00);
+
         udp_tx_packet();
 
         SOCK_RESET(our_udp_socket);

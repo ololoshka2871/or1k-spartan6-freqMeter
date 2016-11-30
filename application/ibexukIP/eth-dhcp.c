@@ -397,11 +397,19 @@ void dhcp_tx_packet (BYTE message_type)
 	udp_write_next_byte(0);
 
 	//Transaction ID (Random number - use our mac address)
+#ifdef GROUP_WRITES
+    udp_write_array(&our_mac_address.v[2], 4);
+#else
 	udp_write_next_byte(our_mac_address.v[2]);
 	udp_write_next_byte(our_mac_address.v[3]);
 	udp_write_next_byte(our_mac_address.v[4]);
 	udp_write_next_byte(our_mac_address.v[5]);
+#endif
 
+#ifdef GROUP_WRITES
+    for (uint8_t i = 0; i < (2 + 2); ++i)
+        udp_write_next_byte(0);
+#else
 	//Elapsed Time
 	udp_write_next_byte(0);
 	udp_write_next_byte(0);
@@ -409,13 +417,22 @@ void dhcp_tx_packet (BYTE message_type)
 	//Flags
 	udp_write_next_byte(0);
 	udp_write_next_byte(0);
+#endif
 
-	//Client IP Address
+    //Client IP Address
+#ifdef GROUP_WRITES
+    udp_write_array(&our_ip_address.v[0], IP_ADDR_LENGTH);
+#else
 	udp_write_next_byte(our_ip_address.v[0]);
 	udp_write_next_byte(our_ip_address.v[1]);
 	udp_write_next_byte(our_ip_address.v[2]);
 	udp_write_next_byte(our_ip_address.v[3]);
+#endif
 
+#ifdef GROUP_WRITES
+    for (uint8_t i = 0; i < (IP_ADDR_LENGTH * 3); ++i)
+        udp_write_next_byte(0);
+#else
 	//Your (Client) IP Address
 	udp_write_next_byte(0);
 	udp_write_next_byte(0);
@@ -433,19 +450,28 @@ void dhcp_tx_packet (BYTE message_type)
 	udp_write_next_byte(0);
 	udp_write_next_byte(0);
 	udp_write_next_byte(0);
+#endif
 
 	//Our MAC address
+#ifdef GROUP_WRITES
+    udp_write_array(&our_mac_address.v[0], MAC_ADDR_LENGTH);
+#else
 	udp_write_next_byte(our_mac_address.v[0]);
 	udp_write_next_byte(our_mac_address.v[1]);
 	udp_write_next_byte(our_mac_address.v[2]);
 	udp_write_next_byte(our_mac_address.v[3]);
 	udp_write_next_byte(our_mac_address.v[4]);
 	udp_write_next_byte(our_mac_address.v[5]);
+#endif
 
 	//Unused bytes
 	for (w_temp = 0; w_temp < 202; w_temp++)
 		udp_write_next_byte(0);
 
+#ifdef GROUP_WRITES
+    static const char __static_data_1[] = {0x63, 0x82, 0x53, 0x63, 53, 1};
+    udp_write_array((BYTE*)__static_data_1, sizeof(__static_data_1));
+#else
 	//DHCP Magic Cookie
 	udp_write_next_byte(0x63);
 	udp_write_next_byte(0x82);
@@ -458,18 +484,24 @@ void dhcp_tx_packet (BYTE message_type)
 	//Send Option - DHCP Message Type
 	udp_write_next_byte(53);					//Option
 	udp_write_next_byte(1);						//Length
+#endif
 	udp_write_next_byte(message_type);			//Data
 
 	//Send Option - Client ID
 	udp_write_next_byte(61);					//Option
 	udp_write_next_byte(7);						//Length
 	udp_write_next_byte(1);						//Data - Hardware type (Ethernet)
+
+#ifdef GROUP_WRITES
+    udp_write_array(&our_mac_address.v[0], MAC_ADDR_LENGTH);
+#else
 	udp_write_next_byte(our_mac_address.v[0]);	//Data - our client ID (MAC address)
 	udp_write_next_byte(our_mac_address.v[1]);
 	udp_write_next_byte(our_mac_address.v[2]);
 	udp_write_next_byte(our_mac_address.v[3]);
 	udp_write_next_byte(our_mac_address.v[4]);
 	udp_write_next_byte(our_mac_address.v[5]);
+#endif
 
 
 	//If doing DHCP request then send option - dhcp server IP, and send option - our requested IP
@@ -477,17 +509,25 @@ void dhcp_tx_packet (BYTE message_type)
 	{
 		udp_write_next_byte(54);						//Option
 		udp_write_next_byte(4);							//Length
+#ifdef GROUP_WRITES
+        udp_write_array(&dhcp_server_ip_addr.v[0], IP_ADDR_LENGTH);
+#else
 		udp_write_next_byte(dhcp_server_ip_addr.v[0]);	//Data
 		udp_write_next_byte(dhcp_server_ip_addr.v[1]);
 		udp_write_next_byte(dhcp_server_ip_addr.v[2]);
 		udp_write_next_byte(dhcp_server_ip_addr.v[3]);
+#endif
 
 		udp_write_next_byte(50);						//Option
 		udp_write_next_byte(4);							//Length
+#ifdef GROUP_WRITES
+        udp_write_array(&dhcp_offer_ip_addr.v[0], IP_ADDR_LENGTH);
+#else
 		udp_write_next_byte(dhcp_offer_ip_addr.v[0]);	//Data
 		udp_write_next_byte(dhcp_offer_ip_addr.v[1]);
 		udp_write_next_byte(dhcp_offer_ip_addr.v[2]);
 		udp_write_next_byte(dhcp_offer_ip_addr.v[3]);
+#endif
     }
 
 	//Send our name if we have one assigned to the pointer variable
@@ -497,6 +537,7 @@ void dhcp_tx_packet (BYTE message_type)
 		udp_write_next_byte(16);					//Length
 
         //Data - our ascii name
+#if 0
         size_t hostname_len = strlen(eth_dhcp_our_name_pointer);
         if (hostname_len > 15)
             hostname_len = 15;
@@ -506,6 +547,17 @@ void dhcp_tx_packet (BYTE message_type)
             else
                 udp_write_next_byte(0x00);
         }
+#else
+        BYTE endlFound = 0;
+        for (size_t i = 0; i < 15; ++i) {
+            if (!endlFound && eth_dhcp_our_name_pointer[i])
+                udp_write_next_byte(eth_dhcp_our_name_pointer[i]);
+            else {
+                endlFound = 1;
+                udp_write_next_byte(0x00);
+            }
+        }
+#endif
 
 		udp_write_next_byte(0x00);
 	}
