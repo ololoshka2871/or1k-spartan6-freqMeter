@@ -310,7 +310,7 @@ execute_process(
     OUTPUT_VARIABLE SITE_BLOB_START
     OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-message(STATUS "Site blob will be writen in flash at ${SITE_BLOB_START}")
+message(STATUS "Site blob position in flash: ${SITE_BLOB_START}")
 
 add_subdirectory(application)
 add_custom_command(OUTPUT ${APPLICATION_BINARY} DEPENDS application)

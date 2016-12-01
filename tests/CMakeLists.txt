@@ -42,8 +42,8 @@ add_custom_target(tests.editor
 
 find_program(PROTOC_EXECUTABLE protoc)
 
-string(REPLACE "(.*)\\.proto" "\\1_pb2.py" protocol_python_module ${PROTOBUF_PROTO_FILE})
-get_filename_component(protocol_proto_dir ${PROTOBUF_PROTO_FILE} DIRECTORY)
+string(REGEX REPLACE "(.*)\\.proto" "\\1_pb2.py" protocol_python_module ${PROTOBUF_PROTO_FILE})
+get_filename_component(protocol_proto_dir ${protocol_python_module} DIRECTORY)
 
 if (PROTOC_EXECUTABLE)
     add_custom_command(

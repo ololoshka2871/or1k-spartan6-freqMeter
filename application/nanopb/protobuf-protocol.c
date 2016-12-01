@@ -35,7 +35,7 @@
 #include "pb_decode.h"
 #include "pb_encode.h"
 
-#include "simple.pb.h"
+#include "protocol.pb.h"
 
 #include "protobuf-protocol.h"
 

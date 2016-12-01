@@ -49,12 +49,9 @@ if (PYTHON_VERSION_MAJOR STRGREATER "2")
 endif()
 
 set(PROTOBUF_PROTO_FILE     ${CMAKE_CURRENT_SOURCE_DIR}/protocol.proto)
-set(PROTOBUF_PROTO_FILE_W   ${CMAKE_CURRENT_BINARY_DIR}/protocol.proto)
-configure_file(${PROTOBUF_PROTO_FILE} ${PROTOBUF_PROTO_FILE_W} COPYONLY)
-
 add_custom_target(protobuf_proto_def SOURCES ${PROTOBUF_PROTO_FILE})
 
-nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTOBUF_PROTO_FILE_W})
+nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTOBUF_PROTO_FILE})
 
 set(PROTOCOL_SRC
     protobuf-protocol.c
