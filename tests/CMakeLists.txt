@@ -57,7 +57,7 @@ if (PROTOC_EXECUTABLE)
 
     add_custom_target(pb_tesetr.run
         COMMAND
-            ${PYTHON_EXECUTABLE} ${PB_TESTER}
+            PYTHONPATH=. ${PYTHON_EXECUTABLE} ${PB_TESTER}
         DEPENDS
             ${PB_TESTER} ${protocol_python_module}
         WORKING_DIRECTORY

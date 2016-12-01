@@ -42,15 +42,20 @@
 static bool RxCallback(pb_istream_t *stream, uint8_t *buf, size_t count) {
     protobuf_cb_input_data_reader reader = stream->state;
 
-    return !!reader(buf, count);
+    if (!reader(buf, count)) {
+        stream->bytes_left = 0; //eof
+        return false;
+    } else {
+        return true;
+    }
 }
 
 enum enProtobufResult
 protobuf_handle_request(protobuf_cb_input_data_reader reader) {
     SimpleMessage request;
 
-    pb_istream_t input_stream = { RxCallback, reader, 0xffff, };
-    if (!pb_decode_delimited(&input_stream, SimpleMessage_fields, &request)) {
+    pb_istream_t input_stream = { RxCallback, reader, SIZE_MAX };
+    if (!pb_decode(&input_stream, SimpleMessage_fields, &request)) {
         return PB_INPUT_MESSAGE_INCORRECT;
     }
 
