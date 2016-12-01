@@ -134,6 +134,13 @@ wire [4:0]                        freqmeter_addr  = addr_valid[4:0];
 
 //------------------------------------------------------------------------------
 
+reg                               pPeset_signal_detectors_bit;
+wire                              reset_signal_detectors =
+                                    mester_freq_counter[`TEST_SIGNAL_DEVIDER] & ~pPeset_signal_detectors_bit;
+wire [INPUTS_COUNT - 1:0]         signal_detectors;
+
+//------------------------------------------------------------------------------
+
 assign inta_o = (irq_flags & irq_enable) != {INPUTS_COUNT{1'b0}};
 assign devided_clocks = mester_freq_counter;
 
@@ -157,7 +164,10 @@ generate
 
             .Fin_unsync(F_in[i]),
 
-            .ready_o(irq_flags[i])
+            .ready_o(irq_flags[i]),
+
+            .signal_detect_reset(reset_signal_detectors),
+            .signal_present(signal_detectors[i])
         );
     end
 
@@ -280,6 +290,8 @@ dmem_mux4
 //------------------------------------------------------------------------------
 
 always @(posedge F_master) begin
+    pPeset_signal_detectors_bit <= mester_freq_counter[`TEST_SIGNAL_DEVIDER];
+
     reload_value_sync <= reload_value;
     restarts_sync <= restarts;
 end
@@ -310,6 +322,8 @@ always @(posedge clk_i) begin
                 freqmeter_ctl_do <= irq_enable;
             6'b000001:
                 freqmeter_ctl_do <= irq_flags;
+            6'b000010:
+                freqmeter_ctl_do <= signal_detectors;
             default:
                 freqmeter_ctl_do <= 32'h0;
         endcase

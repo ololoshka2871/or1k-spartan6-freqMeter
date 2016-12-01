@@ -139,7 +139,7 @@ progtimer_time_t progtimer_get_seconds( void )
 * DESCRIPTION: This function returns current value of the timer
 * in milliseconds.
 *************************************************************************/
-progtimer_time_t progtimer_time_t_get_ms( void )
+progtimer_time_t progtimer_get_ms( void )
 {
     return (_current_time * PROGTIMER_PERIOD_MS);
 }

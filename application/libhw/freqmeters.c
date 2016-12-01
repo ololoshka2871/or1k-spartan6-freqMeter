@@ -65,6 +65,10 @@ static void fm_isr_handler(unsigned int *registers) {
             freqmeters[ch].res_start_v = FM_START_VAL_CH(ch);
             freqmeters[ch].res_stop_v = FM_STOP_VAL_CH(ch);
             ++freqmeters[ch].irq_count;
+#ifndef SIM
+            clock_catch_inpure_timestamp(&freqmeters[ch].timestamp);
+            freqmeters[ch].signal_present = !!(FM_SP & (1 << ch));
+#endif
             reload_cycle(ch);
         }
 

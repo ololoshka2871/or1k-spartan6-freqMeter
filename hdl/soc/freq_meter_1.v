@@ -49,7 +49,10 @@ module freq_meter_1
 
     input   wire                                    Fin_unsync,
 
-    output  wire                                    ready_o
+    output  wire                                    ready_o,
+
+    input   wire                                    signal_detect_reset, // сброс детектора входного сигнала
+    output  reg                                     signal_present // 1, если на входе есть фронты
 );
 
 //------------------------------------------------------------------------------
@@ -112,13 +115,17 @@ always @(posedge clk_i) begin
         r_write_start_req <= 1'b0;
         r_write_stop_req <= 1'b0;
         input_counter <= 0;
+        signal_present <= 1'b0;
     end else begin
         if (restart) begin
             input_counter <= reload_val;
+            signal_present <= 1'b0;
         end else begin
-            if (input_enable & w_input_front_detector)
+            if (input_enable & w_input_front_detector) begin
                 input_counter <= input_counter -
                     {{(INPUT_FREQ_COUNTER_LEN-1){1'b0}}, 1'b1};
+                signal_present <= ~signal_detect_reset;
+            end
         end
 
         input_enable <= input_enable ?

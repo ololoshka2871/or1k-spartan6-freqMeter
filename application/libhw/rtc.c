@@ -42,6 +42,7 @@
 
 #include "rtc.h"
 
+#define MS_IN_S                 1000
 #define NS_IN_MS                1000000
 #define MS_2_NS(ms)             ((ms) * NS_IN_MS)
 #define NS_2_MS(ns)             ((ns) / NS_IN_MS)
@@ -69,8 +70,17 @@ void rtc_init() {
 int clock_gettime(clockid_t clockid, struct timespec *ts) {
     (void)clockid;
     ts->tv_sec = local_seconds;
-    ts->tv_nsec = MS_2_NS(progtimer_get_ms() % PROGTIMER_TICKS_IN_SEC);
+    ts->tv_nsec = MS_2_NS(progtimer_time_t_get_ms() % MS_IN_S);
     return 0;
+}
+
+void clock_catch_inpure_timestamp(struct timespec *ts) {
+    ts->tv_sec = local_seconds;
+    ts->tv_nsec = progtimer_get_ticks();
+}
+
+void clock_purify_time(struct timespec *ts) {
+    ts->tv_nsec = MS_2_NS(ts->tv_nsec % MS_IN_S);
 }
 
 int clock_settime(clockid_t clockid, const struct timespec *ts) {

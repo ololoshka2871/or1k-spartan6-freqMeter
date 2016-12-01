@@ -232,7 +232,7 @@ execute_process(
 string(STRIP ${TEST_SIGNAL_DEVIDER} TEST_SIGNAL_DEVIDER)
 math(EXPR TEST_SIGNAL_HZ10 "${REFERENCE_CLOCK_HZ} * 10 / (1 << ${TEST_SIGNAL_DEVIDER})")
 floterise(TEST_SIGNAL_HZ ${TEST_SIGNAL_HZ10} 10)
-message(STATUS "Actual test input signal freq: ${TEST_SIGNAL_HZ}Hz (/ ${TEST_SIGNAL_DEVIDER})")
+message(STATUS "Actual test input signal freq: ${TEST_SIGNAL_HZ}Hz (/ 2^${TEST_SIGNAL_DEVIDER})")
 
 # check if RMII clock == 50 MHz
 math(EXPR CPU_CLOCK_HZ

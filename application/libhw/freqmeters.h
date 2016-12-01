@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-
+#ifndef SIM
+#include "rtc.h"
+#endif
 #include "mem_map.h"
 
 #ifndef FREQMETERS_BASE
@@ -53,6 +55,8 @@
 #define FM_IE                   (*(REG32(FREQMETERS_BASE + 0)))
 // 0x11000004
 #define FM_IF                   (*(REG32(FREQMETERS_BASE + sizeof(uint32_t))))
+// 0x11000008
+#define FM_SP                   (*(REG32(FREQMETERS_BASE + (2 * sizeof(uint32_t)))))
 #endif
 
 #define FM_START_VAL_CH(chanel) (*(REG32(FM_START_VALS_BASE + (chanel) * sizeof(uint32_t))))
@@ -68,9 +72,12 @@ struct freqmeter_chanel {
     uint32_t res_start_v;
     uint32_t res_stop_v;
     uint32_t irq_count;
-
+#ifndef SIM
+    struct timespec timestamp;
+#endif
     unsigned enabled:1;
-};
+    unsigned signal_present:1;
+} __attribute__((packed));
 
 void fm_init();
 
