@@ -4,6 +4,7 @@
 import os
 import socket
 import time
+import random
 import threading
 
 
@@ -46,14 +47,23 @@ def main():
 
     ip_addr = os.environ['TEST_IP']
 
-    simple_message = protocol_pb2.SimpleMessage()
-    simple_message.lucky_number = 42
-
-    udp_socket.sendto(simple_message.SerializeToString(), (ip_addr, port))
+    for test in tests:
+        request = test(protocol_pb2)
+        udp_socket.sendto(request.SerializeToString(), (ip_addr, port))
 
     global exitapp
     exitapp = True
 
+
+# tests
+def simplest_test(proto):
+    r = proto.Request()
+    r.id = random.randrange(0xffffffff)
+    r.version = 1
+    return r;
+
+
+tests = (simplest_test, )
 
 # чтобы при импорте не выполнялся код автоматом
 if __name__ == '__main__':

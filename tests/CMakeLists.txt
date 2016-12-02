@@ -46,6 +46,16 @@ string(REGEX REPLACE "(.*)\\.proto" "\\1_pb2.py" protocol_python_module ${PROTOB
 get_filename_component(protocol_proto_dir ${protocol_python_module} DIRECTORY)
 
 if (PROTOC_EXECUTABLE)
+    if (PYTHON_VERSION_MAJOR STRGREATER "2")
+        message(STATUS "Forsing python2 for nanopb")
+        find_program(PYTHON_2   python2)
+        if (NOT PYTHON_2)
+            message(STATUS "python2 not found, U can try use python3, but it was not works for me")
+        else()
+            set(PYTHON_EXECUTABLE ${PYTHON_2})
+        endif()
+    endif()
+
     add_custom_command(
         OUTPUT ${protocol_python_module}
         COMMAND ${PROTOC_EXECUTABLE}

@@ -52,10 +52,10 @@ static bool RxCallback(pb_istream_t *stream, uint8_t *buf, size_t count) {
 
 enum enProtobufResult
 protobuf_handle_request(protobuf_cb_input_data_reader reader) {
-    SimpleMessage request;
+    ru_sktbelpa_r4_24_2_Request request;
 
     pb_istream_t input_stream = { RxCallback, reader, SIZE_MAX };
-    if (!pb_decode(&input_stream, SimpleMessage_fields, &request)) {
+    if (!pb_decode(&input_stream, ru_sktbelpa_r4_24_2_Request_fields, &request)) {
         return PB_INPUT_MESSAGE_INCORRECT;
     }
 

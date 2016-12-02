@@ -3,7 +3,53 @@
 
 syntax = "proto2";
 
-message SimpleMessage {
-    required int32 lucky_number = 1;
+package ru.sktbelpa.r4_24_2;
+
+enum STATUS {
+    OK = 0;
+
+    INCORRECT_FIELD_VALUE = 1;
+
 }
 
+// Таймштамп
+message Timestamp {
+    required uint32             sec = 1;
+    required uint32             nsec = 2;
+}
+
+message Request {
+    required uint32             id = 1;
+    required uint32             version = 2;
+
+    optional Timestamp          setClock = 3;
+    optional WriteSettigsReq    writeSettingsReq = 4;
+}
+
+message Response {
+    required uint32             id = 1;
+    required uint32             version = 2;
+    required STATUS             Global_status = 3;
+    required Timestamp          timestamp = 4;
+
+    optional SettingsResponse   settings = 5;
+}
+
+// message settings control
+message WriteSettigsReq {
+    optional uint32             setIPAddr = 1;
+    optional uint32             setIPmask = 2;
+    optional uint32             setIPDefaultGateway = 3;
+    optional fixed64            setMAC_Addr = 4;
+    optional bool               setUseDHCP = 5;
+}
+
+message SettingsResponse {
+    required STATUS             status = 1;
+
+    required uint32             IPAddr = 3;
+    required uint32             IPmask = 4;
+    required uint32             IPDefaultGateway = 5;
+    required fixed64            MAC_Addr = 6;
+    required bool               UseDHCP = 7;
+}
