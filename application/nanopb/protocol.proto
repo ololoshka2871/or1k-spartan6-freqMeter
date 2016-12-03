@@ -1,52 +1,82 @@
-// A very simple protocol definition, consisting of only
-// one message.
-
 syntax = "proto2";
 
 package ru.sktbelpa.r4_24_2;
 
-enum STATUS {
-    OK = 0;
 
+//------------------------------------------------------------------------------
+
+// Общий запрос: Вызывающий всегда посылает только этот запрос, который содержит
+// все возможные данные как необязательные поля.
+message Request {
+    // Идентификатор запроса. Служит для определения пары запрос/ответ
+    required uint32             id = 1;
+    // версия протокола
+    required uint32             version = 2;
+
+    // Таймштамп клиента. Если он есть в сообщении, то часы устройства будут установлены в соответствии с ним
+    optional Timestamp          setClock = 3;
+    // Установка/Запрос настроек
+    optional WriteSettigsReq    writeSettingsReq = 4;
+}
+
+//------------------------------------------------------------------------------
+
+// Общий ответ: Устройство всегда отвечает только этим ответом, который содержит
+// все возможные данные как необязательные поля.
+message Response {
+    // Идентификатор запроса, которому соответствует этот ответ
+    required uint32             id = 1;
+    // версия протокола
+    required uint32             version = 2;
+    // общий статус выполнения
+    required STATUS             Global_status = 3;
+    // таймштамп устройства, когда фактически был сгененрирован ответ
+    required Timestamp          timestamp = 4;
+
+    // Все настройки, если таковые были запрошены
+    optional SettingsResponse   settings = 5;
+}
+
+//------------------------------------------------------------------------------
+
+// код выполнения операции
+enum STATUS {
+    // успешное завершение
+    OK = 0;
+    // недопустимое значение поля
     INCORRECT_FIELD_VALUE = 1;
 
 }
 
-// Таймштамп
+// Таймштамп (аналогично struct timespec)
 message Timestamp {
     required uint32             sec = 1;
     required uint32             nsec = 2;
 }
 
-message Request {
-    required uint32             id = 1;
-    required uint32             version = 2;
+// Настройки: запись/чтение
 
-    optional Timestamp          setClock = 3;
-    optional WriteSettigsReq    writeSettingsReq = 4;
-}
-
-message Response {
-    required uint32             id = 1;
-    required uint32             version = 2;
-    required STATUS             Global_status = 3;
-    required Timestamp          timestamp = 4;
-
-    optional SettingsResponse   settings = 5;
-}
-
-// message settings control
+// Запись: Если поле не пустое, то его значение будет проверено и записано
+// Можно послать сообщение вообще без полей, тогда это просто запрос на чтение настроек
 message WriteSettigsReq {
+    // установить статический IP-адрес устройству
     optional uint32             setIPAddr = 1;
+    // установить маску подсети устройству
     optional uint32             setIPmask = 2;
+    // установить шлюз устройству
     optional uint32             setIPDefaultGateway = 3;
+    // установить MAC-адрес устройству
     optional fixed64            setMAC_Addr = 4;
+    // разрешить/запрерить устрйству использовать протокол DHCP для определения
+    // сетевых настроек автоматически при загрузке.
     optional bool               setUseDHCP = 5;
 }
-
+// Ответ: Все настройки, после изменения, если таковое было
 message SettingsResponse {
+    // Статус выполнения запроса
     required STATUS             status = 1;
 
+    // далее поля аналогичны полям в сообщении WriteSettigsReq
     required uint32             IPAddr = 3;
     required uint32             IPmask = 4;
     required uint32             IPDefaultGateway = 5;

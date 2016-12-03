@@ -37,7 +37,7 @@
 
 #include "protobuf-protocol.h"
 
-#include "udp_server.h"
+#include "udp-protobuf_server.h"
 
 #ifndef UDP_SERVER_PORT
 #error "UDP_SERVER_PORT mast be defined!"
@@ -46,16 +46,16 @@
 //RETURN THE SOCKET BACK TO BROADCAST READY TO RECEIVE FROM ANYONE AGAIN
 #define SOCK_RESET(s)    udp_socket[(s)].remote_device_info.ip_address.Val = 0xffffffff
 
-enum enWEBSOCServer_sm {
+enum enProtobufServer_state {
     SM_OPEN_SOCKET,
     SM_PROCESS_SOCKET,
     SM_TX_RESPONSE,
     SM_TX_ERROR_MSG
 };
 
-void process_udp_server() {
+void process_protobuf_server() {
     static BYTE our_udp_socket = UDP_INVALID_SOCKET;
-    static enum enWEBSOCServer_sm our_udp_server_state = SM_OPEN_SOCKET;
+    static enum enProtobufServer_state our_udp_server_state = SM_OPEN_SOCKET;
 
     if (!nic_linked_and_ip_address_valid)
     {
@@ -83,7 +83,7 @@ void process_udp_server() {
         //----- PROCESS SOCKET -----
         if (udp_check_socket_for_rx(our_udp_socket))
         {
-            enum enWEBSOCServer_sm newstate;
+            enum enProtobufServer_state newstate;
             if (protobuf_handle_request(udp_read_rx_array) == PB_OK)
                 newstate = SM_TX_RESPONSE;
             else

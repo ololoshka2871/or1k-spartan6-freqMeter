@@ -44,7 +44,7 @@ add_definitions(
     )
 
 set(SERVERS_SRC
-    udp_server.c
+    udp-protobuf_server.c
     websoc_server.c
     http_server.c
     )

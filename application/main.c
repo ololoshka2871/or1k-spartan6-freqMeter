@@ -45,7 +45,7 @@
 #include "main.h"
 #include "eth-main.h"
 #include "eth-dhcp.h"
-#include "udp_server.h"
+#include "udp-protobuf_server.h"
 #include "websoc_server.h"
 
 const char hostname[15] =
@@ -202,7 +202,7 @@ int main(void)
         tcp_ip_process_stack();
 
 #ifdef PROCESS_SERVER_UDP
-        process_udp_server();
+        process_protobuf_server();
 #endif
 
 #ifdef PROCESS_SERVER_WEBSOC

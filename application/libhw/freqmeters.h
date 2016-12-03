@@ -29,21 +29,6 @@
 
 #define ALIGNMENT_SHIFT(x)              (x + 2)
 
-#if 0
-#define FREQMETERS_START_SELECTOR       (1 << ALIGNMENT_SHIFT(5))
-#define FREQMETERS_MEMORY_SELECTOR      (1 << ALIGNMENT_SHIFT(6))
-
-// 0x11000180
-#define FM_START_VALS_BASE      (FREQMETERS_BASE | FREQMETERS_MEMORY_SELECTOR | FREQMETERS_START_SELECTOR)
-// 0x11000100
-#define FM_STOP_VALS_BASE       (FREQMETERS_BASE | FREQMETERS_MEMORY_SELECTOR)
-// 0x11000080
-#define FM_RELOADINGS_BASE      (FREQMETERS_BASE | FREQMETERS_START_SELECTOR)
-// 0x11000000
-#define FM_IE                   (*(REG32(FREQMETERS_BASE + 0)))
-// 0x11000004
-#define FM_IF                   (*(REG32(FREQMETERS_BASE + sizeof(uint32_t))))
-#else
 #define FREQMETERS_START_SELECTOR       (1 << ALIGNMENT_SHIFT(5))
 
 #define FM_START_VALS_BASE      (FREQMETERS_BASE + 0x100)
@@ -57,7 +42,7 @@
 #define FM_IF                   (*(REG32(FREQMETERS_BASE + sizeof(uint32_t))))
 // 0x11000008
 #define FM_SP                   (*(REG32(FREQMETERS_BASE + (2 * sizeof(uint32_t)))))
-#endif
+
 
 #define FM_START_VAL_CH(chanel) (*(REG32(FM_START_VALS_BASE + (chanel) * sizeof(uint32_t))))
 #define FM_STOP_VAL_CH(chanel)  (*(REG32(FM_STOP_VALS_BASE + (chanel) * sizeof(uint32_t))))

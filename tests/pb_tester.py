@@ -39,6 +39,8 @@ def main():
         print_help()
         return
 
+    print('Testing device on IP={}'.format(os.environ['TEST_IP']))
+
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_socket.bind(('', 0))
 
