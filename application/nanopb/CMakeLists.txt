@@ -63,7 +63,7 @@ set(_NANOPB_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
-include_directories(${_NANOPB_INCLUDE_DIRS})
+include_directories(${_NANOPB_INCLUDE_DIRS} ${LIBHW_INCLUDE_DIR})
 
 add_library(nanopb STATIC ${NANOPB_SRCS} ${PROTO_SRCS} ${PROTOCOL_SRC})
 

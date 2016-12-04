@@ -9,9 +9,9 @@ package ru.sktbelpa.r4_24_2;
 // все возможные данные как необязательные поля.
 message Request {
     // Идентификатор запроса. Служит для определения пары запрос/ответ
-    required uint32             id = 1;
+    required fixed32            id = 1;
     // версия протокола
-    required uint32             version = 2;
+    required fixed32            version = 2;
 
     // Таймштамп клиента. Если он есть в сообщении, то часы устройства будут установлены в соответствии с ним
     optional Timestamp          setClock = 3;
@@ -25,9 +25,9 @@ message Request {
 // все возможные данные как необязательные поля.
 message Response {
     // Идентификатор запроса, которому соответствует этот ответ
-    required uint32             id = 1;
+    required fixed32            id = 1;
     // версия протокола
-    required uint32             version = 2;
+    required fixed32            version = 2;
     // общий статус выполнения
     required STATUS             Global_status = 3;
     // таймштамп устройства, когда фактически был сгененрирован ответ
@@ -39,6 +39,10 @@ message Response {
 
 //------------------------------------------------------------------------------
 
+enum INFO {
+    PROTOCOL_VERSION = 1;
+}
+
 // код выполнения операции
 enum STATUS {
     // успешное завершение
@@ -46,12 +50,13 @@ enum STATUS {
     // недопустимое значение поля
     INCORRECT_FIELD_VALUE = 1;
 
+    PROTOCOL_ERROR = 100;
 }
 
 // Таймштамп (аналогично struct timespec)
 message Timestamp {
-    required uint32             sec = 1;
-    required uint32             nsec = 2;
+    required fixed32            sec = 1;
+    required fixed32            nsec = 2;
 }
 
 // Настройки: запись/чтение
@@ -60,11 +65,11 @@ message Timestamp {
 // Можно послать сообщение вообще без полей, тогда это просто запрос на чтение настроек
 message WriteSettigsReq {
     // установить статический IP-адрес устройству
-    optional uint32             setIPAddr = 1;
+    optional fixed32            setIPAddr = 1;
     // установить маску подсети устройству
-    optional uint32             setIPmask = 2;
+    optional fixed32            setIPmask = 2;
     // установить шлюз устройству
-    optional uint32             setIPDefaultGateway = 3;
+    optional fixed32            setIPDefaultGateway = 3;
     // установить MAC-адрес устройству
     optional fixed64            setMAC_Addr = 4;
     // разрешить/запрерить устрйству использовать протокол DHCP для определения
@@ -77,9 +82,9 @@ message SettingsResponse {
     required STATUS             status = 1;
 
     // далее поля аналогичны полям в сообщении WriteSettigsReq
-    required uint32             IPAddr = 3;
-    required uint32             IPmask = 4;
-    required uint32             IPDefaultGateway = 5;
+    required fixed32            IPAddr = 3;
+    required fixed32            IPmask = 4;
+    required fixed32            IPDefaultGateway = 5;
     required fixed64            MAC_Addr = 6;
     required bool               UseDHCP = 7;
 }

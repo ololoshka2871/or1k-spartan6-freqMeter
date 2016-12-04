@@ -8,13 +8,15 @@ union IP_ADDR {
     uint32_t u32;
 };
 
+#define MAC_ADDRESS_SIZE    6
+
 // max size 55 bytes
 struct sSettings {
     // -- net 19 bytes
     union IP_ADDR IP_addr;
     union IP_ADDR IP_mask;
     union IP_ADDR IP_gateway;
-    uint8_t MAC_ADDR[6];
+    uint8_t MAC_ADDR[MAC_ADDRESS_SIZE];
     uint8_t DHCP;
 
     uint32_t CRC32; // 4 bytes

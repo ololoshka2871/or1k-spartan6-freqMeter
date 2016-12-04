@@ -93,6 +93,10 @@ if(ETHERNET_USE_DHCP)
     list(APPEND difenitions DHCP_ON_STARTUP)
 endif()
 
+if (ETHERNET_MAC_ADDRESS_FORCE)
+    list(APPEND difenitions MAC_ADDR_FORCE)
+endif()
+
 add_library(hw STATIC ${LIBHW_SOURCES})
 
 set_target_properties(hw PROPERTIES COMPILE_DEFINITIONS "${difenitions}")

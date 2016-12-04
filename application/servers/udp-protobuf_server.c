@@ -56,6 +56,8 @@ enum enProtobufServer_state {
 void process_protobuf_server() {
     static BYTE our_udp_socket = UDP_INVALID_SOCKET;
     static enum enProtobufServer_state our_udp_server_state = SM_OPEN_SOCKET;
+    static enum enProtobufCMDFlags cmd_flags;
+    static DWORD transaction_id;
 
     if (!nic_linked_and_ip_address_valid)
     {
@@ -78,13 +80,14 @@ void process_protobuf_server() {
             break;
         }
         //Could not open a socket - none currently available - keep trying
-        break;
+        return;
     case SM_PROCESS_SOCKET:
         //----- PROCESS SOCKET -----
         if (udp_check_socket_for_rx(our_udp_socket))
         {
             enum enProtobufServer_state newstate;
-            if (protobuf_handle_request(udp_read_rx_array) == PB_OK)
+            if (protobuf_handle_request(udp_read_rx_array, &cmd_flags,
+                                        &transaction_id) == PB_OK)
                 newstate = SM_TX_RESPONSE;
             else
                 newstate = SM_TX_ERROR_MSG;
@@ -94,7 +97,7 @@ void process_protobuf_server() {
             //SEND RESPONSE
             our_udp_server_state = newstate;
         }
-        break;
+        return;
     case SM_TX_RESPONSE:
         //----- TX RESPONSE -----
         //SETUP TX
@@ -107,34 +110,19 @@ void process_protobuf_server() {
             //udp_socket[our_udp_socket].remote_device_info.ip_address.val = 0xffffffff;
             break;
         }
-        //WRITE THE UDP DATA
-        udp_write_next_byte('O');
-        udp_write_next_byte('K');
-        udp_write_next_byte('\n');
-        udp_write_next_byte(0x00);
-        //You can also use udp_write_array()
-        //SEND THE PACKET
-        udp_tx_packet();
-
-        SOCK_RESET(our_udp_socket);
-        our_udp_server_state = SM_PROCESS_SOCKET;
+        protobuf_format_answer(udp_write_array, cmd_flags, transaction_id);
         break;
     case SM_TX_ERROR_MSG:
         if (!udp_setup_tx(our_udp_socket)) {
             break;
         }
-        udp_write_next_byte('E');
-        udp_write_next_byte('r');
-        udp_write_next_byte('r');
-        udp_write_next_byte('o');
-        udp_write_next_byte('r');
-        udp_write_next_byte('\n');
-        udp_write_next_byte(0x00);
-
-        udp_tx_packet();
-
-        SOCK_RESET(our_udp_socket);
-        our_udp_server_state = SM_PROCESS_SOCKET;
+        protobuf_format_error_message(udp_write_array);
         break;
     } //switch (our_udp_server_state)
+
+    //SEND THE PACKET
+    udp_tx_packet();
+
+    SOCK_RESET(our_udp_socket);
+    our_udp_server_state = SM_PROCESS_SOCKET;
 }

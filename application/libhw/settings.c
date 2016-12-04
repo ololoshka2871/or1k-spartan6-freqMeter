@@ -39,6 +39,16 @@
 
 struct sSettings settings;
 
+static void reset_MAC() {
+    //----- SET OUR ETHENET UNIQUE MAC ADDRESS -----
+    settings.MAC_ADDR[0] = ETH_MAC0;
+    settings.MAC_ADDR[1] = ETH_MAC1;
+    settings.MAC_ADDR[2] = ETH_MAC2;
+    settings.MAC_ADDR[3] = ETH_MAC3;
+    settings.MAC_ADDR[4] = ETH_MAC4;
+    settings.MAC_ADDR[5] = ETH_MAC5;
+}
+
 static void reset_ip_settings() {
 
 #ifdef DHCP_ON_STARTUP
@@ -61,13 +71,7 @@ static void reset_ip_settings() {
     settings.IP_gateway.u8[2] = ETH_GW2;
     settings.IP_gateway.u8[3] = ETH_GW3;
 
-    //----- SET OUR ETHENET UNIQUE MAC ADDRESS -----
-    settings.MAC_ADDR[0] = ETH_MAC0;
-    settings.MAC_ADDR[1] = ETH_MAC1;
-    settings.MAC_ADDR[2] = ETH_MAC2;
-    settings.MAC_ADDR[3] = ETH_MAC3;
-    settings.MAC_ADDR[4] = ETH_MAC4;
-    settings.MAC_ADDR[5] = ETH_MAC5;
+    reset_MAC();
 }
 
 void Settings_init() {
@@ -96,7 +100,7 @@ void Settings_validate() {
         goto __ip_reset;
 
     // all ok
-    return 0;
+    return;
 
 __ip_reset:
     reset_ip_settings();
@@ -104,7 +108,6 @@ __ip_reset:
     // recalc crc32
     settings.CRC32 = 0;
     settings.CRC32 = crc32(&settings, sizeof(settings), 0);
-    return 1;
 }
 
 void Settings_read() {
@@ -118,7 +121,12 @@ void Settings_read() {
         settings.CRC32 = crc32(&settings, sizeof(settings), 0);
         Settings_write();
     } else {
+#ifdef MAC_ADDR_FORCE
+        reset_MAC();
+        settings.CRC32 = crc32(&settings, sizeof(settings), 0);
+#else
         settings.CRC32 = crc;
+#endif
         // crc ok, settings - ok
     }
 }

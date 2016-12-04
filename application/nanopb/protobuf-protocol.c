@@ -30,6 +30,12 @@
  ****************************************************************************/
 
 #include <stdio.h>
+#include <assert.h>
+#include <string.h>
+
+#include "rtc.h"
+
+#include "settings.h"
 
 #include "pb.h"
 #include "pb_decode.h"
@@ -50,8 +56,16 @@ static bool RxCallback(pb_istream_t *stream, uint8_t *buf, size_t count) {
     }
 }
 
+static bool TxCallback(pb_ostream_t *stream, const uint8_t *buf, size_t count) {
+    protobuf_cb_output_data_writer writer = stream->state;
+    writer(buf, count);
+    return true;
+}
+
 enum enProtobufResult
-protobuf_handle_request(protobuf_cb_input_data_reader reader) {
+protobuf_handle_request(protobuf_cb_input_data_reader reader,
+                        enum enProtobufCMDFlags *pCmd_flags,
+                        uint32_t *pId) {
     ru_sktbelpa_r4_24_2_Request request;
 
     pb_istream_t input_stream = { RxCallback, reader, SIZE_MAX };
@@ -59,5 +73,53 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader) {
         return PB_INPUT_MESSAGE_INCORRECT;
     }
 
+    *pId = request.id;
+    *pCmd_flags = PB_CMD_PONG;
+
     return PB_OK;
+}
+
+
+static void fill_generic_fields(ru_sktbelpa_r4_24_2_Response *responce) {
+    clock_gettime(0, &responce->timestamp);
+    responce->version = ru_sktbelpa_r4_24_2_INFO_PROTOCOL_VERSION;
+}
+
+
+static void sendResponce(protobuf_cb_output_data_writer writer,
+                         ru_sktbelpa_r4_24_2_Response *responce) {
+    pb_ostream_t output_stream = { TxCallback, writer, SIZE_MAX, 0 };
+    assert(pb_encode(&output_stream, ru_sktbelpa_r4_24_2_Response_fields, responce));
+}
+
+
+void protobuf_format_error_message(protobuf_cb_output_data_writer writer) {
+    ru_sktbelpa_r4_24_2_Response errresponce;
+
+    fill_generic_fields(&errresponce);
+    errresponce.id = 0xDEADBEAF;
+    errresponce.Global_status = ru_sktbelpa_r4_24_2_STATUS_PROTOCOL_ERROR;
+    errresponce.has_settings = false;
+
+    sendResponce(writer, &errresponce);
+}
+
+void protobuf_format_answer(protobuf_cb_output_data_writer writer,
+                            enum enProtobufCMDFlags cmd_flags, uint32_t id) {
+    ru_sktbelpa_r4_24_2_Response responce;
+
+    fill_generic_fields(&responce);
+    responce.id = id;
+    responce.Global_status = ru_sktbelpa_r4_24_2_STATUS_OK;
+
+    if ((responce.has_settings = (cmd_flags & PB_CMD_SETTINGS))) {
+        responce.settings.IPAddr = settings.IP_addr.u32;
+        responce.settings.IPmask = settings.IP_mask.u32;
+        responce.settings.IPDefaultGateway = settings.IP_gateway.u32;
+        memset(&responce.settings.MAC_Addr, 0, sizeof(uint64_t));
+        memcpy(&responce.settings.MAC_Addr, settings.MAC_ADDR, MAC_ADDRESS_SIZE);
+        responce.settings.UseDHCP = settings.DHCP;
+    }
+
+    sendResponce(writer, &responce);
 }

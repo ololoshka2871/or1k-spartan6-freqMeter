@@ -69,8 +69,8 @@ void rtc_init() {
 
 int clock_gettime(clockid_t clockid, struct timespec *ts) {
     (void)clockid;
-    ts->tv_sec = local_seconds;
-    ts->tv_nsec = MS_2_NS(progtimer_time_t_get_ms() % MS_IN_S);
+    clock_catch_inpure_timestamp(ts);
+    clock_purify_time(ts);
     return 0;
 }
 
