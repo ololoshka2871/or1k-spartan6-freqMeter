@@ -16,7 +16,7 @@ message Request {
     // Таймштамп клиента. Если он есть в сообщении, то часы устройства будут установлены в соответствии с ним
     optional Timestamp          setClock = 3;
     // Установка/Запрос настроек
-    optional WriteSettigsReq    writeSettingsReq = 4;
+    optional WriteSettingsReq   writeSettingsReq = 4;
 }
 
 //------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ message Timestamp {
 
 // Запись: Если поле не пустое, то его значение будет проверено и записано
 // Можно послать сообщение вообще без полей, тогда это просто запрос на чтение настроек
-message WriteSettigsReq {
+message WriteSettingsReq {
     // установить статический IP-адрес устройству
     optional fixed32            setIPAddr = 1;
     // установить маску подсети устройству

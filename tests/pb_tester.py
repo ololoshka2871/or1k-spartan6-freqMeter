@@ -73,14 +73,26 @@ def raise_error(proto):
     return ('Protocol error', "Send string")
 
 
-def simplest_test(proto):
+def gen_request(proto):
     r = proto.Request()
     r.id = random.randrange(0xffffffff)
     r.version = 1
+    return r
+
+
+def simplest_test(proto):
+    r = gen_request(proto)
     return ('Simple', r.SerializeToString())
 
 
-tests = (raise_error, simplest_test)
+def request_settings_test(proto):
+    r = gen_request(proto)
+    wsr = proto.WriteSettingsReq()
+    r.writeSettingsReq.CopyFrom(wsr)
+    return ('Request settings', r.SerializeToString())
+
+
+tests = (raise_error, simplest_test, request_settings_test)
 
 # чтобы при импорте не выполнялся код автоматом
 if __name__ == '__main__':
