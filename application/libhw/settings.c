@@ -29,6 +29,8 @@
  *
  ****************************************************************************/
 
+#include <string.h>
+
 #include "ds1338z.h"
 #include "GPIO.h"
 #include "crc32.h"
@@ -39,99 +41,132 @@
 
 struct sSettings settings;
 
-static void reset_MAC() {
-    //----- SET OUR ETHENET UNIQUE MAC ADDRESS -----
-    settings.MAC_ADDR[0] = ETH_MAC0;
-    settings.MAC_ADDR[1] = ETH_MAC1;
-    settings.MAC_ADDR[2] = ETH_MAC2;
-    settings.MAC_ADDR[3] = ETH_MAC3;
-    settings.MAC_ADDR[4] = ETH_MAC4;
-    settings.MAC_ADDR[5] = ETH_MAC5;
+
+
+static void update_settings_crc32(struct sSettings *settings) {
+    settings->CRC32 = 0;
+    settings->CRC32 = crc32(settings, sizeof(struct sSettings), 0);
 }
 
-static void reset_ip_settings() {
 
+static bool verify_settings_crc32(struct sSettings *settings) {
+    uint32_t curentCRC32 = settings->CRC32;
+    update_settings_crc32(settings);
+    return curentCRC32 == settings->CRC32;
+}
+
+
+static void default_ip_settings(struct sSettings *settings) {
 #ifdef DHCP_ON_STARTUP
     // dhcp will try to get ip addr
-    settings.DHCP = 1;
+    settings->DHCP = 1;
 #else
-    settings.DHCP = 0;
+    settings->DHCP = 0;
 #endif
 
-    settings.IP_addr.u8[0] = ETH_IP0; //MSB
-    settings.IP_addr.u8[1] = ETH_IP1;
-    settings.IP_addr.u8[2] = ETH_IP2;
-    settings.IP_addr.u8[3] = ETH_IP3; //LSB
-    settings.IP_mask.u8[0] = ETH_NETMASK0; //MSB
-    settings.IP_mask.u8[1] = ETH_NETMASK1;
-    settings.IP_mask.u8[2] = ETH_NETMASK2;
-    settings.IP_mask.u8[3] = ETH_NETMASK3; //LSB
-    settings.IP_gateway.u8[0] = ETH_GW0;
-    settings.IP_gateway.u8[1] = ETH_GW1;
-    settings.IP_gateway.u8[2] = ETH_GW2;
-    settings.IP_gateway.u8[3] = ETH_GW3;
-
-    reset_MAC();
+    settings->IP_addr.u8[0] = ETH_IP0; //MSB
+    settings->IP_addr.u8[1] = ETH_IP1;
+    settings->IP_addr.u8[2] = ETH_IP2;
+    settings->IP_addr.u8[3] = ETH_IP3; //LSB
+    settings->IP_mask.u8[0] = ETH_NETMASK0; //MSB
+    settings->IP_mask.u8[1] = ETH_NETMASK1;
+    settings->IP_mask.u8[2] = ETH_NETMASK2;
+    settings->IP_mask.u8[3] = ETH_NETMASK3; //LSB
+    settings->IP_gateway.u8[0] = ETH_GW0;
+    settings->IP_gateway.u8[1] = ETH_GW1;
+    settings->IP_gateway.u8[2] = ETH_GW2;
+    settings->IP_gateway.u8[3] = ETH_GW3;
 }
+
+static void default_MAC_settings(struct sSettings *settings) {
+    //----- SET OUR ETHENET UNIQUE MAC ADDRESS -----
+    settings->MAC_ADDR[0] = ETH_MAC0;
+    settings->MAC_ADDR[1] = ETH_MAC1;
+    settings->MAC_ADDR[2] = ETH_MAC2;
+    settings->MAC_ADDR[3] = ETH_MAC3;
+    settings->MAC_ADDR[4] = ETH_MAC4;
+    settings->MAC_ADDR[5] = ETH_MAC5;
+}
+
+static void default_settings(struct sSettings *settings) {
+    default_ip_settings(settings);
+    default_MAC_settings(settings);
+    update_settings_crc32(settings);
+}
+
+
+// прочитать из NVRAM, положить в settings ни чего не проверяется
+static void Settings_read(struct sSettings *settings) {
+    ds1338z_readNVRAM(settings, DS_1338Z_NVRAM_BASE, sizeof(struct sSettings));
+}
+
+
+void Settings_write(struct sSettings *settings) {
+    ds1338z_writeNVRAM(DS_1338Z_NVRAM_BASE, settings, sizeof(struct sSettings));
+}
+
 
 void Settings_init() {
-    ds1338z_init();
-    Settings_read();
+    if (ds1338z_init() == DS1338Z_OK) {
+        Settings_read(&settings);
+    }
+#ifdef MAC_ADDR_FORCE
+    default_MAC_settings(&settings);
+#endif
+    if (!Settings_validate(&settings, default_settings))
+        Settings_write(&settings);
 }
 
-void Settings_validate() {
-    // validate net settings
-    if ((!settings.IP_addr.u8[0]) || (!settings.IP_addr.u8[3]))
-        goto __ip_reset;
-    if ((settings.IP_addr.u8[0] == 0xff) || (settings.IP_addr.u8[3] == 0xff))
-        goto __ip_reset;
+static bool isIPInvalid(union IP_ADDR ip) {
+    return (!ip.u8[0]) || (!ip.u8[3]) || (ip.u8[0] == 0xff) || (ip.u8[3] == 0xff);
+}
 
-    uint8_t zeros = 1;
-    for(uint8_t i = 0; i < 32; ++i) {
-        if (settings.IP_mask.u32 & (1 << i)) {
-            zeros = 0;
-        } else {
-            if (!zeros)
-                goto __ip_reset;
+bool Settings_validate(struct sSettings *validateing_object, validate_restorer restorer) {
+    bool result = true;
+    struct sSettings restored;
+    restorer(&restored);
+    if (!verify_settings_crc32(&restored)) {
+        // restored settings incorrect, set restored to default
+        default_settings(&restored);
+    }
+
+    if (!verify_settings_crc32(validateing_object)) {
+        // curent settings incorrect, restoring all
+        memcpy(validateing_object, &restored, sizeof(struct sSettings));
+        result = false;
+    } else {
+        if (isIPInvalid(validateing_object->IP_addr)) {
+            // incorrect ip, restoring
+            validateing_object->IP_addr = restored.IP_addr;
+            result = false;
+        }
+
+        {   // check netmask
+            uint8_t zeros = 1;
+            for(uint8_t i = 0; i < sizeof(union IP_ADDR) * 8; ++i) {
+                if (validateing_object->IP_mask.u32 & (1ul << i)) {
+                    zeros = 0;
+                } else {
+                    if (!zeros) {
+                        // incorrect netmask, restoring
+                        validateing_object->IP_mask = restored.IP_mask;
+                        result = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (isIPInvalid(validateing_object->IP_gateway) ||
+           // is gateway from our subnet?
+           ((validateing_object->IP_addr.u32 & validateing_object->IP_mask.u32) !=
+            (validateing_object->IP_gateway.u32 & validateing_object->IP_mask.u32))) {
+            // incorect gateway, restoring
+            validateing_object->IP_gateway = restored.IP_gateway;
+            result = false;
         }
     }
 
-    if (settings.MAC_ADDR[0] & 0b11)
-        goto __ip_reset;
-
-    // all ok
-    return;
-
-__ip_reset:
-    reset_ip_settings();
-
-    // recalc crc32
-    settings.CRC32 = 0;
-    settings.CRC32 = crc32(&settings, sizeof(settings), 0);
-}
-
-void Settings_read() {
-    ds1338z_readNVRAM(&settings, DS_1338Z_NVRAM_BASE, sizeof(settings));
-
-    uint32_t crc = settings.CRC32;
-    settings.CRC32 = 0;
-    if (crc32(&settings, sizeof(settings), 0) != crc) {
-        // reset to default
-        reset_ip_settings();
-        settings.CRC32 = crc32(&settings, sizeof(settings), 0);
-        Settings_write();
-    } else {
-#ifdef MAC_ADDR_FORCE
-        reset_MAC();
-        settings.CRC32 = crc32(&settings, sizeof(settings), 0);
-#else
-        settings.CRC32 = crc;
-#endif
-        // crc ok, settings - ok
-    }
-}
-
-void Settings_write() {
-    Settings_validate();
-    ds1338z_writeNVRAM(DS_1338Z_NVRAM_BASE, &settings, sizeof(settings));
+    update_settings_crc32(validateing_object);
+    return result;
 }

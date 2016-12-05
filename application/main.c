@@ -43,7 +43,6 @@
 #include "settings.h"
 
 #include "main.h"
-#include "eth-main.h"
 #include "eth-dhcp.h"
 #include "udp-protobuf_server.h"
 #include "websoc_server.h"
@@ -148,9 +147,9 @@ static void init_tcpip() {
     }
 
     // ---- IP Addr settings
-    memcpy(our_ip_address.v, settings.IP_addr.u8, sizeof(IP_ADDR));
-    memcpy(our_subnet_mask.v, settings.IP_mask.u8, sizeof(IP_ADDR));
-    memcpy(our_gateway_ip_address.v, settings.IP_gateway.u8, sizeof(IP_ADDR));
+    memcpy(our_ip_address.v, settings.IP_addr.u8, sizeof(union IP_ADDR));
+    memcpy(our_subnet_mask.v, settings.IP_mask.u8, sizeof(union IP_ADDR));
+    memcpy(our_gateway_ip_address.v, settings.IP_gateway.u8, sizeof(union IP_ADDR));
 
     //----- SET OUR ETHENET UNIQUE MAC ADDRESS -----
     memcpy(our_mac_address.v, settings.MAC_ADDR, sizeof(MAC_ADDR));
@@ -180,7 +179,7 @@ static void initAll() {
 #endif
 
     rtc_init();
-    Settings_read();
+    Settings_init();
 
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
         fm_setChanelReloadValue(i, 100, false);

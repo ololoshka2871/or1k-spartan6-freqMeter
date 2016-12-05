@@ -2,6 +2,7 @@
 #define SETTINGS_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 union IP_ADDR {
     uint8_t u8[4];
@@ -22,10 +23,19 @@ struct sSettings {
     uint32_t CRC32; // 4 bytes
 };
 
+
+typedef void (*validate_restorer)(struct sSettings* settings);
+
+// инициализация
 void Settings_init();
-void Settings_validate();
-void Settings_read();
-void Settings_write();
+
+// записать в NVRAM из settings ни чего не проверяется
+void Settings_write(struct sSettings* settings);
+
+// валидация полей, использует указанный колбэк, чтобы привезти данные к валидному виду
+// чтение сохраненых == restore или сброс на дефолтные == reset
+// true - ok, false - restored
+bool Settings_validate(struct sSettings* validateing_object, validate_restorer restorer);
 
 extern struct sSettings settings;
 
