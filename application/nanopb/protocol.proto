@@ -49,6 +49,7 @@ enum STATUS {
     OK = 0;
     // недопустимое значение поля
     INCORRECT_FIELD_VALUE = 1;
+    ERRORS_IN_SUBCOMMANDS = 2;
 
     PROTOCOL_ERROR = 100;
 }
@@ -79,7 +80,13 @@ message WriteSettingsReq {
 // Ответ: Все настройки, после изменения, если таковое было
 message SettingsResponse {
     // Статус выполнения запроса
-    required STATUS             status = 1;
+    enum ErrorDescription {
+        OK = 0; // нет ошибки
+        ERR_IP = 1; // недопустимый IP-адресс
+        ERR_NETMASK = 2; // недопустимая маска подсети
+        ERR_GATEWAY = 3; // недопустимый шлюз
+    }
+    required ErrorDescription   status = 1;
 
     // далее поля аналогичны полям в сообщении WriteSettigsReq
     required fixed32            IPAddr = 3;

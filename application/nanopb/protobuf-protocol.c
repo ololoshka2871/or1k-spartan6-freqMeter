@@ -45,6 +45,7 @@
 
 #include "protobuf-protocol.h"
 
+
 static bool RxCallback(pb_istream_t *stream, uint8_t *buf, size_t count) {
     protobuf_cb_input_data_reader reader = stream->state;
 
@@ -66,8 +67,7 @@ static bool TxCallback(pb_ostream_t *stream, const uint8_t *buf, size_t count) {
 
 enum enProtobufResult
 protobuf_handle_request(protobuf_cb_input_data_reader reader,
-                        enum enProtobufCMDFlags *pCmd_flags,
-                        uint32_t *pId, void **pcookie) {
+                        uint32_t *pId, struct sAnsverParameters* ansCookie) {
     ru_sktbelpa_r4_24_2_Request request;
 
     pb_istream_t input_stream = { RxCallback, reader, SIZE_MAX };
@@ -76,11 +76,33 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
     }
 
     *pId = request.id;
-    *pCmd_flags = PB_CMD_PONG;
-    *pcookie = NULL;
+    ansCookie->cmdFlags = PB_CMD_PONG;
 
     if (request.has_writeSettingsReq) {
-        *pCmd_flags |= PB_CMD_SETTINGS;
+        ansCookie->cmdFlags |= PB_CMD_SETTINGS;
+
+        struct sSettings currentSettings;
+        memcpy(&currentSettings, &settings, sizeof(struct sSettings));
+        if (request.writeSettingsReq.has_setIPAddr)
+            currentSettings.IP_addr.u32 = request.writeSettingsReq.setIPAddr;
+        if (request.writeSettingsReq.has_setIPmask)
+            currentSettings.IP_mask.u32 = request.writeSettingsReq.setIPmask;
+        if (request.writeSettingsReq.has_setIPDefaultGateway)
+            currentSettings.IP_gateway.u32 = request.writeSettingsReq.setIPDefaultGateway;
+        if (request.writeSettingsReq.has_setMAC_Addr)
+            memcpy(currentSettings.MAC_ADDR,
+                   ((uint8_t*)&request.writeSettingsReq.setMAC_Addr) +
+                        (sizeof(uint64_t) - MAC_ADDRESS_SIZE), MAC_ADDRESS_SIZE);
+        if (request.writeSettingsReq.has_setUseDHCP)
+            currentSettings.DHCP = request.writeSettingsReq.setUseDHCP;
+
+        if ((ansCookie->settingResult =
+                Settings_validate(&currentSettings, Settings_read)) == SV_ERR_OK) {
+            // ok
+            memcpy(&settings, &currentSettings, sizeof(struct sSettings));
+            Settings_write(&settings);
+            // to apply network settings reboot needed
+        }
     }
 
     return PB_OK;
@@ -112,22 +134,26 @@ void protobuf_format_error_message(protobuf_cb_output_data_writer writer) {
 }
 
 
-void protobuf_format_answer(protobuf_cb_output_data_writer writer,
-                            enum enProtobufCMDFlags cmd_flags, uint32_t id,
-                            void* cookie) {
+void protobuf_format_answer(protobuf_cb_output_data_writer writer, uint32_t id,
+                            struct sAnsverParameters* args) {
     ru_sktbelpa_r4_24_2_Response responce;
 
     fill_generic_fields(&responce);
     responce.id = id;
     responce.Global_status = ru_sktbelpa_r4_24_2_STATUS_OK;
 
-    if ((responce.has_settings = (cmd_flags & PB_CMD_SETTINGS))) {
+    if ((responce.has_settings = (args->cmdFlags & PB_CMD_SETTINGS))) {
+        if ((responce.settings.status = args->settingResult) !=
+                ru_sktbelpa_r4_24_2_SettingsResponse_ErrorDescription_OK) {
+            responce.Global_status = ru_sktbelpa_r4_24_2_STATUS_ERRORS_IN_SUBCOMMANDS;
+        }
         responce.settings.IPAddr = settings.IP_addr.u32;
         responce.settings.IPmask = settings.IP_mask.u32;
         responce.settings.IPDefaultGateway = settings.IP_gateway.u32;
         memset(&responce.settings.MAC_Addr, 0, sizeof(uint64_t) - MAC_ADDRESS_SIZE);
-        memcpy(((uint8_t*)&responce.settings.MAC_Addr) + (sizeof(uint64_t) - MAC_ADDRESS_SIZE),
-                settings.MAC_ADDR, MAC_ADDRESS_SIZE);
+        memcpy(((uint8_t*)&responce.settings.MAC_Addr) +
+                    (sizeof(uint64_t) - MAC_ADDRESS_SIZE),
+                        settings.MAC_ADDR, MAC_ADDRESS_SIZE);
         responce.settings.UseDHCP = settings.DHCP;
     }
 

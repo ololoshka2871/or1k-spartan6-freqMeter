@@ -30,6 +30,7 @@
 #****************************************************************************/
 
 set(PB_TESTER           ${CMAKE_CURRENT_SOURCE_DIR}/pb_tester.py)
+set(PB_UNITTEST         ${CMAKE_CURRENT_SOURCE_DIR}/test_libr4_24_2.py)
 
 add_custom_target(tests.editor
     SOURCES
@@ -38,6 +39,7 @@ add_custom_target(tests.editor
         test_data_querryer.py
         ws_tester.html
         ${PB_TESTER}
+        test_libr4_24_2.py
     )
 
 find_program(PROTOC_EXECUTABLE protoc)
@@ -67,9 +69,19 @@ if (PROTOC_EXECUTABLE)
 
     add_custom_target(pb_tesetr.run
         COMMAND
-            PYTHONPATH=. ${PYTHON_EXECUTABLE} ${PB_TESTER}
+            ${CMAKE_COMMAND} -E env "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}" ${PYTHON_EXECUTABLE} ${PB_TESTER}
         DEPENDS
             ${PB_TESTER} ${protocol_python_module}
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_BINARY_DIR}
+        )
+
+    add_custom_target(pb_unittest.run
+        COMMAND
+            ${CMAKE_COMMAND} -E env \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_SOURCE_DIR}\"
+            ${PYTHON_EXECUTABLE} ${PB_UNITTEST}
+        DEPENDS
+            ${PB_UNITTEST} ${protocol_python_module}
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_BINARY_DIR}
         )

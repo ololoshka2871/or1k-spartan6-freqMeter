@@ -9,6 +9,14 @@ union IP_ADDR {
     uint32_t u32;
 };
 
+enum enSettingsValidatorError {
+    SV_ERR_OK = 0,
+    SV_ERR_IP = 1,
+    SV_ERR_NETMASK = 2,
+    SV_ERR_GATEWAY = 3,
+    SV_ERR_CRC = 99,
+};
+
 #define MAC_ADDRESS_SIZE    6
 
 // max size 55 bytes
@@ -31,11 +39,14 @@ void Settings_init();
 
 // записать в NVRAM из settings ни чего не проверяется
 void Settings_write(struct sSettings* settings);
+// прочитать из NVRAM, положить в settings ни чего не проверяется
+void Settings_read(struct sSettings *settings);
 
 // валидация полей, использует указанный колбэк, чтобы привезти данные к валидному виду
 // чтение сохраненых == restore или сброс на дефолтные == reset
 // true - ok, false - restored
-bool Settings_validate(struct sSettings* validateing_object, validate_restorer restorer);
+enum enSettingsValidatorError
+Settings_validate(struct sSettings* validateing_object, validate_restorer restorer);
 
 extern struct sSettings settings;
 

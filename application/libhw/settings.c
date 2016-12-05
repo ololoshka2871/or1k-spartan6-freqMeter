@@ -95,8 +95,7 @@ static void default_settings(struct sSettings *settings) {
 }
 
 
-// прочитать из NVRAM, положить в settings ни чего не проверяется
-static void Settings_read(struct sSettings *settings) {
+void Settings_read(struct sSettings *settings) {
     ds1338z_readNVRAM(settings, DS_1338Z_NVRAM_BASE, sizeof(struct sSettings));
 }
 
@@ -112,8 +111,9 @@ void Settings_init() {
     }
 #ifdef MAC_ADDR_FORCE
     default_MAC_settings(&settings);
+    update_settings_crc32(&settings);
 #endif
-    if (!Settings_validate(&settings, default_settings))
+    if (Settings_validate(&settings, default_settings) != SV_ERR_OK)
         Settings_write(&settings);
 }
 
@@ -121,8 +121,9 @@ static bool isIPInvalid(union IP_ADDR ip) {
     return (!ip.u8[0]) || (!ip.u8[3]) || (ip.u8[0] == 0xff) || (ip.u8[3] == 0xff);
 }
 
-bool Settings_validate(struct sSettings *validateing_object, validate_restorer restorer) {
-    bool result = true;
+enum enSettingsValidatorError
+Settings_validate(struct sSettings *validateing_object, validate_restorer restorer) {
+    enum enSettingsValidatorError result = SV_ERR_OK;
     struct sSettings restored;
     restorer(&restored);
     if (!verify_settings_crc32(&restored)) {
@@ -133,12 +134,12 @@ bool Settings_validate(struct sSettings *validateing_object, validate_restorer r
     if (!verify_settings_crc32(validateing_object)) {
         // curent settings incorrect, restoring all
         memcpy(validateing_object, &restored, sizeof(struct sSettings));
-        result = false;
+        result = SV_ERR_CRC;
     } else {
         if (isIPInvalid(validateing_object->IP_addr)) {
             // incorrect ip, restoring
             validateing_object->IP_addr = restored.IP_addr;
-            result = false;
+            result = SV_ERR_IP;
         }
 
         {   // check netmask
@@ -150,7 +151,7 @@ bool Settings_validate(struct sSettings *validateing_object, validate_restorer r
                     if (!zeros) {
                         // incorrect netmask, restoring
                         validateing_object->IP_mask = restored.IP_mask;
-                        result = false;
+                        result = SV_ERR_NETMASK;
                         break;
                     }
                 }
@@ -163,7 +164,7 @@ bool Settings_validate(struct sSettings *validateing_object, validate_restorer r
             (validateing_object->IP_gateway.u32 & validateing_object->IP_mask.u32))) {
             // incorect gateway, restoring
             validateing_object->IP_gateway = restored.IP_gateway;
-            result = false;
+            result = SV_ERR_GATEWAY;
         }
     }
 
