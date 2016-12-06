@@ -84,9 +84,10 @@ message SettingsResponse {
         OK = 0; // нет ошибки
         ERR_IP = 1; // недопустимый IP-адресс
         ERR_NETMASK = 2; // недопустимая маска подсети
-        ERR_GATEWAY = 3; // недопустимый шлюз
+        ERR_GATEWAY = 4; // недопустимый шлюз
+        ERR_MAC = 8; // Недопустимый MAC-адрес
     }
-    required ErrorDescription   status = 1;
+    required ErrorDescription   status = 1; // комбинация флагов
 
     // далее поля аналогичны полям в сообщении WriteSettigsReq
     required fixed32            IPAddr = 3;

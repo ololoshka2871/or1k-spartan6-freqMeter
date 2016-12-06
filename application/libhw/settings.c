@@ -43,15 +43,15 @@ struct sSettings settings;
 
 
 
-static void update_settings_crc32(struct sSettings *settings) {
+void settings_update_crc32(struct sSettings *settings) {
     settings->CRC32 = 0;
     settings->CRC32 = crc32(settings, sizeof(struct sSettings), 0);
 }
 
 
-static bool verify_settings_crc32(struct sSettings *settings) {
+bool verify_settings_crc32(struct sSettings *settings) {
     uint32_t curentCRC32 = settings->CRC32;
-    update_settings_crc32(settings);
+    settings_update_crc32(settings);
     return curentCRC32 == settings->CRC32;
 }
 
@@ -91,7 +91,7 @@ static void default_MAC_settings(struct sSettings *settings) {
 static void default_settings(struct sSettings *settings) {
     default_ip_settings(settings);
     default_MAC_settings(settings);
-    update_settings_crc32(settings);
+    settings_update_crc32(settings);
 }
 
 
@@ -111,7 +111,7 @@ void Settings_init() {
     }
 #ifdef MAC_ADDR_FORCE
     default_MAC_settings(&settings);
-    update_settings_crc32(&settings);
+    settings_update_crc32(&settings);
 #endif
     if (Settings_validate(&settings, default_settings) != SV_ERR_OK)
         Settings_write(&settings);
@@ -134,12 +134,12 @@ Settings_validate(struct sSettings *validateing_object, validate_restorer restor
     if (!verify_settings_crc32(validateing_object)) {
         // curent settings incorrect, restoring all
         memcpy(validateing_object, &restored, sizeof(struct sSettings));
-        result = SV_ERR_CRC;
+        result |= SV_ERR_CRC;
     } else {
         if (isIPInvalid(validateing_object->IP_addr)) {
             // incorrect ip, restoring
             validateing_object->IP_addr = restored.IP_addr;
-            result = SV_ERR_IP;
+            result |= SV_ERR_IP;
         }
 
         {   // check netmask
@@ -151,7 +151,7 @@ Settings_validate(struct sSettings *validateing_object, validate_restorer restor
                     if (!zeros) {
                         // incorrect netmask, restoring
                         validateing_object->IP_mask = restored.IP_mask;
-                        result = SV_ERR_NETMASK;
+                        result |= SV_ERR_NETMASK;
                         break;
                     }
                 }
@@ -164,10 +164,16 @@ Settings_validate(struct sSettings *validateing_object, validate_restorer restor
             (validateing_object->IP_gateway.u32 & validateing_object->IP_mask.u32))) {
             // incorect gateway, restoring
             validateing_object->IP_gateway = restored.IP_gateway;
-            result = SV_ERR_GATEWAY;
+            result |= SV_ERR_GATEWAY;
+        }
+
+        if (validateing_object->MAC_ADDR[0] & 0b11) {
+            // mast be not multycast and global unique
+            memcpy(validateing_object->MAC_ADDR, restored.MAC_ADDR, MAC_ADDRESS_SIZE);
+            result |= SV_ERR_MAC;
         }
     }
 
-    update_settings_crc32(validateing_object);
+    settings_update_crc32(validateing_object);
     return result;
 }

@@ -83,6 +83,7 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
 
         struct sSettings currentSettings;
         memcpy(&currentSettings, &settings, sizeof(struct sSettings));
+
         if (request.writeSettingsReq.has_setIPAddr)
             currentSettings.IP_addr.u32 = request.writeSettingsReq.setIPAddr;
         if (request.writeSettingsReq.has_setIPmask)
@@ -96,6 +97,7 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
         if (request.writeSettingsReq.has_setUseDHCP)
             currentSettings.DHCP = request.writeSettingsReq.setUseDHCP;
 
+        settings_update_crc32(&currentSettings);
         if ((ansCookie->settingResult =
                 Settings_validate(&currentSettings, Settings_read)) == SV_ERR_OK) {
             // ok

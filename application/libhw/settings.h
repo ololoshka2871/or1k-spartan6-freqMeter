@@ -11,10 +11,11 @@ union IP_ADDR {
 
 enum enSettingsValidatorError {
     SV_ERR_OK = 0,
-    SV_ERR_IP = 1,
-    SV_ERR_NETMASK = 2,
-    SV_ERR_GATEWAY = 3,
-    SV_ERR_CRC = 99,
+    SV_ERR_IP = 1 << 0,
+    SV_ERR_NETMASK = 1 << 1,
+    SV_ERR_GATEWAY = 1 << 2,
+    SV_ERR_MAC = 1 << 3,
+    SV_ERR_CRC = 1 << 7,
 };
 
 #define MAC_ADDRESS_SIZE    6
@@ -47,6 +48,8 @@ void Settings_read(struct sSettings *settings);
 // true - ok, false - restored
 enum enSettingsValidatorError
 Settings_validate(struct sSettings* validateing_object, validate_restorer restorer);
+
+void settings_update_crc32(struct sSettings *settings);
 
 extern struct sSettings settings;
 

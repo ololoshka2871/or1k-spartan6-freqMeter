@@ -34,7 +34,7 @@ class r4_24_2_requestBuilder:
         return r4_24_2_requestBuilder.build_request()
 
     @staticmethod
-    def build_ping_request():
+    def build_settings_request():
         """
         Создаёт запрос чтения настроек
 
