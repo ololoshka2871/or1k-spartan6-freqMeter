@@ -17,6 +17,8 @@ message Request {
     optional Timestamp          setClock = 3;
     // Установка/Запрос настроек
     optional WriteSettingsReq   writeSettingsReq = 4;
+    // Перезвгрузка
+    optional RebootRequest      rebootRequest = 5;
 }
 
 //------------------------------------------------------------------------------
@@ -95,4 +97,11 @@ message SettingsResponse {
     required fixed32            IPDefaultGateway = 5;
     required fixed64            MAC_Addr = 6;
     required bool               UseDHCP = 7;
+}
+
+// Запрос перезагрузки устройства
+message RebootRequest {
+    // 0 - обычная перезагрузка
+    // 1 - сброс на заводские настройки
+    required bool               resetDefaults = 1;
 }

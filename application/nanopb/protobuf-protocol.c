@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <syscall.h>
 
 #include "rtc.h"
 
@@ -105,6 +106,14 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
             Settings_write(&settings);
             // to apply network settings reboot needed
         }
+    }
+
+    if (request.has_rebootRequest) {
+        if (request.rebootRequest.resetDefaults) {
+            settings_defaults(&settings); // reset settings to default
+            Settings_write(&settings);
+        }
+        reboot();
     }
 
     return PB_OK;

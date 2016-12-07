@@ -404,6 +404,24 @@ gdb_syscall(unsigned int *registers)
 
           return registers;
       //---------------------------------------------------
+      // l.sys 7 -> reboot
+      // No input
+      // Return void
+      //---------------------------------------------------
+      case 7:
+        asm volatile(
+        /* Change SR to User Mode */
+        "l.mfspr r3,r0,17\n" /* copy SR to R3 */
+        "l.andi r3,r3,0xFFFE\n" /* change bit 0 to 0 */
+        "l.mtspr r0,r3,17\n" /* move back to SR */
+
+        /* Jump to main */
+        "l.movhi r2,hi(vector_reset)\n"
+        "l.ori r2,r2,lo(vector_reset)\n"
+        "l.jr r2\n"
+        "l.nop\n");
+
+      //---------------------------------------------------
       // Default: User syscall
       //---------------------------------------------------
       default:

@@ -51,6 +51,8 @@ Settings_validate(struct sSettings* validateing_object, validate_restorer restor
 
 void settings_update_crc32(struct sSettings *settings);
 
+void settings_defaults(struct sSettings *settings);
+
 extern struct sSettings settings;
 
 #endif // SETTINGS_H

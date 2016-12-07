@@ -34,7 +34,7 @@
 
 uint32_t __attribute__((noinline)) syscall(uint32_t arg) {
     // arg == r3 -> first argument for syscall
-    asm volatile("l.sys 7"); // 7 == exec user's syscall
+    asm volatile("l.sys 8"); // 8 == exec user's syscall
     return arg;
 }
 
@@ -54,6 +54,10 @@ read_boot_flash(uint32_t addr, uint8_t *dest, uint32_t size) {
                  : "=r" (addr)
                  : "r" (addr), "r" (dest), "r" (size)
                  ); // 6 == read boot flash
+}
+
+void reboot() {
+    asm volatile("l.sys 7"); // 7 == reboot
 }
 
 //-----------------------------------------------------------------

@@ -31,6 +31,8 @@ exception_return:
 # VECTOR 0x100 - Reset
 #-------------------------------------------------------------
 .org    0x100
+
+.global vector_reset
 vector_reset:
 __start:
 #ifdef _OWN_BOOTLOADER_SECTIONS

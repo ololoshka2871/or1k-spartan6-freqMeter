@@ -88,7 +88,7 @@ static void default_MAC_settings(struct sSettings *settings) {
     settings->MAC_ADDR[5] = ETH_MAC5;
 }
 
-static void default_settings(struct sSettings *settings) {
+void settings_defaults(struct sSettings *settings) {
     default_ip_settings(settings);
     default_MAC_settings(settings);
     settings_update_crc32(settings);
@@ -113,7 +113,7 @@ void Settings_init() {
     default_MAC_settings(&settings);
     settings_update_crc32(&settings);
 #endif
-    if (Settings_validate(&settings, default_settings) != SV_ERR_OK)
+    if (Settings_validate(&settings, settings_defaults) != SV_ERR_OK)
         Settings_write(&settings);
 }
 
@@ -128,7 +128,7 @@ Settings_validate(struct sSettings *validateing_object, validate_restorer restor
     restorer(&restored);
     if (!verify_settings_crc32(&restored)) {
         // restored settings incorrect, set restored to default
-        default_settings(&restored);
+        settings_defaults(&restored);
     }
 
     if (!verify_settings_crc32(validateing_object)) {

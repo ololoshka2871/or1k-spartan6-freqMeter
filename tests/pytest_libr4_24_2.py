@@ -7,6 +7,7 @@ import libr4_24_2
 import protocol_pb2
 import struct
 import socket
+import time
 
 
 def print_help():
@@ -246,4 +247,18 @@ def test_incorrect_gateway_subnetmask(device, settings_req, test_mask, test_gate
             protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['ERR_GATEWAY'].number) == result
     assert (resp.settings.IPmask == settings_req.writeSettingsReq.setIPmask) == result
     assert (resp.settings.IPDefaultGateway == settings_req.writeSettingsReq.setIPDefaultGateway) == result
+
+
+# TODO
+
+
+# ############ Test reboot ##################################
+
+
+def test_reboot(device):
+    reboot_req = libr4_24_2.r4_24_2_requestBuilder.build_reboot_request(True)
+    try:
+        device.process_request_sync(reboot_req)
+    except libr4_24_2.TimeoutError:
+        pass
 

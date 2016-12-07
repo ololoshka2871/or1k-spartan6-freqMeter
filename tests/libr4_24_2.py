@@ -44,6 +44,20 @@ class r4_24_2_requestBuilder:
         req.writeSettingsReq.CopyFrom(protocol_pb2.WriteSettingsReq())
         return req
 
+    @staticmethod
+    def build_reboot_request(reset_defaults):
+        """
+        Создаёт запрос на перезагрузку устройства
+
+        :param reset_defaults: Сбросить все настройки на заводсткие?
+        :return: объект типа protocol_pb2.Request
+        """
+        req = r4_24_2_requestBuilder.build_request()
+        rr = protocol_pb2.RebootRequest()
+        rr.resetDefaults = bool(reset_defaults)
+        req.rebootRequest.CopyFrom(rr)
+        return req
+
 
 class r4_24_2_io:
     """Класс для простого доступа к РЧ-24 v2 по ротоколу UDP с использованием google protocol buffers"""
