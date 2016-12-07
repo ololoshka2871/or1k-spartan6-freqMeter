@@ -69,10 +69,12 @@ _xmsgs/
 # sim
 *.exe
 *.cmd
-
+*.pyc
 
 CMakeLists.txt.user
 *.log
 
 *build/
 *idea/
+__pycache__
+
