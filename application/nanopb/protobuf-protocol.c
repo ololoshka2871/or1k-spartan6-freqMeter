@@ -98,6 +98,9 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
         if (request.writeSettingsReq.has_setUseDHCP)
             currentSettings.DHCP = request.writeSettingsReq.setUseDHCP;
 
+        if (request.writeSettingsReq.has_setReferenceFrequency)
+            currentSettings.ReferenceFrequency = request.writeSettingsReq.setReferenceFrequency;
+
         settings_update_crc32(&currentSettings);
         if ((ansCookie->settingResult =
                 Settings_validate(&currentSettings, Settings_read)) == SV_ERR_OK) {
@@ -108,6 +111,9 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
         }
     }
 
+
+
+    // reboot
     if (request.has_rebootRequest) {
         if (request.rebootRequest.resetDefaults) {
             settings_defaults(&settings); // reset settings to default
@@ -161,11 +167,15 @@ void protobuf_format_answer(protobuf_cb_output_data_writer writer, uint32_t id,
         responce.settings.IPAddr = settings.IP_addr.u32;
         responce.settings.IPmask = settings.IP_mask.u32;
         responce.settings.IPDefaultGateway = settings.IP_gateway.u32;
+
         memset(&responce.settings.MAC_Addr, 0, sizeof(uint64_t) - MAC_ADDRESS_SIZE);
         memcpy(((uint8_t*)&responce.settings.MAC_Addr) +
                     (sizeof(uint64_t) - MAC_ADDRESS_SIZE),
                         settings.MAC_ADDR, MAC_ADDRESS_SIZE);
+
         responce.settings.UseDHCP = settings.DHCP;
+
+        responce.settings.ReferenceFrequency = settings.ReferenceFrequency;
     }
 
     sendResponce(writer, &responce);

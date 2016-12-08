@@ -249,12 +249,24 @@ def test_incorrect_gateway_subnetmask(device, settings_req, test_mask, test_gate
     assert (resp.settings.IPDefaultGateway == settings_req.writeSettingsReq.setIPDefaultGateway) == result
 
 
-# TODO
+@pytest.mark.parametrize("test_f,result",
+    [(1038.68, False),
+     (50500000, False),
+     (47999999.1, True),
+     (48000010.89, True)])
+def test_referrence_frequency(device, settings_req, test_f, result):
+    settings_req.writeSettingsReq.setReferenceFrequency = test_f
+    resp = device.process_request_sync(settings_req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == result
+    assert (resp.settings.status !=
+            protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['ERR_F_REF'].number) == result
+    assert (abs(resp.settings.ReferenceFrequency - settings_req.writeSettingsReq.setReferenceFrequency) < 0.01) == result
 
 
 # ############ Test reboot ##################################
 
-
+@pytest.mark.skipif(True, reason='Not needed yet')
 def test_reboot(device):
     reboot_req = libr4_24_2.r4_24_2_requestBuilder.build_reboot_request(True)
     try:

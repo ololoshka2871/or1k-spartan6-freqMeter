@@ -39,6 +39,12 @@
 
 #include "settings.h"
 
+
+#define REFERENCE_FREQ_OFFSET_MAX       50000.0
+#define REFERENCE_FREQ_MIN              ((double)INPUT_CLOCK_HZ - REFERENCE_FREQ_OFFSET_MAX)
+#define REFERENCE_FREQ_MAX              ((double)INPUT_CLOCK_HZ + REFERENCE_FREQ_OFFSET_MAX)
+
+
 struct sSettings settings;
 
 
@@ -88,9 +94,14 @@ static void default_MAC_settings(struct sSettings *settings) {
     settings->MAC_ADDR[5] = ETH_MAC5;
 }
 
+static void default_freqmeter_settings(struct sSettings *settings) {
+    settings->ReferenceFrequency = (double)INPUT_CLOCK_HZ;
+}
+
 void settings_defaults(struct sSettings *settings) {
     default_ip_settings(settings);
     default_MAC_settings(settings);
+    default_freqmeter_settings(settings);
     settings_update_crc32(settings);
 }
 
@@ -171,6 +182,14 @@ Settings_validate(struct sSettings *validateing_object, validate_restorer restor
             // mast be not multycast and global unique
             memcpy(validateing_object->MAC_ADDR, restored.MAC_ADDR, MAC_ADDRESS_SIZE);
             result |= SV_ERR_MAC;
+        }
+
+        //----------------------------------------------------------------------
+
+        if ((validateing_object->ReferenceFrequency < REFERENCE_FREQ_MIN) ||
+            (validateing_object->ReferenceFrequency > REFERENCE_FREQ_MAX)) {
+            validateing_object->ReferenceFrequency = restored.ReferenceFrequency;
+            result |= SV_ERR_F_REF;
         }
     }
 

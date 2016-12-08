@@ -15,6 +15,7 @@ enum enSettingsValidatorError {
     SV_ERR_NETMASK = 1 << 1,
     SV_ERR_GATEWAY = 1 << 2,
     SV_ERR_MAC = 1 << 3,
+    SV_ERR_F_REF = 1 << 4,
     SV_ERR_CRC = 1 << 7,
 };
 
@@ -28,6 +29,8 @@ struct sSettings {
     union IP_ADDR IP_gateway;
     uint8_t MAC_ADDR[MAC_ADDRESS_SIZE];
     uint8_t DHCP;
+
+    double ReferenceFrequency;
 
     uint32_t CRC32; // 4 bytes
 };

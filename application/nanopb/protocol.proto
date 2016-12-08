@@ -78,6 +78,11 @@ message WriteSettingsReq {
     // разрешить/запрерить устрйству использовать протокол DHCP для определения
     // сетевых настроек автоматически при загрузке.
     optional bool               setUseDHCP = 5;
+
+
+    // Частота задающего генератора
+    // позволяет установить точное значение после измерения
+    optional double             setReferenceFrequency = 6;
 }
 // Ответ: Все настройки, после изменения, если таковое было
 message SettingsResponse {
@@ -88,6 +93,8 @@ message SettingsResponse {
         ERR_NETMASK = 2; // недопустимая маска подсети
         ERR_GATEWAY = 4; // недопустимый шлюз
         ERR_MAC = 8; // Недопустимый MAC-адрес
+
+        ERR_F_REF = 16; // недопустимое значение частоты опорного генератора
     }
     required ErrorDescription   status = 1; // комбинация флагов
 
@@ -97,6 +104,8 @@ message SettingsResponse {
     required fixed32            IPDefaultGateway = 5;
     required fixed64            MAC_Addr = 6;
     required bool               UseDHCP = 7;
+
+    required double             ReferenceFrequency = 8;
 }
 
 // Запрос перезагрузки устройства
