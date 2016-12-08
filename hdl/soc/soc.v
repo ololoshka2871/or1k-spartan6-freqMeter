@@ -99,10 +99,10 @@ module soc
 //-----------------------------------------------------------------
 parameter  [31:0]   CLK_KHZ              = 12288;
 parameter  [31:0]   EXTERNAL_INTERRUPTS  = 1;
-parameter           UART0_BAUD           = 115200;
-parameter           UART1_BAUD           = 115200;
-parameter           MDIO_BAUD            = 2500000;
-parameter           I2C_BAUD             = 100000;
+parameter           BAUD_UART0           = 115200;
+parameter           BAUD_UART1           = 115200;
+parameter           BAUD_MDIO            = 2500000;
+parameter           BAUD_I2C             = 100000;
 parameter           SYSTICK_INTR_MS      = 1;
 parameter           ENABLE_SYSTICK_TIMER = "ENABLED";
 parameter           ENABLE_HIGHRES_TIMER = "ENABLED";
@@ -290,7 +290,7 @@ u2_soc
 `ifdef UART0_ENABLED
 uart_periph
 #(
-    .UART_DIVISOR(((CLK_KHZ * 1000) / UART0_BAUD))
+    .UART_DIVISOR(((CLK_KHZ * 1000) / BAUD_UART0))
 )
 u_uart0
 (
@@ -317,7 +317,7 @@ assign uart0_tx_o = 1'b1;
 `ifdef UART1_ENABLED
 uart_periph
 #(
-    .UART_DIVISOR(((CLK_KHZ * 1000) / UART1_BAUD))
+    .UART_DIVISOR(((CLK_KHZ * 1000) / BAUD_UART1))
 )
 u_uart1
 (
@@ -404,7 +404,7 @@ u_intr
 spi_boot
 #(
     .WB_DATA_WIDTH(32),
-    .SPI_CLK_DEVIDER(`SPI_CLK_DEVIDER_LEN)
+    .SPI_CLK_DEVIDER(`BAUD_SPI_CLK_DEVIDER_LEN)
 ) spi (
     .clk_i(clk_i),
     .rst_i(rst_i),
@@ -431,7 +431,7 @@ spi_boot
 wb_mdio
 #(
     .MASTER_CLK_FREQ_HZ(CLK_KHZ * 1000),
-    .MDIO_BAUDRATE(MDIO_BAUD)
+    .MDIO_BAUDRATE(BAUD_MDIO)
 ) mdio_ip (
     .clk_i(clk_i),
     .rst_i(rst_i),
@@ -464,7 +464,7 @@ iicmb_m_wb
 #(
     .g_bus_num(1),
     .g_f_clk($itor(CLK_KHZ)),
-    .g_f_scl_0($itor(I2C_BAUD/1000))
+    .g_f_scl_0($itor(BAUD_I2C/1000))
 ) i2c_ip (
     .clk_i(clk_i),
     .rst_i(rst_i),

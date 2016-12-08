@@ -1,24 +1,9 @@
 `include "../timescale.v"
 
 ////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer:
 //
 // Create Date:   11:16:19 04/10/2016
-// Design Name:   top
-// Module Name:   /home/shiloxyz/src/Xilinx/or32_boot/tb/tb_top.v
-// Project Name:  or32_boot
-// Target Device:  
-// Tool versions:  
-// Description: 
-//
-// Verilog Test Fixture created by ISE for module: top
-//
-// Dependencies:
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
+// Design Name:   tb_top
 // 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -79,7 +64,7 @@ module tb_top;
             .clk_i(clk),
             .rx0(rx),
             .tx0(tx),
-            .tx1(),
+
             .rst_i(rst),
             .flash_CS(flash_CS),
             .sck_o(sck_o),

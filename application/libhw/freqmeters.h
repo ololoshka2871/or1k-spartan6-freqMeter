@@ -18,13 +18,9 @@
 #warning "Macro FREQMETERS_COUNT not defined! Assuming 24"
 #endif
 
-#ifndef FREQMETERS_MASTER_COUNT_LEN
-#define FREQMETERS_MASTER_COUNT_LEN    30
-#warning "Macro FREQMETERS_MASTER_COUNT_LEN not defined! Assuming 30"
-#endif
-
-#ifndef F_REF
-#error "Macro F_REF not defined!"
+#ifndef SYSTEM_FREF_COUNTER_LEN
+#define SYSTEM_FREF_COUNTER_LEN    30
+#warning "Macro SYSTEM_FREF_COUNTER_LEN not defined! Assuming 30"
 #endif
 
 #define ALIGNMENT_SHIFT(x)              (x + 2)
@@ -57,12 +53,15 @@ struct freqmeter_chanel {
     uint32_t res_start_v;
     uint32_t res_stop_v;
     uint32_t irq_count;
+
+    double   F;
 #ifndef SIM
     struct timespec timestamp;
 #endif
     unsigned enabled:1;
     unsigned signal_present:1;
-} __attribute__((packed));
+
+};
 
 void fm_init();
 
@@ -76,5 +75,7 @@ uint32_t fm_getMeasureTimestamp(uint8_t chanel);
 uint32_t fm_getMeasureStart_pos(uint8_t chanel);
 uint32_t fm_getIRQCount(uint8_t chanel);
 bool     fm_checkAlive(uint8_t chanel);
+
+void process_freqmeters();
 
 #endif // FREQMETERS_H

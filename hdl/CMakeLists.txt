@@ -34,6 +34,7 @@ cmake_minimum_required(VERSION 3.0.2)
 set(TOP_MODULE_NAME	top)
 
 add_subdirectory(scripts)
+add_subdirectory(ucf)
 
 #-------------------------------------------------------------------------------
 set(PRJ_FILE_NAME	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.prj")
@@ -42,11 +43,11 @@ set(XST_IN_FILE_NAME	"${CMAKE_CURRENT_SOURCE_DIR}/${TOP_MODULE_NAME}.xst.in")
 set(UT_FILE_NAME	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.ut")
 set(UT_IN_FILE_NAME	"${CMAKE_CURRENT_SOURCE_DIR}/${TOP_MODULE_NAME}.ut.in")
 
-if (NOT PART_NAME)
+if (NOT DEVICE_CHIP_NAME)
     message(WARNING "PART_NAME not selected, default: xc6slx9-3-tqg144")
-    set(PART_NAME "xc6slx9-3-tqg144")
-    set(PART_NAME ${PART_NAME}	PARENT_SCOPE)
-endif(NOT PART_NAME)
+    set(DEVICE_CHIP_NAME "xc6slx9-3-tqg144")
+    set(DEVICE_CHIP_NAME ${DEVICE_CHIP_NAME}	PARENT_SCOPE)
+endif(NOT DEVICE_CHIP_NAME)
 
 set(config_v_file_name_in	    "${CMAKE_CURRENT_SOURCE_DIR}/config.v.in")
 set(config_v_file_name		    "${CMAKE_CURRENT_BINARY_DIR}/config.v")
@@ -57,7 +58,7 @@ Verilog_GenControlMacro(UART0_ENABLED_STR "UART0_ENABLED" ${PERIPHERIAL_ENABLE_U
 Verilog_GenControlMacro(UART1_ENABLED_STR "UART1_ENABLED" ${PERIPHERIAL_ENABLE_UART1})
 Verilog_GenControlMacro(TIMER_ENABLED_STR "TIMER_ENABLED" ${PERIPHERIAL_ENABLE_TIMER})
 Verilog_GenControlMacro(ETHERNET_ENABLED_STR "ETHERNET_ENABLED" ${PERIPHERIAL_ENABLE_ETHERNET})
-Verilog_GenControlMacro(MASTER_HYBRID_COUNTER_STR "MASTER_HYBRID_COUNTER" ${MASTER_HYBRID_COUNTER})
+Verilog_GenControlMacro(SYSTEM_FREF_COUNTER_HYBRID_STR "SYSTEM_FREF_COUNTER_HYBRID" ${SYSTEM_FREF_COUNTER_HYBRID})
 Verilog_GenControlMacro(I2C_ENABLED_STR   "I2C_ENABLED"   ${PERIPHERIAL_ENABLE_I2C})
 Verilog_GenControlMacro(GPIO_ENABLED_STR  "GPIO_ENABLED"  ${PERIPHERIAL_ENABLE_GPIO})
 
@@ -71,7 +72,6 @@ endif()
 
 #---------------------------------files-----------------------------------------
 
-add_subdirectory(ucf)
 add_subdirectory(altor32)
 add_subdirectory(soc)
 add_subdirectory(iicmb)

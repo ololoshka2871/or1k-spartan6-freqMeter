@@ -58,131 +58,136 @@ find_package(Xilinx REQUIRED)
 
 #-----------------------------------config--------------------------------------
 
-set(PART_FAMILY             "SPARTAN6"
-    CACHE STRING "Xilinx FPGA family")
-set(PART_NAME               "xc6slx9-2-tqg144"
+#-----------------------------------DEVICE--------------------------------------
+
+set(DEVICE_CHIP_NAME            "xc6slx9-2-tqg144"
     CACHE STRING "Xilinx FPGA model to synthesis")
-set(BOARD_NAME               "ZR-Tech_v2.00"
+set(DEVICE_BOARD_NAME           "ZR-Tech_v2.00"
     CACHE STRING "Board name")
-set(INPUT_CLOCK_HZ          48000000
+set(DEVICE_REF_CLOCK_HZ         48000000
     CACHE STRING "FPGA main clock source (Hz)")
-set(SPI_FLASH_CHIP          "W25Q32BV"
+set(DEVICE_SPI_FLASH_CHIP       "W25Q32BV"
     CACHE STRING "SPI flash memory part name")
-set(FPGA_DP_MEMORY_USE      28
+
+#----------------------------------/DEVICE--------------------------------------
+
+#----------------------------SYSTEM---------------------------------------------
+
+set(SYSTEM_FPGA_BMEMORY_USE     28
     CACHE STRING "Number of RAMB16BWERs to use as main memory")
-
-set(HEADER_W1               0x03030303
+set(SYSTEM_HEADER_W1            0x03030303
     CACHE STRING "Application syncronisation word 1")
-set(HEADER_W2               0x1f1f1f1f
+set(SYSTEM_HEADER_W2            0x1f1f1f1f
     CACHE STRING "Application syncronisation word 2")
-
-set(DEBUGER_AT_BOOTLOADER   OFF
+set(SYSTEM_TRAP_EARLY           OFF
     CACHE BOOL   "Start debuger in bootloader")
+set(SYSTEM_HEAP_SIZE            1024
+    CACHE STRING "System memory heap size")
+set(SYSTEM_FREF_COUNTER_LEN     28
+    CACHE STRING "Master clock counter length (in bits)")
+set(SYSTEM_FREF_COUNTER_HYBRID  ON
+    CACHE BOOL "Use hybrid binary+gray counter for Master clock")
+set(SYSTEM_INPUTS_COUNTER_LEN   18
+    CACHE STRING "Input clock counter length (in bits)")
+set(SYSTEM_INPUTS_F_IN_MAX      100000
+    CACHE STRING "Input frequency max (in Hz)")
+set(SYSTEM_MEASURE_TIME_DEFAULT 100
+    CACHE STRING "Frequency measure time at statup (in ms)")
+set(SYSTEM_INPUT_TEST_EVRY_MS   1000
+    CACHE STRING "Test input signal present aproximaly every")
 
-#--- peripherial ----
-set(PERIPHERIAL_ENABLE_TIMER ON
+#---------------------------/SYSTEM---------------------------------------------
+
+#------------------------------- peripherial -----------------------------------
+set(PERIPHERIAL_ENABLE_TIMER    ON
     CACHE BOOL  "Enable timer at 0x12000100")
-set(PERIPHERIAL_ENABLE_UART0 ON
+set(PERIPHERIAL_ENABLE_UART0    ON
     CACHE BOOL  "Enable UART0 IPCore at 0x12000000")
-set(PERIPHERIAL_ENABLE_UART1 OFF
+set(PERIPHERIAL_ENABLE_UART1    OFF
     CACHE BOOL  "Enable UART1 IPCore at 0x12000700")
-set(PERIPHERIAL_ENABLE_GPIO  ON
+set(PERIPHERIAL_ENABLE_GPIO     ON
     CACHE BOOL  "Enable i2c IPCore at 0x12000400")
-set(PERIPHERIAL_ENABLE_I2C   OFF
+set(PERIPHERIAL_ENABLE_I2C      OFF
     CACHE BOOL  "Enable i2c IPCore at 0x12000600")
 set(PERIPHERIAL_ENABLE_ETHERNET ON
     CACHE BOOL  "Enable ETHERNET IPCore at 0x11000000")
-#--- /peripherial ---
+#------------------------------- /peripherial ----------------------------------
 
-#--- SERIALs ----
-set(UART0_BAUD              115200
+#---------------------------------- SERIALs ------------------------------------
+set(BAUD_UART0                  115200
     CACHE STRING "UART0 (debug) speed")
-set(UART1_BAUD              921600
+set(BAUS_UART1                  921600
     CACHE STRING "UART1 speed")
-set(MDIO_BAUD               2500000
+set(BAUD_MDIO                   2500000
     CACHE STRING "MDIO speed")
-set(SPI_CLK_DEVIDER_LEN     4
+set(BAUD_SPI_CLK_DEVIDER_LEN    4
     CACHE STRING "Boot SPI baud counter length (bits)")
-set(I2C_BAUD                100000
+set(BAUD_I2C                    100000
     CACHE STRING "i2c speed")
-#--- /SERIALs ---
+#---------------------------------- /SERIALs -----------------------------------
 
-set(MASTER_FREQ_COUNTER_LEN  28
-    CACHE STRING "Master clock counter length (in bits)")
-set(MASTER_HYBRID_COUNTER   ON
-    CACHE BOOL "Use hybrid binary+gray counter for Master clock")
-set(INPUT_FREQ_COUNTER_LEN  20
-    CACHE STRING "Input clock counter length (in bits)")
-set(TEST_SIGNAL_EVERY_MS    1000
-    CACHE STRING "Test input signal present aproximaly every")
+#------------------------------------ CLOCK ------------------------------------
 
-set(FREF_PLL_MULTIPLYER     20
+set(CLOCK_FREF_PLL_MULTIPLYER   20
     CACHE STRING "Reference clock multiplier")
-
-set(FREF_CLOCK_DEVIDER      10
+set(CLOCK_FREF_CLOCK_DEVIDER    10
     CACHE STRING "Reference clock devider")
-
-set(CPU_PLL_MULTIPLYER      25
+set(CLOCK_CPU_PLL_MULTIPLYER    25
     CACHE STRING "Input clock to CPU multiplier")
-
-set(CPU_CLOCK_DEVIDER       24
+set(CLOCK_CPU_CLOCK_DEVIDER     24
     CACHE STRING "Input clock to CPU devider")
 
-set(SYSTEM_HEAP_SIZE        4096
-    CACHE STRING "System memory heap size")
+#----------------------------------- /CLOCK ------------------------------------
 
-#---------------------------------------Servers---------------------------------
+#----------------------------------Servers--------------------------------------
 
-set(SERVER_UDP              ON
+set(SERVER_UDP                  ON
     CACHE BOOL   "Enable UDP server")
-set(SERVER_UDP_PORT         9128
+set(SERVER_UDP_PORT             9128
     CACHE STRING "Enable UDP server port number")
-set(SERVER_WEBSOC           OFF
+set(SERVER_WEBSOC               OFF
     CACHE BOOL   "Enable WebSocket server")
-set(SERVER_WEBSOC_PORT      3897
+set(SERVER_WEBSOC_PORT          3897
     CACHE STRING "Enable WebSocket server port number")
-set(SERVER_HTTP             OFF
+set(SERVER_HTTP                 OFF
     CACHE BOOL   "Enable HTTP server")
 
-#-------------------------------------------------------------------------------
+#--------------------------------/Servers---------------------------------------
 
-set(ETHERNET_MAC_ADDRESS_MSB  0c
+#--------------------------------ETHERNET---------------------------------------
+
+set(ETHERNET_MAC_ADDRESS_MSB    0c
     CACHE STRING  "First byte of ethernet MAC address (execute make gen_mac to renew)")
-
 set(ETHERNET_MAC_ADDRESS_FORCE  NO
     CACHE BOOL  "Force test MAC address")
-
-set(ETHERNET_MAC_ADDRESS_FORCED  0c:98:77:c3:12:a3
+set(ETHERNET_MAC_ADDRESS_FORCED 0c:98:77:c3:12:a3
     CACHE STRING  "Forced test MAC address")
-
-set(ETHERNET_STATIC_IP_ADDR "192.168.0.99"
+set(ETHERNET_STATIC_IP_ADDR     "192.168.0.99"
     CACHE STRING  "Default static IP addr")
-
-set(ETHERNET_STATIC_IP_NETMASK "255.255.255.0"
+set(ETHERNET_STATIC_IP_NETMASK  "255.255.255.0"
     CACHE STRING  "Default static IP netmask")
-
-set(ETHERNET_STATIC_IP_GATEWAY "192.168.0.1"
+set(ETHERNET_STATIC_IP_GATEWAY  "192.168.0.1"
     CACHE STRING  "Default static IP gateway")
-
-set(ETHERNET_USE_DHCP       YES
+set(ETHERNET_USE_DHCP           YES
     CACHE BOOL   "Try to obtain ip address trouth DHCP on startup")
-
 set(ETHERNET_SKIP_UDP_CHECKSUMS YES
     CACHE BOOL   "Disable UDP checksums calculation and check")
 
-#-------------------------------------------------------------------------------
+#-------------------------------/ETHERNET---------------------------------------
+
+#---------------------------------WWW-------------------------------------------
 
 set(SITE_FILENAME_MAX       21
     CACHE STRING "Site path+filename max size")
-
 set(SITE_FILEEXT_MAX        3
     CACHE STRING "Site filenamepath max size")
-
 set(SITE_STATIC_CACHE       128
     CACHE STRING "SPI flash read cache")
 
+#--------------------------------/WWW-------------------------------------------
 
-#--- test firmware ---
+#------------------------------ tests ------------------------------------------
+
 set(SIM_TEST_FREQMETER      OFF
     CACHE BOOL  "Bootloader firmware tests freqmeter IP-core")
 set(SIM_TEST_MULTIPLICATION OFF
@@ -198,35 +203,53 @@ set(SIM_TEST_I2C            OFF
 set(SIM_TEST_GPIO           OFF
     CACHE BOOL  "Bootloader firmware tests GPIO pins")
 
+#------------------------------/tests-------------------------------------------
+
 #----------------------------------/config--------------------------------------
+
 
 #--------------------------------Calculable-------------------------------------
 
-math(EXPR RES_PLL_CLOCK_HZ
-    "${INPUT_CLOCK_HZ} * ${FREF_PLL_MULTIPLYER}")
-
 math(EXPR REFERENCE_CLOCK_HZ
-    "${RES_PLL_CLOCK_HZ} / ${FREF_CLOCK_DEVIDER}")
+    "${DEVICE_REF_CLOCK_HZ} * ${CLOCK_FREF_PLL_MULTIPLYER} / ${CLOCK_FREF_CLOCK_DEVIDER}")
 
 math(EXPR CPU_CLOCK_HZ
-    "${INPUT_CLOCK_HZ} * ${CPU_PLL_MULTIPLYER} / ${CPU_CLOCK_DEVIDER}")
+    "${DEVICE_REF_CLOCK_HZ} * ${CLOCK_CPU_PLL_MULTIPLYER} / ${CLOCK_CPU_CLOCK_DEVIDER}")
 
 math(EXPR INPUT_CLOCK_PERIOD_NS_F_m100
-    "1000000000 / (${INPUT_CLOCK_HZ} / 100)")
+    "1000000000 / (${DEVICE_REF_CLOCK_HZ} / 100)")
 
+#check if reference counter wil not overflow during FREQMETER_MEASURE_TIME_MAX
+function(calc_overflow_period_ms OUT_VAR COUNTER_LEN FREQENCY)
+    execute_process(
+        COMMAND ${PYTHON_EXECUTABLE} -c "print(int((1 << ${COUNTER_LEN}) / ${FREQENCY} * 1000))"
+        OUTPUT_VARIABLE out_var
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(${OUT_VAR} ${out_var} PARENT_SCOPE)
+endfunction()
+
+calc_overflow_period_ms(FREQMETER_MEASURE_TIME_MAX      ${SYSTEM_INPUTS_COUNTER_LEN} ${SYSTEM_INPUTS_F_IN_MAX})
+calc_overflow_period_ms(MASTER_COUNTER_OVERFLOW_TIME_MS ${SYSTEM_FREF_COUNTER_LEN}   ${REFERENCE_CLOCK_HZ})
+if (MASTER_COUNTER_OVERFLOW_TIME_MS LESS FREQMETER_MEASURE_TIME_MAX)
+    message(FATAL_ERROR "Master counter overflow cycle less then maximum measure time avalable\n
+        (${MASTER_COUNTER_OVERFLOW_TIME_MS} < ${FREQMETER_MEASURE_TIME_MAX})" )
+else()
+    message(STATUS "Measure time maximum avalable:  ${FREQMETER_MEASURE_TIME_MAX}      ms")
+    message(STATUS "Master counter overflow period: ${MASTER_COUNTER_OVERFLOW_TIME_MS} ms")
+endif()
 
 floterise(INPUT_CLOCK_PERIOD_NS_F ${INPUT_CLOCK_PERIOD_NS_F_m100} 100)
 message(STATUS
-    "Input clock = ${INPUT_CLOCK_HZ}Hz, period = ${INPUT_CLOCK_PERIOD_NS_F}ns")
+    "Input clock = ${DEVICE_REF_CLOCK_HZ}Hz, period = ${INPUT_CLOCK_PERIOD_NS_F}ns")
 
 set(calc_best_signal_test_devider ${tools_DIR}/calc_best_signal_test_devider.py)
 execute_process(
     COMMAND
         ${PYTHON_EXECUTABLE} ${calc_best_signal_test_devider}
             --mindev=1
-            --maxdev=${MASTER_FREQ_COUNTER_LEN}
+            --maxdev=${SYSTEM_FREF_COUNTER_LEN}
             --freq=${REFERENCE_CLOCK_HZ}
-            --target=${TEST_SIGNAL_EVERY_MS}
+            --target=${SYSTEM_INPUT_TEST_EVRY_MS}
     OUTPUT_VARIABLE TEST_SIGNAL_DEVIDER)
 
 string(STRIP ${TEST_SIGNAL_DEVIDER} TEST_SIGNAL_DEVIDER)
@@ -234,9 +257,6 @@ math(EXPR TEST_SIGNAL_HZ10 "${REFERENCE_CLOCK_HZ} * 10 / (1 << ${TEST_SIGNAL_DEV
 floterise(TEST_SIGNAL_HZ ${TEST_SIGNAL_HZ10} 10)
 message(STATUS "Actual test input signal freq: ${TEST_SIGNAL_HZ}Hz (/ 2^${TEST_SIGNAL_DEVIDER})")
 
-# check if RMII clock == 50 MHz
-math(EXPR CPU_CLOCK_HZ
-    "${INPUT_CLOCK_HZ} * ${CPU_PLL_MULTIPLYER} / ${CPU_CLOCK_DEVIDER}")
 message(STATUS "CPU clock is ${CPU_CLOCK_HZ}")
 
 #-------------------------------/Calculable-------------------------------------
@@ -273,7 +293,7 @@ make_ngdbuild(${NGD_FILE} ${NGO_DIR} ${UCF_FILE_NAME} ${NGC_FILE})
 set(MAP_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}_map.ncd")
 set(PCF_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.pcf")
 
-make_map(${MAP_FILE} ${PCF_FILE} ${PART_NAME} ${NGD_FILE})
+make_map(${MAP_FILE} ${PCF_FILE} ${DEVICE_CHIP_NAME} ${NGD_FILE})
 
 #--------------------------------------par--------------------------------------
 
@@ -306,7 +326,7 @@ endif()
 #---------------------------------application-----------------------------------
 # position of site blob need for application
 execute_process(
-    COMMAND ${PYTHON_EXECUTABLE} -c "print('0x{:X}'.format(${USER_CODE_FLASH_OFFSET} + ${MEMORY_UNIT_SIZE_BYTES} * ${FPGA_DP_MEMORY_USE}))"
+    COMMAND ${PYTHON_EXECUTABLE} -c "print('0x{:X}'.format(${USER_CODE_FLASH_OFFSET} + ${MEMORY_UNIT_SIZE_BYTES} * ${SYSTEM_FPGA_BMEMORY_USE}))"
     OUTPUT_VARIABLE SITE_BLOB_START
     OUTPUT_STRIP_TRAILING_WHITESPACE
     )
@@ -355,7 +375,6 @@ set(IMPACT_BATCH_FILE_FLASH_IN	${CMAKE_CURRENT_SOURCE_DIR}/programm_flash.cmd.in
 set(IMPACT_BATCH_FILE_CHIP	${CMAKE_CURRENT_BINARY_DIR}/programm_chip.cmd)
 set(IMPACT_BATCH_FILE_FLASH	${CMAKE_CURRENT_BINARY_DIR}/programm_flash.cmd)
 
-#set(MCS_CONFIG_IMAGE		${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.mcs)
 set(MCS_FIRMWARE_IMAGE		${CMAKE_CURRENT_BINARY_DIR}/firmware.mcs)
 
 set(IMPACT_LOG			${CMAKE_CURRENT_BINARY_DIR}/impact.log)

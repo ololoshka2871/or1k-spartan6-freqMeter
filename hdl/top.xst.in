@@ -3,7 +3,7 @@ run
 -ifmt mixed
 -ofn @TOP_MODULE_NAME@
 -ofmt NGC
--p @PART_NAME@
+-p @DEVICE_CHIP_NAME@
 -top @TOP_MODULE_NAME@
 -opt_mode Speed
 -opt_level 1

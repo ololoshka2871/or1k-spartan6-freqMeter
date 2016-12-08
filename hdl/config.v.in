@@ -29,26 +29,26 @@
 //*
 //****************************************************************************/
 
-`define     PART_FAMILY             "@PART_FAMILY@"
+`define     DEVICE_PART_FAMILY          @DEVICE_PART_FAMILY@
 
-`define     MEMORY_UNIT_SIZE        @MEMORY_UNIT_SIZE@
-`define	    NUM_OF_SYS_MEM_UNITS    @FPGA_DP_MEMORY_USE@
+`define     MEMORY_UNIT_SIZE            @MEMORY_UNIT_SIZE@
+`define	    NUM_OF_SYS_MEM_UNITS        @SYSTEM_FPGA_BMEMORY_USE@
 
-`define     INPUT_CLOCK_HZ          @INPUT_CLOCK_HZ@
-`define     INPUT_CLOCK_PERIOD_NS_F @INPUT_CLOCK_PERIOD_NS_F@
+`define     DEVICE_REF_CLOCK_HZ         @DEVICE_REF_CLOCK_HZ@
+`define     INPUT_CLOCK_PERIOD_NS_F     @INPUT_CLOCK_PERIOD_NS_F@
 
-`define     MASER_FREQ_COUNTER_LEN  @MASTER_FREQ_COUNTER_LEN@
-`define     INPUT_FREQ_COUNTER_LEN  @INPUT_FREQ_COUNTER_LEN@
-`define     TEST_SIGNAL_DEVIDER     @TEST_SIGNAL_DEVIDER@
+`define     SYSTEM_FREF_COUNTER_LEN     @SYSTEM_FREF_COUNTER_LEN@
+`define     SYSTEM_INPUTS_COUNTER_LEN   @SYSTEM_INPUTS_COUNTER_LEN@
+`define     TEST_SIGNAL_DEVIDER         @TEST_SIGNAL_DEVIDER@
 
 // Clock
-`define     FREF_PLL_MULTIPLYER     @FREF_PLL_MULTIPLYER@
-`define     FREF_CLOCK_DEVIDER      @FREF_CLOCK_DEVIDER@
+`define     CLOCK_FREF_PLL_MULTIPLYER   @CLOCK_FREF_PLL_MULTIPLYER@
+`define     CLOCK_FREF_CLOCK_DEVIDER    @CLOCK_FREF_CLOCK_DEVIDER@
 
-`define     CPU_PLL_MULTIPLYER      @CPU_PLL_MULTIPLYER@
-`define     CPU_CLOCK_DEVIDER       @CPU_CLOCK_DEVIDER@
+`define     CLOCK_CPU_PLL_MULTIPLYER    @CLOCK_CPU_PLL_MULTIPLYER@
+`define     CLOCK_CPU_CLOCK_DEVIDER     @CLOCK_CPU_CLOCK_DEVIDER@
 
-`define     SPI_CLK_DEVIDER_LEN     @SPI_CLK_DEVIDER_LEN@
+`define     BAUD_SPI_CLK_DEVIDER_LEN    @BAUD_SPI_CLK_DEVIDER_LEN@
 
 // peripherial
 @UART0_ENABLED_STR@
@@ -60,23 +60,23 @@
 @I2C_PRESENT_STR@
 
 // uarts
-`define     UART0_BAUD              @UART0_BAUD@
-`define     UART1_BAUD              @UART1_BAUD@
+`define     BAUD_UART0                  @BAUD_UART0@
+`define     BAUD_UART1                  @BAUD_UART1@
 
 // inputs
-`define     F_INPUTS_COUNT          @F_INPUTS_COUNT@
+`define     F_INPUTS_COUNT              @F_INPUTS_COUNT@
 @USE_PHISICAL_INPUTS@
 @MASTER_HYBRID_COUNTER_STR@
 
 // mdio
-`define     MDIO_BAUD               @MDIO_BAUD@
+`define     BAUD_MDIO                   @BAUD_MDIO@
 
 // i2c
-`define     I2C_BAUD                @I2C_BAUD@
+`define     BAUD_I2C                    @BAUD_I2C@
 
 // gpio
 @GPIO_PRESENT_STR@
-`define     GPIO_COUNT              @GPIO_COUNT@
+`define     GPIO_COUNT                  @GPIO_COUNT@
 @I2C_OVER_GPIO_SDA_PIN_STR@
 @I2C_OVER_GPIO_SCL_PIN_STR@
 

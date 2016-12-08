@@ -43,7 +43,7 @@ add_definitions(
     -DF_REF=${REFERENCE_CLOCK_HZ}
     -DFREQMETERS_COUNT=24
     -DF_CPU=${CPU_CLOCK_HZ}
-    -DBB_I2C_BAUD=${I2C_BAUD}
+    -DBB_I2C_BAUD=${BAUD_I2C}
     -DBB_I2C_SDA_PIN=6
     -DBB_I2C_SCL_PIN=7
     )

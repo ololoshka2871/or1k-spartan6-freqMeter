@@ -98,7 +98,7 @@ module top
 // Params
 //-----------------------------------------------------------------
 
-parameter CLK_KHZ = `INPUT_CLOCK_HZ * `CPU_PLL_MULTIPLYER / `CPU_CLOCK_DEVIDER / 1000;
+parameter CLK_KHZ = `DEVICE_REF_CLOCK_HZ * `CLOCK_CPU_PLL_MULTIPLYER / `CLOCK_CPU_CLOCK_DEVIDER / 1000;
 
 //-----------------------------------------------------------------
 // Ports
@@ -155,7 +155,7 @@ wire[6:0]           spi_cs_o;
 
 wire[2:0]           ext_intr;
 
-wire[`MASER_FREQ_COUNTER_LEN-1:0] devided_clocks;
+wire[`SYSTEM_FREF_COUNTER_LEN-1:0] devided_clocks;
 wire[15:0]          clock_devider16 = devided_clocks[15:0];
 
 `ifdef USE_PHISICAL_INPUTS
@@ -289,8 +289,8 @@ clock_provider clk_prov
 soc_fast
 #(
     .INPUTS_COUNT(`F_INPUTS_COUNT),
-    .MASER_FREQ_COUNTER_LEN(`MASER_FREQ_COUNTER_LEN),
-    .INPUT_FREQ_COUNTER_LEN(`INPUT_FREQ_COUNTER_LEN)
+    .MASER_FREQ_COUNTER_LEN(`SYSTEM_FREF_COUNTER_LEN),
+    .INPUT_FREQ_COUNTER_LEN(`SYSTEM_INPUTS_COUNTER_LEN)
 ) sf (   
     .clk_i(clk),
     .rst_i(reset),
@@ -327,10 +327,10 @@ soc
     .CLK_KHZ(CLK_KHZ),
     .ENABLE_SYSTICK_TIMER("ENABLED"),
     .ENABLE_HIGHRES_TIMER("ENABLED"),
-    .UART0_BAUD(`UART0_BAUD),
-    .UART1_BAUD(`UART1_BAUD),
-    .MDIO_BAUD(`MDIO_BAUD),
-    .I2C_BAUD(`I2C_BAUD),
+    .BAUD_UART0(`BAUD_UART0),
+    .BAUD_UART0(`BAUD_UART1),
+    .BAUD_MDIO(`BAUD_MDIO),
+    .BAUD_I2C(`BAUD_I2C),
     .EXTERNAL_INTERRUPTS(3)
 )
 u_soc

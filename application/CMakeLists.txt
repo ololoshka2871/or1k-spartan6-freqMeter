@@ -66,8 +66,8 @@ add_custom_command(
         ${MK_APP_LD_SCRIPT}
             ${LD_SCRIPT_FILE_IN}
             ${BOOTLOADER_IMAGE_ELF}
-            ${HEADER_W1}
-            ${HEADER_W2}
+            ${SYSTEM_HEADER_W1}
+            ${SYSTEM_HEADER_W1}
             ${USER_CODE_FLASH_OFFSET}
             ${MAC_TX_MEM_BASE}
             ${MAC_RX_MEM_BASE}
@@ -84,7 +84,7 @@ INCLUDE("or1k_toolchain")
 
 add_definitions(
     -DF_CPU=${CPU_CLOCK_HZ}
-    -DBB_I2C_BAUD=${I2C_BAUD}
+    -DBB_I2C_BAUD=${BAUD_I2C}
     -DFREQMETERS_COUNT=${F_INPUTS_COUNT}
     -DF_REF=${REFERENCE_CLOCK_HZ}UL
     )

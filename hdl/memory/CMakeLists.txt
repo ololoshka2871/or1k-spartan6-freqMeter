@@ -88,7 +88,7 @@ add_custom_command(
             --templatemodule ${SYSTEM_MEMORY_FILE_NAME_IN}
             --templateinstance ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
             --image ${BOOTLOADER_IMAGE}
-            --blocks ${FPGA_DP_MEMORY_USE}
+            --blocks ${SYSTEM_FPGA_BMEMORY_USE}
             --blocksize ${MEMORY_UNIT_SIZE_BYTES} > ${SYSTEM_MEMORY_MODULE}
     DEPENDS
         bootloader
@@ -110,7 +110,7 @@ add_custom_command(
             --templatemodule ${SYSTEM_MEMORY_FILE_NAME_IN}
             --templateinstance ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
             --image ${BOOTLOADER_SIM_IMAGE}
-            --blocks ${FPGA_DP_MEMORY_USE}
+            --blocks ${SYSTEM_FPGA_BMEMORY_USE}
             --blocksize ${MEMORY_UNIT_SIZE_BYTES} > ${SYSTEM_MEMORY_MODULE_SIM}
     DEPENDS
         bootloader

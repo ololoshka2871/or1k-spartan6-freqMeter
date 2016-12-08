@@ -685,10 +685,10 @@ void GDB_STUB_SECTION_TEXT try_load(void) {
             addr += sizeof(uint32_t)) {
             spi_flash_read(cs_found, addr, (unsigned char*)&buf,
                            sizeof(uint32_t));
-            if (buf == HEADER_W1) {
+            if (buf == SYSTEM_HEADER_W1) {
                 spi_flash_read(cs_found, addr + sizeof(uint32_t),
                                (unsigned char*)&buf, sizeof(uint32_t));
-                if (buf == HEADER_W2) {
+                if (buf == SYSTEM_HEADER_W2) {
                     struct Hader user_code_hader;
                     spi_flash_read(cs_found, addr + 2 * sizeof(uint32_t),
                                    (unsigned char*)&user_code_hader,

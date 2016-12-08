@@ -12,8 +12,8 @@ SECTIONS
   {
       . = ALIGN(4);
       hader_start = .;
-      LONG(@HEADER_W1@);
-      LONG(@HEADER_W2@);
+      LONG(@SYSTEM_HEADER_W1@);
+      LONG(@SYSTEM_HEADER_W2@);
       LONG(@FLASH_TEXT_START@);             /* test_start (in flash) */
       LONG(ABSOLUTE(hader_start));          /* text_dest (Where to load) */
       LONG(_data_end - hader_start);        /* size to load */

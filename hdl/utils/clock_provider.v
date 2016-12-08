@@ -47,9 +47,9 @@ module clock_provider
 // reference clock gen clk_ref = clk_i * `FREF_PLL_MULTIPLYER / `FREF_CLOCK_DEVIDER
 DCM_CLKGEN #(
    .CLKFXDV_DIVIDE(2),       // CLKFXDV divide value (2, 4, 8, 16, 32)
-   .CLKFX_DIVIDE(`FREF_CLOCK_DEVIDER),         // Divide value - D - (1-256)
-   .CLKFX_MD_MAX(`FREF_PLL_MULTIPLYER * 2 / `FREF_CLOCK_DEVIDER),       // Specify maximum M/D ratio for timing anlysis
-   .CLKFX_MULTIPLY(`FREF_PLL_MULTIPLYER * 2),       // Multiply value - M - (2-256)
+   .CLKFX_DIVIDE(`CLOCK_FREF_CLOCK_DEVIDER),         // Divide value - D - (1-256)
+   .CLKFX_MD_MAX(`CLOCK_FREF_PLL_MULTIPLYER * 2 / `CLOCK_FREF_CLOCK_DEVIDER),       // Specify maximum M/D ratio for timing anlysis
+   .CLKFX_MULTIPLY(`CLOCK_FREF_PLL_MULTIPLYER * 2),       // Multiply value - M - (2-256)
    .CLKIN_PERIOD(`INPUT_CLOCK_PERIOD_NS_F),       // Input clock period specified in nS
    .SPREAD_SPECTRUM("NONE"), // Spread Spectrum mode "NONE", "CENTER_LOW_SPREAD", "CENTER_HIGH_SPREAD",
                              // "VIDEO_LINK_M0", "VIDEO_LINK_M1" or "VIDEO_LINK_M2"
@@ -73,9 +73,9 @@ DCM_CLKGEN_f_ref (
 // CPU clock gen clk = clk_i * `CPU_PLL_MULTIPLYER / `CPU_CLOCK_DEVIDER
 DCM_CLKGEN #(
    .CLKFXDV_DIVIDE(2),       // CLKFXDV divide value (2, 4, 8, 16, 32)
-   .CLKFX_DIVIDE(`CPU_CLOCK_DEVIDER),         // Divide value - D - (1-256)
-   .CLKFX_MD_MAX(`CPU_PLL_MULTIPLYER * 2 / `CPU_CLOCK_DEVIDER),       // Specify maximum M/D ratio for timing anlysis
-   .CLKFX_MULTIPLY(`CPU_PLL_MULTIPLYER * 2),       // Multiply value - M - (2-256)
+   .CLKFX_DIVIDE(`CLOCK_CPU_CLOCK_DEVIDER),         // Divide value - D - (1-256)
+   .CLKFX_MD_MAX(`CLOCK_CPU_PLL_MULTIPLYER * 2 / `CLOCK_CPU_CLOCK_DEVIDER),       // Specify maximum M/D ratio for timing anlysis
+   .CLKFX_MULTIPLY(`CLOCK_CPU_PLL_MULTIPLYER * 2),       // Multiply value - M - (2-256)
    .CLKIN_PERIOD(`INPUT_CLOCK_PERIOD_NS_F),       // Input clock period specified in nS
    .SPREAD_SPECTRUM("NONE"), // Spread Spectrum mode "NONE", "CENTER_LOW_SPREAD", "CENTER_HIGH_SPREAD",
                              // "VIDEO_LINK_M0", "VIDEO_LINK_M1" or "VIDEO_LINK_M2"

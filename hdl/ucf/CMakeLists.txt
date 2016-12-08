@@ -33,8 +33,8 @@ cmake_minimum_required(VERSION 3.0.2)
 
 #-------------------------------------ucf---------------------------------------
 
-set(UCF_FILE_NAME_IN    "${CMAKE_CURRENT_SOURCE_DIR}/xilinx-${PART_NAME}-${BOARD_NAME}.ucf.in")
-set(UCF_FILE_NAME       "${CMAKE_CURRENT_BINARY_DIR}/xilinx-${PART_NAME}-${BOARD_NAME}.ucf")
+set(UCF_FILE_NAME_IN    "${CMAKE_CURRENT_SOURCE_DIR}/xilinx-${DEVICE_CHIP_NAME}-${DEVICE_BOARD_NAME}.ucf.in")
+set(UCF_FILE_NAME       "${CMAKE_CURRENT_BINARY_DIR}/xilinx-${DEVICE_CHIP_NAME}-${DEVICE_BOARD_NAME}.ucf")
 
 if(NOT PERIPHERIAL_ENABLE_GPIO)
     set(GPIO_DISABLE "#")
@@ -122,6 +122,11 @@ string(REGEX REPLACE ".*MEMORY_UNIT_SIZE=(.*)" "\\1" MEMORY_UNIT_SIZE ${MEMORY_U
 math(EXPR MEMORY_UNIT_SIZE_BYTES "${MEMORY_UNIT_SIZE} / 8")
 message(STATUS "Defined FPGA dual port unit size: ${MEMORY_UNIT_SIZE} bits (${MEMORY_UNIT_SIZE_BYTES} B)")
 
+file(STRINGS ${ucp_filename} DEVICE_PART_FAMILY
+    REGEX "DEVICE_PART_FAMILY=.*"
+    )
+string(REGEX REPLACE ".*DEVICE_PART_FAMILY=(.*)" "\\1" DEVICE_PART_FAMILY ${DEVICE_PART_FAMILY})
+
 #-------------------------------------------------------------------------------
 
 add_custom_target(constraints_src
@@ -137,7 +142,9 @@ set(GPIO_COUNT              ${GPIO_COUNT}               PARENT_SCOPE)
 set(USE_PHISICAL_INPUTS     ${USE_PHISICAL_INPUTS}      PARENT_SCOPE)
 set(MEMORY_UNIT_SIZE        ${MEMORY_UNIT_SIZE}         PARENT_SCOPE)
 set(MEMORY_UNIT_SIZE_BYTES  ${MEMORY_UNIT_SIZE_BYTES}   PARENT_SCOPE)
+set(DEVICE_PART_FAMILY      ${DEVICE_PART_FAMILY}       PARENT_SCOPE)
 
 set(I2C_OVER_GPIO_SDA_PIN   ${I2C_OVER_GPIO_SDA_PIN}    PARENT_SCOPE)
 set(I2C_OVER_GPIO_SCL_PIN   ${I2C_OVER_GPIO_SCL_PIN}    PARENT_SCOPE)
 set(GPIO_PRESENT            ${GPIO_PRESENT}             PARENT_SCOPE)
+
