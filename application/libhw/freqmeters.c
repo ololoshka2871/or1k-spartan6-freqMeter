@@ -117,12 +117,15 @@ void fm_init() {
     for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
         memcpy(&freqmeters[i], &init_value, sizeof(struct freqmeter_chanel));
         freqmeters[i].enabled = true;
-        freqmeters[i].reloadVals.newReload_val = measure_time_ms2ticks(STARTUP_FREQUNCY, SYSTEM_MEASURE_TIME_DEFAULT);
+        freqmeters[i].reloadVals.newReload_val =
+                measure_time_ms2ticks(STARTUP_FREQUNCY, SYSTEM_MEASURE_TIME_DEFAULT);
+        measure_time_ms[i] = SYSTEM_MEASURE_TIME_DEFAULT;
     }
 
     alive_flags = 0;
-#ifndef BOOTLOADER
+#ifndef SIM
     set_irq_handler(IS_FREQMETERS, fm_isr_handler);
+    irq_enable(IS_FREQMETERS);
 #endif
 }
 
@@ -143,7 +146,7 @@ void fm_enableChanel(uint8_t chanel, bool enable) {
     fm_updateChanel(chanel);
 }
 
-void fm_setChanelReloadValue(uint8_t chanel, uint32_t reload_value,
+static void fm_setChanelReloadValue(uint8_t chanel, uint32_t reload_value,
                              bool force_restart) {
     freqmeters[chanel].reloadVals.newReload_val = reload_value;
     if (force_restart)
@@ -193,7 +196,7 @@ uint32_t fm_getIRQCount(uint8_t chanel) {
     return freqmeters[chanel].irq_count;
 }
 
-void process_freqmeters() {
+void fm_process() {
     for (uint8_t chanel = 0; chanel < FREQMETERS_COUNT; ++chanel) {
         if (freqmeters[chanel].signal_present) {
 #ifndef SIM
@@ -214,4 +217,14 @@ void process_freqmeters() {
             freqmeters[chanel].reloadVals.newReload_val = measure_time_ms2ticks(F, measure_time_ms[chanel]);
         }
     }
+}
+
+bool fm_setMeasureTime(uint8_t chanel, uint16_t new_measure_time_ms) {
+    if (new_measure_time_ms > FREQMETER_MEASURE_TIME_MAX)
+        return false;
+    measure_time_ms[chanel] = new_measure_time_ms;
+    double F = (freqmeters[chanel].enabled && (freqmeters[chanel].F > 0)) ?
+                freqmeters[chanel].F : SYSTEM_MEASURE_TIME_DEFAULT;
+    fm_setChanelReloadValue(chanel, measure_time_ms2ticks(F, new_measure_time_ms), true);
+    return true;
 }

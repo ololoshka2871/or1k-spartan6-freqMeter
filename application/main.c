@@ -54,71 +54,9 @@ const char hostname[15] =
         "SCTB_FM-24_v2";
 #endif
 
-static uint16_t measure_time_ms = 10;
-
-static uint32_t timestamps[FREQMETERS_COUNT];
-static uint32_t starts[FREQMETERS_COUNT];
-static uint32_t measure_time[FREQMETERS_COUNT];
-static double Fs[FREQMETERS_COUNT];
 
 #define FORCE_STATIC_IP_PIN         (1 << 3)
 #define IS_STATIC_IP_FORCED()       (~gpio_port_get_val(GPIO_PORTA) & FORCE_STATIC_IP_PIN)
-
-static void Process_freqmeters() {
-    for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        uint32_t ts = fm_getMeasureTimestamp(i);
-        if (ts != timestamps[i]) {
-            timestamps[i] = ts;
-            irq_disable(IS_FREQMETERS);
-            uint32_t periods = fm_getActualReloadValue(i);
-            uint32_t value   = fm_getActualMeasureTime(i);
-            starts[i] = fm_getMeasureStart_pos(i);
-            measure_time[i] = fm_getActualReloadValue(i);
-            irq_enable(IS_FREQMETERS);
-            if ((!value) || (!periods))
-                continue;
-            double F = (double)periods / (double)value * F_REF;
-            Fs[i] = F;
-#if 1
-            //recalc new reload value
-            uint32_t reload_val = (uint32_t)(F * measure_time_ms / 1000);
-            if (!reload_val)
-                reload_val = 1;
-            fm_setChanelReloadValue(i, reload_val, false); // set new reload val
-#endif
-        }
-    }
-}
-
-#if 0
-static void cb_udp_callback(uint32_t src_ip, uint16_t src_port,
-                            uint16_t dst_port, void *data,
-                            uint32_t length) {
-    assert(data);
-#if 1
-    struct fm_results {
-        uint32_t start;
-        uint32_t stop;
-        uint32_t mt;
-        double res;
-    } __attribute__((packed)); // иначе проблемы с выравниванием
-
-    struct fm_results *r = (struct fm_results *)
-            allocateUDPpocket(src_ip, sizeof(struct fm_results) * FREQMETERS_COUNT);
-    if (!r)
-        return;
-
-    for (uint32_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        r[i].start = starts[i];
-        r[i].stop = timestamps[i];
-        r[i].mt = measure_time[i];
-        r[i].res = Fs[i];
-    }
-    sendUDPpacket(src_port, dst_port, r);
-#else
-#endif 
-}
-#endif
 
 static void configure_ethernet_PHY() {
     // force 100 Mb/s FD
@@ -181,12 +119,6 @@ static void initAll() {
     rtc_init();
     Settings_init();
 
-    for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        fm_setChanelReloadValue(i, 100, false);
-        fm_enableChanel(i, true);
-    }
-    irq_enable(IS_FREQMETERS);
-
     configure_ethernet_PHY();
     init_tcpip();
 }
@@ -197,7 +129,7 @@ int main(void)
     EXIT_CRITICAL();
 
     while(1) {
-        Process_freqmeters();
+        fm_process();
         tcp_ip_process_stack();
 
 #ifdef PROCESS_SERVER_UDP

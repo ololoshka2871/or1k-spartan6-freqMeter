@@ -67,8 +67,7 @@ void fm_init();
 
 void fm_updateChanel(uint8_t chanel);
 void fm_enableChanel(uint8_t chanel, bool enable);
-void fm_setChanelReloadValue(uint8_t chanel, uint32_t reload_value,
-                             bool force_restart);
+
 uint32_t fm_getActualMeasureTime(uint8_t chanel);
 uint32_t fm_getActualReloadValue(uint8_t chanel);
 uint32_t fm_getMeasureTimestamp(uint8_t chanel);
@@ -76,6 +75,6 @@ uint32_t fm_getMeasureStart_pos(uint8_t chanel);
 uint32_t fm_getIRQCount(uint8_t chanel);
 bool     fm_checkAlive(uint8_t chanel);
 
-void process_freqmeters();
+void fm_process();
 
-#endif // FREQMETERS_H
+#endif// FREQMETERS_H
