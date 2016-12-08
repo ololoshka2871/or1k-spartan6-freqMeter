@@ -69,7 +69,7 @@ function(make_xst SYR_FILE NGC_FILE PRJ_FILE_NAME XST_FILE_NAME)
     add_custom_target(${PROJECT_NAME}_xst ALL DEPENDS ${SYR_FILE}) #
 endfunction(make_xst)
 
-function(make_ngdbuild NGD_FILE NGO_DIR UCF_FILE_NAME NGC_FILE)
+function(make_ngdbuild PART_NAME NGD_FILE NGO_DIR UCF_FILE_NAME NGC_FILE)
     add_custom_command(OUTPUT ${NGD_FILE}
 	COMMAND
 	    ${XILINX_ngdbuild} -dd ${NGO_DIR}

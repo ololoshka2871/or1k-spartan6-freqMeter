@@ -67,7 +67,7 @@ add_custom_command(
             ${LD_SCRIPT_FILE_IN}
             ${BOOTLOADER_IMAGE_ELF}
             ${SYSTEM_HEADER_W1}
-            ${SYSTEM_HEADER_W1}
+            ${SYSTEM_HEADER_W2}
             ${USER_CODE_FLASH_OFFSET}
             ${MAC_TX_MEM_BASE}
             ${MAC_RX_MEM_BASE}

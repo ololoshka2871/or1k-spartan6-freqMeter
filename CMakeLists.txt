@@ -286,7 +286,7 @@ make_xst(${SYR_FILE} ${NGC_FILE} ${PRJ_FILE_NAME} ${XST_FILE_NAME})
 set(NGD_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.ngd")
 set(NGO_DIR	"${CMAKE_CURRENT_BINARY_DIR}/_ngo")
 
-make_ngdbuild(${NGD_FILE} ${NGO_DIR} ${UCF_FILE_NAME} ${NGC_FILE})
+make_ngdbuild(${DEVICE_CHIP_NAME} ${NGD_FILE} ${NGO_DIR} ${UCF_FILE_NAME} ${NGC_FILE})
 
 #--------------------------------------map--------------------------------------
 
