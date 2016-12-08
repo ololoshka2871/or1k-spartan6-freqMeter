@@ -32,6 +32,11 @@ def device(request):
     return d
 
 
+@pytest.fixture
+def settime_req():
+    return libr4_24_2.r4_24_2_requestBuilder.build_set_time_request()
+
+
 def ip2int( addr):
     return struct.unpack("!I", socket.inet_aton(addr))[0]
 
@@ -262,6 +267,23 @@ def test_referrence_frequency(device, settings_req, test_f, result):
     assert (resp.settings.status !=
             protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['ERR_F_REF'].number) == result
     assert (abs(resp.settings.ReferenceFrequency - settings_req.writeSettingsReq.setReferenceFrequency) < 0.01) == result
+
+
+# ################ clock ####################################
+
+@pytest.mark.parametrize("T,result",
+    [(0, False),
+     (8697.35, False),
+     (time.time() + 10000, True),
+     (int(time.time()), True),
+     (time.time(), True)])
+def test_clock_set(device, settime_req, T, result):
+    settime_req.setClock.sec = long(T)
+    settime_req.setClock.nsec = long((T - settime_req.setClock.sec) * 1000000000)
+    resp = device.process_request_sync(settime_req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == result
+    assert (resp.timestamp.sec == settime_req.setClock.sec) == result
 
 
 # ############ Test reboot ##################################

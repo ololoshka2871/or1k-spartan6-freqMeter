@@ -42,6 +42,10 @@
 
 #include "rtc.h"
 
+#ifndef BULD_TIMESTAMP
+#error "Macro \"BULD_TIMESTAMP\" mast me defined!"
+#endif
+
 #define MS_IN_S                 1000
 #define NS_IN_MS                1000000
 #define MS_2_NS(ms)             ((ms) * NS_IN_MS)
@@ -63,6 +67,8 @@ void rtc_init() {
         return;
     if (ds1338z_getUnixTime(&current_time.tv_sec) != DS1338Z_OK)
         return;
+    if (current_time.tv_sec < BULD_TIMESTAMP)
+        current_time.tv_sec = BULD_TIMESTAMP;
     current_time.tv_nsec = 0;
     clock_settime(0, &current_time);
 }
@@ -85,6 +91,9 @@ void clock_purify_time(struct timespec *ts) {
 
 int clock_settime(clockid_t clockid, const struct timespec *ts) {
     (void)clockid;
+
+    if (ts->tv_sec < BULD_TIMESTAMP)
+        return -EINVAL;
 
     progtimer_setclock(NS_2_MS(ts->tv_nsec) % PROGTIMER_TICKS_IN_SEC);
     local_seconds = ts->tv_sec;

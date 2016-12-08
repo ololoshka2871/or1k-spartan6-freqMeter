@@ -29,7 +29,7 @@
 #*
 #****************************************************************************/
 
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 2.8.11)
 
 set(NANOPB_DIST             ${CMAKE_CURRENT_SOURCE_DIR}/nanopb-dist)
 

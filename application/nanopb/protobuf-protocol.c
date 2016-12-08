@@ -111,7 +111,10 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
         }
     }
 
-
+    if (request.has_setClock) {
+        ansCookie->cmdFlags |= PB_CMD_SETCLOCK;
+        ansCookie->settimeResult = clock_settime(0, (struct tm*)&request.setClock);
+    }
 
     // reboot
     if (request.has_rebootRequest) {
@@ -176,6 +179,10 @@ void protobuf_format_answer(protobuf_cb_output_data_writer writer, uint32_t id,
         responce.settings.UseDHCP = settings.DHCP;
 
         responce.settings.ReferenceFrequency = settings.ReferenceFrequency;
+    }
+
+    if ((args->cmdFlags & PB_CMD_SETCLOCK) && (args->settimeResult)) {
+        responce.Global_status = ru_sktbelpa_r4_24_2_STATUS_ERRORS_IN_SUBCOMMANDS;
     }
 
     sendResponce(writer, &responce);

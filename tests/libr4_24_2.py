@@ -45,6 +45,18 @@ class r4_24_2_requestBuilder:
         return req
 
     @staticmethod
+    def build_set_time_request():
+        """
+        Создаёт запрос чтения настроек
+
+        :return: объект типа protocol_pb2.Request
+        """
+        req = r4_24_2_requestBuilder.build_request()
+        ts = protocol_pb2.Timestamp()
+        req.setClock.CopyFrom(ts)
+        return req
+
+    @staticmethod
     def build_reboot_request(reset_defaults):
         """
         Создаёт запрос на перезагрузку устройства

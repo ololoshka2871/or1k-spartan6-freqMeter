@@ -55,6 +55,12 @@ SET(LIBHW_SOURCES
 
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR} ${LIBBASE_INCLUDE_DIR})
 
+execute_process(COMMAND date +%s
+                OUTPUT_VARIABLE b_timestamp
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                )
+message(STATUS "Build timestamp: ${b_timestamp}")
+
 set(difenitions
     MAC_TX_MEM_BASE=${MAC_TX_MEM_BASE}
     MAC_RX_MEM_BASE=${MAC_RX_MEM_BASE}
@@ -75,6 +81,7 @@ set(difenitions
     INPUT_CLOCK_HZ=${INPUT_CLOCK_HZ}
     FREF_PLL_MULTIPLYER=${FREF_PLL_MULTIPLYER}
     FREF_CLOCK_DEVIDER=${FREF_CLOCK_DEVIDER}
+    BULD_TIMESTAMP=${b_timestamp}
     )
 
 if(MASTER_HYBRID_COUNTER)
