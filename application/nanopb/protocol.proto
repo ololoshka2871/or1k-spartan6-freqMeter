@@ -19,6 +19,8 @@ message Request {
     optional WriteSettingsReq   writeSettingsReq = 4;
     // Перезвгрузка
     optional RebootRequest      rebootRequest = 5;
+    // установка времени измерения
+    optional SetMeasureTimeRequest setMeasureTimeRequest = 6;
 }
 
 //------------------------------------------------------------------------------
@@ -37,6 +39,8 @@ message Response {
 
     // Все настройки, если таковые были запрошены
     optional SettingsResponse   settings = 5;
+    // Ответ на запрос установки времени измерения
+    optional GetMeasureTimeResponce getMeasureTimeResponce = 6;
 }
 
 //------------------------------------------------------------------------------
@@ -113,4 +117,37 @@ message RebootRequest {
     // 0 - обычная перезагрузка
     // 1 - сброс на заводские настройки
     required bool               resetDefaults = 1;
+}
+
+// Запрос установки времени измерения
+message SetMeasureTime_message {
+    // Номер канала
+    required fixed32            chanelNumber = 1;
+    // время измерения канала, если установить, или это поля отсуствует - прочитать
+    optional fixed32            measureTime_ms = 2;
+}
+
+// общий запрос установки мремени измерения
+message SetMeasureTimeRequest {
+    repeated SetMeasureTime_message chanelSetMeasureTime = 1;
+}
+
+// ответ
+message GetMeasureTime_message {
+    enum ErrorDescription {
+        OK = 0; // нет ошибки
+        ERR_MT_INVALID_CHANEL = 1; // Неверный номер канала (0..(количество каналов-1))
+        ERR_MT_TOO_BIG = 2;     // слишком большое время измерения
+        ERR_MT_TOO_SMALL = 4;   // слишком малое время измерения
+    }
+    required ErrorDescription   status = 1;
+    // Номер канала
+    required fixed32            chanelNumber = 2;
+    // время измерения канала (после изменения)
+    required fixed32            measureTime_ms = 3;
+}
+
+// общий запрос чтения ремени измерения
+message GetMeasureTimeResponce {
+    repeated GetMeasureTime_message chanelgetMeasureTime = 1;
 }

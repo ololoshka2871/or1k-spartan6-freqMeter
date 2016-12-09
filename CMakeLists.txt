@@ -93,6 +93,8 @@ set(SYSTEM_INPUTS_F_IN_MAX      100000
     CACHE STRING "Input frequency max (in Hz)")
 set(SYSTEM_MEASURE_TIME_DEFAULT 100
     CACHE STRING "Frequency measure time at statup (in ms)")
+set(SYSTEM_MEASURE_TIME_MIN     5
+    CACHE STRING "Frequency measure time minimum (in ms)")
 set(SYSTEM_INPUT_TEST_EVRY_MS   1000
     CACHE STRING "Test input signal present aproximaly every")
 

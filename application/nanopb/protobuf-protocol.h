@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "freqmeters.h"
+
 #include "settings.h"
 
 enum enProtobufResult {
@@ -16,6 +18,12 @@ enum enProtobufCMDFlags {
     PB_CMD_PONG = 0,
     PB_CMD_SETTINGS = 1 << 0,
     PB_CMD_SETCLOCK = 1 << 1,
+    PB_CMD_SETMEASURE_TIME = 1 << 2,
+};
+
+struct sSetMeasureTimeresult {
+    int32_t chanel;
+    enum enSetMeasureTimeError result;
 };
 
 struct sAnsverParameters {
@@ -23,6 +31,8 @@ struct sAnsverParameters {
 
     uint32_t settingResult; // result of execute settings set
     uint32_t settimeResult; // result of execute set clock
+
+    struct sSetMeasureTimeresult setMeasureTimeResults[FREQMETERS_COUNT];
 };
 
 typedef uint8_t (*protobuf_cb_input_data_reader)(uint8_t *buf, size_t count);

@@ -116,6 +116,26 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
         ansCookie->settimeResult = clock_settime(0, (struct tm*)&request.setClock);
     }
 
+    if (request.has_setMeasureTimeRequest) {
+        ansCookie->cmdFlags |= PB_CMD_SETMEASURE_TIME;
+        ru_sktbelpa_r4_24_2_SetMeasureTime_message* chanelSetMeasureTime =
+                request.setMeasureTimeRequest.chanelSetMeasureTime;
+        struct sSetMeasureTimeresult* setMeasureTimeResults = ansCookie->setMeasureTimeResults;
+        for(uint i = 0; i < FREQMETERS_COUNT; ++i) {
+            if (i < request.setMeasureTimeRequest.chanelSetMeasureTime_count) {
+                setMeasureTimeResults[i].chanel = chanelSetMeasureTime[i].chanelNumber;
+                if (chanelSetMeasureTime[i].has_measureTime_ms) {
+                    setMeasureTimeResults[i].result = fm_setMeasureTime(
+                                chanelSetMeasureTime[i].chanelNumber, chanelSetMeasureTime[i].measureTime_ms);
+                } else {
+                    setMeasureTimeResults[i].result = ERR_MT_OK;
+                }
+            } else {
+                setMeasureTimeResults[i].chanel = -1;
+            }
+        }
+    }
+
     // reboot
     if (request.has_rebootRequest) {
         if (request.rebootRequest.resetDefaults) {
@@ -156,7 +176,7 @@ void protobuf_format_error_message(protobuf_cb_output_data_writer writer) {
 
 void protobuf_format_answer(protobuf_cb_output_data_writer writer, uint32_t id,
                             struct sAnsverParameters* args) {
-    ru_sktbelpa_r4_24_2_Response responce;
+    ru_sktbelpa_r4_24_2_Response responce = ru_sktbelpa_r4_24_2_Response_init_default;
 
     fill_generic_fields(&responce);
     responce.id = id;
@@ -183,6 +203,24 @@ void protobuf_format_answer(protobuf_cb_output_data_writer writer, uint32_t id,
 
     if ((args->cmdFlags & PB_CMD_SETCLOCK) && (args->settimeResult)) {
         responce.Global_status = ru_sktbelpa_r4_24_2_STATUS_ERRORS_IN_SUBCOMMANDS;
+    }
+
+    if ((responce.has_getMeasureTimeResponce = (args->cmdFlags & PB_CMD_SETMEASURE_TIME))) {
+        ru_sktbelpa_r4_24_2_GetMeasureTimeResponce *result =
+                &responce.getMeasureTimeResponce;
+        ru_sktbelpa_r4_24_2_GetMeasureTime_message* chanelgetMeasureTime_item = result->chanelgetMeasureTime;
+        for(uint i = 0; i < FREQMETERS_COUNT; ++i) {
+            struct sSetMeasureTimeresult* chanel_result = args->setMeasureTimeResults;
+            if (args->setMeasureTimeResults[i].chanel >= 0) {
+                ++result->chanelgetMeasureTime_count;
+                if ((enum enSetMeasureTimeError)(chanelgetMeasureTime_item[i].status = chanel_result[i].result)
+                        != ERR_MT_OK)
+                    responce.Global_status = ru_sktbelpa_r4_24_2_STATUS_ERRORS_IN_SUBCOMMANDS;
+                chanelgetMeasureTime_item[i].chanelNumber = chanel_result[i].chanel;
+                chanelgetMeasureTime_item[i].measureTime_ms =
+                        fm_getActualMeasureTime_pulses_ms(chanel_result[i].chanel);
+            }
+        }
     }
 
     sendResponce(writer, &responce);

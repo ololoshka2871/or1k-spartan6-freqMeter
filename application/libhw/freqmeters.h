@@ -44,6 +44,13 @@
 #define FM_STOP_VAL_CH(chanel)  (*(REG32(FM_STOP_VALS_BASE + (chanel) * sizeof(uint32_t))))
 #define FM_RELOAD_CH(chanel, v) (*(REG32(FM_RELOADINGS_BASE + (chanel) * sizeof(uint32_t))) = (v))
 
+enum enSetMeasureTimeError {
+    ERR_MT_OK = 0,
+    ERR_MT_INVALID_CHANEL = 1,
+    ERR_MT_TOO_BIG = 2,
+    ERR_MT_TOO_SMALL = 4,
+};
+
 struct freqmeter_chanel {
     struct {
         uint32_t newReload_val;
@@ -68,12 +75,14 @@ void fm_init();
 void fm_updateChanel(uint8_t chanel);
 void fm_enableChanel(uint8_t chanel, bool enable);
 
-uint32_t fm_getActualMeasureTime(uint8_t chanel);
+uint32_t fm_getActualMeasureTime_pulses_pulses(uint8_t chanel);
+double fm_getActualMeasureTime_pulses_ms(uint8_t chanel);
 uint32_t fm_getActualReloadValue(uint8_t chanel);
 uint32_t fm_getMeasureTimestamp(uint8_t chanel);
 uint32_t fm_getMeasureStart_pos(uint8_t chanel);
 uint32_t fm_getIRQCount(uint8_t chanel);
 bool     fm_checkAlive(uint8_t chanel);
+enum enSetMeasureTimeError fm_setMeasureTime(uint8_t chanel, uint16_t new_measure_time_ms);
 
 void fm_process();
 
