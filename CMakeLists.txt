@@ -81,7 +81,7 @@ set(SYSTEM_HEADER_W2            0x1f1f1f1f
     CACHE STRING "Application syncronisation word 2")
 set(SYSTEM_TRAP_EARLY           OFF
     CACHE BOOL   "Start debuger in bootloader")
-set(SYSTEM_HEAP_SIZE            1024
+set(SYSTEM_HEAP_SIZE            512
     CACHE STRING "System memory heap size")
 set(SYSTEM_FREF_COUNTER_LEN     28
     CACHE STRING "Master clock counter length (in bits)")

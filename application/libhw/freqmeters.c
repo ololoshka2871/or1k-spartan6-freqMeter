@@ -224,7 +224,7 @@ void fm_process() {
             uint32_t periods = fm_getActualReloadValue(chanel);
             uint32_t value   = fm_getActualMeasureTime_pulses_pulses(chanel);
 #ifndef SIM
-            clock_purify_time(&freqmeters[chanel].timestamp);
+            //clock_purify_time(&freqmeters[chanel].timestamp);
             irq_enable(IS_FREQMETERS);
 #endif
 
@@ -253,4 +253,14 @@ enum enSetMeasureTimeError fm_setMeasureTime(uint8_t chanel, uint16_t new_measur
                 freqmeters[chanel].F : STARTUP_FREQUNCY;
     fm_setChanelReloadValue(chanel, measure_time_ms2ticks(F, new_measure_time_ms), true);
     return ERR_MT_OK;
+}
+
+void fm_getCopyOffreqmeterState(uint8_t chanel, struct freqmeter_chanel *chanel_state) {
+#ifndef SIM
+    irq_disable(IS_FREQMETERS);
+#endif
+    memcpy(chanel_state, &freqmeters[chanel], sizeof(struct freqmeter_chanel));
+#ifndef SIM
+    irq_enable(IS_FREQMETERS);
+#endif
 }

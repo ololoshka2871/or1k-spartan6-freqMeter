@@ -1,3 +1,5 @@
 # Ограничение максимальной длины запроса количеством входов
-ru.sktbelpa.r4_24_2.SetMeasureTimeRequest.chanelSetMeasureTime   max_count:@F_INPUTS_COUNT@
-ru.sktbelpa.r4_24_2.GetMeasureTimeResponce.chanelgetMeasureTime  max_count:@F_INPUTS_COUNT@
+ru.sktbelpa.r4_24_2.SetMeasureTimeRequest.chanelSetMeasureTime      max_count:@F_INPUTS_COUNT@
+ru.sktbelpa.r4_24_2.GetMeasureTimeResponce.chanelgetMeasureTime     max_count:@F_INPUTS_COUNT@
+ru.sktbelpa.r4_24_2.GetMeasureResultsReq.chanels                    max_count:@F_INPUTS_COUNT@
+ru.sktbelpa.r4_24_2.GetMeasureResultsResponce.results               max_count:@F_INPUTS_COUNT@

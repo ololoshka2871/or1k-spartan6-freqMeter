@@ -20,7 +20,9 @@ message Request {
     // Перезвгрузка
     optional RebootRequest      rebootRequest = 5;
     // установка времени измерения
-    optional SetMeasureTimeRequest setMeasureTimeRequest = 6;
+    optional SetMeasureTimeRequest      setMeasureTimeRequest = 6;
+    // Запрс результатов измерений
+    optional GetMeasureResultsReq       getMeasureResultsReq = 7;
 }
 
 //------------------------------------------------------------------------------
@@ -40,7 +42,9 @@ message Response {
     // Все настройки, если таковые были запрошены
     optional SettingsResponse   settings = 5;
     // Ответ на запрос установки времени измерения
-    optional GetMeasureTimeResponce getMeasureTimeResponce = 6;
+    optional GetMeasureTimeResponce     getMeasureTimeResponce = 6;
+    // Ответ с результатами измерений
+    optional GetMeasureResultsResponce  getMeasureResultsResponce = 7;
 }
 
 //------------------------------------------------------------------------------
@@ -54,17 +58,20 @@ enum STATUS {
     // успешное завершение
     OK = 0;
     // недопустимое значение поля
-    INCORRECT_FIELD_VALUE = 1;
-    ERRORS_IN_SUBCOMMANDS = 2;
+    ERRORS_IN_SUBCOMMANDS = 1;
 
     PROTOCOL_ERROR = 100;
 }
+
+//-----------------------------------------------------------------------------
 
 // Таймштамп (аналогично struct timespec)
 message Timestamp {
     required fixed32            sec = 1;
     required fixed32            nsec = 2;
 }
+
+//-----------------------------------------------------------------------------
 
 // Настройки: запись/чтение
 
@@ -88,6 +95,7 @@ message WriteSettingsReq {
     // позволяет установить точное значение после измерения
     optional double             setReferenceFrequency = 6;
 }
+
 // Ответ: Все настройки, после изменения, если таковое было
 message SettingsResponse {
     // Статус выполнения запроса
@@ -112,6 +120,8 @@ message SettingsResponse {
     required double             ReferenceFrequency = 8;
 }
 
+//-----------------------------------------------------------------------------
+
 // Запрос перезагрузки устройства
 message RebootRequest {
     // 0 - обычная перезагрузка
@@ -119,12 +129,15 @@ message RebootRequest {
     required bool               resetDefaults = 1;
 }
 
+//-----------------------------------------------------------------------------
+
 // Запрос установки времени измерения
 message SetMeasureTime_message {
     // Номер канала
     required fixed32            chanelNumber = 1;
     // время измерения канала, если установить, или это поля отсуствует - прочитать
     optional fixed32            measureTime_ms = 2;
+    // TODO: chanel enable
 }
 
 // общий запрос установки мремени измерения
@@ -132,22 +145,64 @@ message SetMeasureTimeRequest {
     repeated SetMeasureTime_message chanelSetMeasureTime = 1;
 }
 
-// ответ
+// ответ времени измерения
 message GetMeasureTime_message {
     enum ErrorDescription {
         OK = 0; // нет ошибки
-        ERR_MT_INVALID_CHANEL = 1; // Неверный номер канала (0..(количество каналов-1))
-        ERR_MT_TOO_BIG = 2;     // слишком большое время измерения
-        ERR_MT_TOO_SMALL = 4;   // слишком малое время измерения
+        ERR_INVALID_CHANEL = 1;     // Неверный номер канала (0..(количество каналов-1))
+        ERR_VALUE_TOO_BIG = 2;      // слишком большое время измерения
+        ERR_VALUE_TOO_SMALL = 4;    // слишком малое время измерения
     }
-    required ErrorDescription   status = 1;
     // Номер канала
     required fixed32            chanelNumber = 2;
+    // код ошибки
+    required ErrorDescription   status = 1;
     // время измерения канала (после изменения)
     required fixed32            measureTime_ms = 3;
 }
 
-// общий запрос чтения ремени измерения
+// общий ответ чтения ремени измерения
 message GetMeasureTimeResponce {
     repeated GetMeasureTime_message chanelgetMeasureTime = 1;
+}
+
+//-----------------------------------------------------------------------------
+
+// запрос результата измерений
+message GetMeasureResult_message {
+    // номер канала
+    required fixed32            chanelNumber = 1;
+    // Вывезти подробные данные
+    required bool               verbose = 2             [default = false];
+}
+
+// общий запрос результаов измерений
+message GetMeasureResultsReq {
+    repeated GetMeasureResult_message chanels = 1;
+}
+
+// ответ - результат измерения
+message MeasureResult {
+    // номер канала
+    required fixed32            chanelNumber = 1;
+    // таймштамп - когда измерение было фактически произведено
+    required Timestamp          timestamp = 2;
+
+    required bool               chanelEnabled = 4;
+    required bool               chanelInputSignalPresent = 5;
+
+    optional fixed32            master_counter_start_pos = 6;
+    optional fixed32            master_counter_stop_pos = 7;
+    optional fixed32            measureCyclesCounter = 8;
+}
+
+//  общий ответ с результатами измерений
+message GetMeasureResultsResponce {
+    enum ErrorDescription {
+        OK = 0;
+        ERR_INVALID_CHANELS = 1;
+    }
+    required ErrorDescription   status = 1;
+
+    repeated MeasureResult      results = 2;
 }

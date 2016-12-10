@@ -85,6 +85,8 @@ uint32_t fm_getIRQCount(uint8_t chanel);
 bool     fm_checkAlive(uint8_t chanel);
 enum enSetMeasureTimeError fm_setMeasureTime(uint8_t chanel, uint16_t new_measure_time_ms);
 
+void fm_getCopyOffreqmeterState(uint8_t chanel, struct freqmeter_chanel* chanel_state);
+
 void fm_process();
 
 #endif// FREQMETERS_H

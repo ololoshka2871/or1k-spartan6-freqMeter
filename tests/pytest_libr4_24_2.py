@@ -338,17 +338,12 @@ def test_get_measure_times(device, chanels):
     ])
 def test_set_measure_times(device, chanels_set_mt):
     if type(chanels_set_mt[0]) is tuple:
-        chanel_item = map(lambda x: x[0], chanels_set_mt)
-        exp_res = map(lambda x: x[2], chanels_set_mt)
-
         ch2mt_dict = {}
         exp_res = {}
         for v in chanels_set_mt:
             ch2mt_dict[v[0]] = v[1]
             exp_res[v[0]] = v[2]
     else:
-        chanel_item = (chanels_set_mt[0],)
-
         ch2mt_dict = {chanels_set_mt[0]: chanels_set_mt[1]}
         exp_res = {chanels_set_mt[0]: chanels_set_mt[2]}
 
@@ -374,6 +369,57 @@ def test_set_measure_times(device, chanels_set_mt):
         assert ok == exp_res[rc]
         if ok:
             assert cv == ch2mt_dict[rc]
+
+
+# ############# read values ################################
+
+@pytest.mark.parametrize("chanels_list",
+    [(0, False, True),
+     (13, True, True),
+     ((1, False, True), (2, False, True)),
+     ((6, True, True), (65, False, False), (7, False, True)),
+     (-1, False, False),
+     ((0, True, True), (1, True, True), (2, True, True), (3, True, True), (4, True, True), (5, True, True),
+      (6, True, True), (7, True, True), (8, True, True), (9, True, True), (10, True, True), (10, True, True),
+      (12, True, True), (13, True, True), (14, True, True), (15, True, True), (16, True, True), (17, True, True),
+      (18, True, True), (19, True, True), (20, True, True), (21, True, True), (22, True, True), (23, True, True))
+    ])
+def test_get_measure_result(device, chanels_list):
+    if type(chanels_list[0]) is tuple:
+        ch2v_dict = {}
+        exp_res = {}
+        for v in chanels_list:
+            ch2v_dict[v[0]] = v[1]
+            exp_res[v[0]] = v[2]
+    else:
+        ch2v_dict = {chanels_list[0]: chanels_list[1]}
+        exp_res = {chanels_list[0]: chanels_list[2]}
+
+    expected_result = reduce(lambda x, y: x & y, exp_res.values())
+    try:
+        req = libr4_24_2.r4_24_2_requestBuilder.build_getmeasureresults_request(ch2v_dict)
+    except Exception as e:
+        if not expected_result:
+            return  # ok
+        else:
+            raise(e)
+
+    resp = device.process_request_sync(req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == expected_result
+
+    assert (resp.getMeasureResultsResponce.status ==
+            protocol_pb2._GETMEASURERESULTSRESPONCE_ERRORDESCRIPTION.values_by_name['OK'].number) == expected_result
+
+    resuts = resp.getMeasureResultsResponce.results._values
+
+    assert (len(resuts) == len(exp_res)) == expected_result
+
+    for ch in resuts:
+        assert ch.chanelNumber in exp_res.keys()
+        assert ch.HasField('master_counter_start_pos') == ch2v_dict[ch.chanelNumber]
+        assert ch.HasField('master_counter_stop_pos') == ch2v_dict[ch.chanelNumber]
+        assert ch.HasField('measureCyclesCounter') == ch2v_dict[ch.chanelNumber]
 
 
 # ############ Test reboot ##################################

@@ -108,6 +108,25 @@ class r4_24_2_requestBuilder:
         req.setMeasureTimeRequest.CopyFrom(product)
         return req
 
+    @staticmethod
+    def build_getmeasureresults_request(chanels):
+        """
+        Создаёт запрос чтения значений измеренной частоты
+
+        :param chanels: dict {номер канала: isVerbose} опрашиваемые каналы
+        :return: объект типа protocol_pb2.Request
+        """
+        req = r4_24_2_requestBuilder.build_request()
+
+        product = protocol_pb2.GetMeasureResultsReq()
+        for key in chanels.keys():
+            chanel = product.chanels.add()
+            chanel.chanelNumber = key
+            chanel.verbose = chanels[key]
+
+        req.getMeasureResultsReq.CopyFrom(product)
+        return req
+
 
 class r4_24_2_io:
     """Класс для простого доступа к РЧ-24 v2 по ротоколу UDP с использованием google protocol buffers"""
