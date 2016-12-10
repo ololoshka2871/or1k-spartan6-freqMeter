@@ -124,9 +124,13 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
         for(uint i = 0; i < FREQMETERS_COUNT; ++i) {
             if (i < request.setMeasureTimeRequest.chanelSetMeasureTime_count) {
                 setMeasureTimeResults[i].chanel = chanelSetMeasureTime[i].chanelNumber;
-                if (chanelSetMeasureTime[i].has_measureTime_ms) {
+                if (chanelSetMeasureTime[i].chanelNumber > FREQMETERS_COUNT) {
+                    setMeasureTimeResults[i].chanel = 0;
+                    setMeasureTimeResults[i].result = ERR_MT_INVALID_CHANEL;
+                } else if (chanelSetMeasureTime[i].has_measureTime_ms) {
                     setMeasureTimeResults[i].result = fm_setMeasureTime(
-                                chanelSetMeasureTime[i].chanelNumber, chanelSetMeasureTime[i].measureTime_ms);
+                                chanelSetMeasureTime[i].chanelNumber,
+                                chanelSetMeasureTime[i].measureTime_ms);
                 } else {
                     setMeasureTimeResults[i].result = ERR_MT_OK;
                 }
@@ -211,14 +215,14 @@ void protobuf_format_answer(protobuf_cb_output_data_writer writer, uint32_t id,
         ru_sktbelpa_r4_24_2_GetMeasureTime_message* chanelgetMeasureTime_item = result->chanelgetMeasureTime;
         for(uint i = 0; i < FREQMETERS_COUNT; ++i) {
             struct sSetMeasureTimeresult* chanel_result = args->setMeasureTimeResults;
-            if (args->setMeasureTimeResults[i].chanel >= 0) {
+            if (chanel_result[i].chanel >= 0) {
                 ++result->chanelgetMeasureTime_count;
+                chanel_result[i].result |= fm_getMeasureTime_ms(chanel_result[i].chanel,
+                                                                &chanelgetMeasureTime_item[i].measureTime_ms);
                 if ((enum enSetMeasureTimeError)(chanelgetMeasureTime_item[i].status = chanel_result[i].result)
                         != ERR_MT_OK)
                     responce.Global_status = ru_sktbelpa_r4_24_2_STATUS_ERRORS_IN_SUBCOMMANDS;
                 chanelgetMeasureTime_item[i].chanelNumber = chanel_result[i].chanel;
-                chanelgetMeasureTime_item[i].measureTime_ms =
-                        fm_getActualMeasureTime_pulses_ms(chanel_result[i].chanel);
             }
         }
     }

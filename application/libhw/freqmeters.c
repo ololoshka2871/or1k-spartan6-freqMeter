@@ -163,10 +163,25 @@ uint32_t fm_getActualMeasureTime_pulses_pulses(uint8_t chanel) {
 }
 
 
-double fm_getActualMeasureTime_pulses_ms(uint8_t chanel) {
+enum enSetMeasureTimeError
+fm_getActualMeasureTime_ms(uint8_t chanel, double* res) {
+#ifndef SIM
+    if (chanel >= FREQMETERS_COUNT)
+        return ERR_MT_INVALID_CHANEL;
+#endif
     double pulses = (double)fm_getActualMeasureTime_pulses_pulses(chanel);
     double F = freqmeters[chanel].F;
-    return pulses / F * 1000.0;
+    *res = pulses / F * 1000.0;
+    return ERR_MT_OK;
+}
+
+enum enSetMeasureTimeError fm_getMeasureTime_ms(uint8_t chanel, uint32_t *res) {
+#ifndef SIM
+    if (chanel >= FREQMETERS_COUNT)
+        return ERR_MT_INVALID_CHANEL;
+#endif
+    *res = measure_time_ms[chanel];
+    return ERR_MT_OK;
 }
 
 
@@ -235,7 +250,7 @@ enum enSetMeasureTimeError fm_setMeasureTime(uint8_t chanel, uint16_t new_measur
 #endif
     measure_time_ms[chanel] = new_measure_time_ms;
     double F = (freqmeters[chanel].enabled && (freqmeters[chanel].F > 0)) ?
-                freqmeters[chanel].F : SYSTEM_MEASURE_TIME_DEFAULT;
+                freqmeters[chanel].F : STARTUP_FREQUNCY;
     fm_setChanelReloadValue(chanel, measure_time_ms2ticks(F, new_measure_time_ms), true);
     return ERR_MT_OK;
 }

@@ -286,6 +286,96 @@ def test_clock_set(device, settime_req, T, result):
     assert (resp.timestamp.sec == settime_req.setClock.sec) == result
 
 
+# ############# measure time ###############################
+
+@pytest.mark.parametrize("chanels",
+    [(0, True),
+     (10, True),
+     (-1, False),
+     (0xffffffff, False),
+     (33, False),
+     (23, True),
+     ((0, True), (5, True), (7, True), (3, True), (11, True)),
+     ((3, True), (8, True), (3, True), (16, True), (0xfc, False))
+    ])
+def test_get_measure_times(device, chanels):
+    if type(chanels[0]) is tuple:
+        chanel_item = map(lambda x: x[0], chanels)
+        item_exp_res = map(lambda x: x[1], chanels)
+    else:
+        chanel_item = (chanels[0],)
+        item_exp_res = (chanels[1],)
+
+    expected_result = reduce(lambda x, y: x & y, item_exp_res)
+    try:
+        req = libr4_24_2.r4_24_2_requestBuilder.build_measure_time_request(chanels_read=chanel_item)
+    except Exception as e:
+        if not expected_result:
+            return  # ok
+        else:
+            raise(e)
+    resp = device.process_request_sync(req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == expected_result
+
+    result_chanels = set(map(lambda x: x.chanelNumber, resp.getMeasureTimeResponce.chanelgetMeasureTime._values))
+    for i in range(len(chanel_item)):  # check if all result marked ai True present in ansver
+        if item_exp_res[i]:
+            assert chanel_item[i] in result_chanels
+
+
+@pytest.mark.parametrize("chanels_set_mt",
+    [(0, 10, True),
+     (16, 350, True),
+     (23, 1000, True),
+     (8, 5000, False),
+     (3, 6, True),
+     (-1, -1, False),
+     (6, -1, False),
+     ((0, 100, True,), (1, 15, True), (9, 1000, True), (7, 85, True)),
+     ((9, 20, True), (15, -1, False), (3, 5000, False), (7, 70, True)),
+     ((38, 10, False), (-1, -1, False), (9, 50, True), (13, 5, True)),
+    ])
+def test_set_measure_times(device, chanels_set_mt):
+    if type(chanels_set_mt[0]) is tuple:
+        chanel_item = map(lambda x: x[0], chanels_set_mt)
+        exp_res = map(lambda x: x[2], chanels_set_mt)
+
+        ch2mt_dict = {}
+        exp_res = {}
+        for v in chanels_set_mt:
+            ch2mt_dict[v[0]] = v[1]
+            exp_res[v[0]] = v[2]
+    else:
+        chanel_item = (chanels_set_mt[0],)
+
+        ch2mt_dict = {chanels_set_mt[0]: chanels_set_mt[1]}
+        exp_res = {chanels_set_mt[0]: chanels_set_mt[2]}
+
+    expected_result = reduce(lambda x, y: x & y, exp_res.values())
+    try:
+        req = libr4_24_2.r4_24_2_requestBuilder.build_measure_time_request(chanels_write=ch2mt_dict)
+    except Exception as e:
+        if not expected_result:
+            return  # ok
+        else:
+            raise(e)
+
+    resp = device.process_request_sync(req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == expected_result
+
+    results = map(lambda x: (x.chanelNumber, x.measureTime_ms, x.status),
+                         resp.getMeasureTimeResponce.chanelgetMeasureTime._values)
+
+    for r in results:
+        rc, cv, status = r
+        ok = (status == protocol_pb2._GETMEASURETIME_MESSAGE_ERRORDESCRIPTION.values_by_name['OK'].number)
+        assert ok == exp_res[rc]
+        if ok:
+            assert cv == ch2mt_dict[rc]
+
+
 # ############ Test reboot ##################################
 
 @pytest.mark.skipif(True, reason='Not needed yet')

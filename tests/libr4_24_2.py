@@ -70,6 +70,44 @@ class r4_24_2_requestBuilder:
         req.rebootRequest.CopyFrom(rr)
         return req
 
+    @staticmethod
+    def build_measure_time_request(chanels_read=None, chanels_write=None):
+        """
+        Создаёт запрос чтения/записи времени измерения
+
+        :param chanels_read: Список каналов, врмя измерения ктороых необходимо прочитать
+        :param chanels_write: dict {номер_канала, время_измерения} ктороых необходимо записать
+        :return: объект типа protocol_pb2.Request
+        """
+        req = r4_24_2_requestBuilder.build_request()
+
+        if chanels_read is None:
+            read_set = set()
+        else:
+            read_set = set(chanels_read)
+
+        if chanels_write is None:
+            write_set = set()
+        else:
+            write_set = chanels_write.keys()
+
+        product = protocol_pb2.SetMeasureTimeRequest()
+
+        for r in write_set:
+            wr = product.chanelSetMeasureTime.add()
+            wr.chanelNumber = r
+            wr.measureTime_ms = chanels_write[r]
+
+            if r in read_set:
+                read_set.remove(r)
+
+        for r in read_set:
+            rr = product.chanelSetMeasureTime.add()
+            rr.chanelNumber = r
+
+        req.setMeasureTimeRequest.CopyFrom(product)
+        return req
+
 
 class r4_24_2_io:
     """Класс для простого доступа к РЧ-24 v2 по ротоколу UDP с использованием google protocol buffers"""

@@ -76,7 +76,8 @@ void fm_updateChanel(uint8_t chanel);
 void fm_enableChanel(uint8_t chanel, bool enable);
 
 uint32_t fm_getActualMeasureTime_pulses_pulses(uint8_t chanel);
-double fm_getActualMeasureTime_pulses_ms(uint8_t chanel);
+enum enSetMeasureTimeError fm_getActualMeasureTime_ms(uint8_t chanel, double *res);
+enum enSetMeasureTimeError fm_getMeasureTime_ms(uint8_t chanel, uint32_t *res);
 uint32_t fm_getActualReloadValue(uint8_t chanel);
 uint32_t fm_getMeasureTimestamp(uint8_t chanel);
 uint32_t fm_getMeasureStart_pos(uint8_t chanel);
