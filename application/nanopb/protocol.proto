@@ -188,11 +188,16 @@ message MeasureResult {
     // таймштамп - когда измерение было фактически произведено
     required Timestamp          timestamp = 2;
 
+    // конал включен
     required bool               chanelEnabled = 4;
+    // входной сигнал обнаружен
     required bool               chanelInputSignalPresent = 5;
 
+    // значение счетчика опорной частоты в начале измерения
     optional fixed32            master_counter_start_pos = 6;
+    // значние счктчика опрной частоты в конце измерения
     optional fixed32            master_counter_stop_pos = 7;
+    // количество отработанных циклов измерения
     optional fixed32            measureCyclesCounter = 8;
 }
 
@@ -202,7 +207,9 @@ message GetMeasureResultsResponce {
         OK = 0;
         ERR_INVALID_CHANELS = 1;
     }
+    //код ошибки
     required ErrorDescription   status = 1;
 
+    // результаты
     repeated MeasureResult      results = 2;
 }
