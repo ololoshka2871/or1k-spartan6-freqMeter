@@ -27,6 +27,12 @@ struct sSetMeasureTimeresult {
     enum enSetMeasureTimeError result;
 };
 
+struct sMeasureResultCmdOpts {
+    uint32_t chanels_result_send_mask;
+    uint32_t chanels_result_verbose_mask;
+    bool Request_valid;
+};
+
 struct sAnsverParameters {
     enum enProtobufCMDFlags cmdFlags;
 
@@ -35,11 +41,7 @@ struct sAnsverParameters {
 
     struct sSetMeasureTimeresult setMeasureTimeResults[FREQMETERS_COUNT];
 
-    struct {
-        uint32_t chanels_result_send_mask;
-        uint32_t chanels_result_verbose_mask;
-        bool Request_valid;
-    } result_send;
+    struct sMeasureResultCmdOpts result_send;
 };
 
 typedef uint8_t (*protobuf_cb_input_data_reader)(uint8_t *buf, size_t count);

@@ -121,19 +121,22 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
         ru_sktbelpa_r4_24_2_SetMeasureTime_message* chanelSetMeasureTime =
                 request.setMeasureTimeRequest.chanelSetMeasureTime;
         struct sSetMeasureTimeresult* setMeasureTimeResults = ansCookie->setMeasureTimeResults;
-        for(uint i = 0; i < FREQMETERS_COUNT; ++i) {
+        for(uint32_t i = 0; i < FREQMETERS_COUNT; ++i) {
             if (i < request.setMeasureTimeRequest.chanelSetMeasureTime_count) {
-                setMeasureTimeResults[i].chanel = chanelSetMeasureTime[i].chanelNumber;
-                if (chanelSetMeasureTime[i].chanelNumber > FREQMETERS_COUNT) {
-                    setMeasureTimeResults[i].chanel = 0;
-                    setMeasureTimeResults[i].result = ERR_MT_INVALID_CHANEL;
+                ru_sktbelpa_r4_24_2_SetMeasureTime_message * current = &chanelSetMeasureTime[i];
+                struct sSetMeasureTimeresult* current_res = &setMeasureTimeResults[i];
+                uint32_t ch = current->chanelNumber;
+                current_res->chanel = ch;
+                if (ch > FREQMETERS_COUNT) {
+                    current_res->chanel = 0;
+                    current_res->result = ERR_MT_INVALID_CHANEL;
                 } else {
-                    setMeasureTimeResults[i].result = ERR_MT_OK;
-                    if (chanelSetMeasureTime[i].has_measureTime_ms) {
-                        setMeasureTimeResults[i].result = fm_setMeasureTime(
-                                chanelSetMeasureTime[i].chanelNumber,
-                                chanelSetMeasureTime[i].measureTime_ms);
-
+                    current_res->result = ERR_MT_OK;
+                    if (current->has_measureTime_ms) {
+                        current_res->result = fm_setMeasureTime(ch, current->measureTime_ms);
+                    }
+                    if (current->has_chanelEnabled) {
+                        fm_enableChanel(ch, current->chanelEnabled);
                     }
                 }
             } else {
@@ -144,19 +147,25 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
 
     if (request.has_getMeasureResultsReq) {
         ansCookie->cmdFlags |= PB_CMD_GETRESULTS;
-        ansCookie->result_send.chanels_result_send_mask = 0;
-        ansCookie->result_send.chanels_result_verbose_mask = 0;
-        ansCookie->result_send.Request_valid = true;
-        for (uint i = 0; i < request.getMeasureResultsReq.chanels_count; ++i) {
-            uint32_t ch = request.getMeasureResultsReq.chanels[i].chanelNumber;
+        struct sMeasureResultCmdOpts* result_send = &ansCookie->result_send;
+
+        result_send->chanels_result_send_mask = 0;
+        result_send->chanels_result_verbose_mask = 0;
+        result_send->Request_valid = true;
+
+        const pb_size_t chanels_count = request.getMeasureResultsReq.chanels_count;
+        for (uint i = 0; i < chanels_count; ++i) {
+            ru_sktbelpa_r4_24_2_GetMeasureResult_message * current_chanel =
+                    &request.getMeasureResultsReq.chanels[i];
+            uint32_t ch = current_chanel->chanelNumber;
             if (ch >= FREQMETERS_COUNT) {
-                ansCookie->result_send.Request_valid = false;
+                result_send->Request_valid = false;
                 continue;
             }
             uint32_t chanel_bit = 1 << ch;
-            ansCookie->result_send.chanels_result_send_mask |= chanel_bit;
-            if (request.getMeasureResultsReq.chanels[i].verbose)
-                ansCookie->result_send.chanels_result_verbose_mask |= chanel_bit;
+            result_send->chanels_result_send_mask |= chanel_bit;
+            if (current_chanel->verbose)
+                result_send->chanels_result_verbose_mask |= chanel_bit;
         }
     }
 
@@ -207,22 +216,23 @@ void protobuf_format_answer(protobuf_cb_output_data_writer writer, uint32_t id,
     responce.Global_status = ru_sktbelpa_r4_24_2_STATUS_OK;
 
     if ((responce.has_settings = (args->cmdFlags & PB_CMD_SETTINGS))) {
-        if ((responce.settings.status = args->settingResult) !=
+        ru_sktbelpa_r4_24_2_SettingsResponse * psettings = &responce.settings;
+
+        if ((psettings->status = args->settingResult) !=
                 ru_sktbelpa_r4_24_2_SettingsResponse_ErrorDescription_OK) {
             responce.Global_status = ru_sktbelpa_r4_24_2_STATUS_ERRORS_IN_SUBCOMMANDS;
         }
-        responce.settings.IPAddr = settings.IP_addr.u32;
-        responce.settings.IPmask = settings.IP_mask.u32;
-        responce.settings.IPDefaultGateway = settings.IP_gateway.u32;
+        psettings->IPAddr = settings.IP_addr.u32;
+        psettings->IPmask = settings.IP_mask.u32;
+        psettings->IPDefaultGateway = settings.IP_gateway.u32;
 
-        memset(&responce.settings.MAC_Addr, 0, sizeof(uint64_t) - MAC_ADDRESS_SIZE);
-        memcpy(((uint8_t*)&responce.settings.MAC_Addr) +
-                    (sizeof(uint64_t) - MAC_ADDRESS_SIZE),
-                        settings.MAC_ADDR, MAC_ADDRESS_SIZE);
+        memset(&psettings->MAC_Addr, 0, sizeof(uint64_t) - MAC_ADDRESS_SIZE);
+        memcpy(((uint8_t*)&psettings->MAC_Addr) + (sizeof(uint64_t) - MAC_ADDRESS_SIZE),
+               settings.MAC_ADDR, MAC_ADDRESS_SIZE);
 
-        responce.settings.UseDHCP = settings.DHCP;
+        psettings->UseDHCP = settings.DHCP;
 
-        responce.settings.ReferenceFrequency = settings.ReferenceFrequency;
+        psettings->ReferenceFrequency = settings.ReferenceFrequency;
     }
 
     if ((args->cmdFlags & PB_CMD_SETCLOCK) && (args->settimeResult)) {
@@ -231,46 +241,57 @@ void protobuf_format_answer(protobuf_cb_output_data_writer writer, uint32_t id,
 
     if ((responce.has_getMeasureTimeResponce = (args->cmdFlags & PB_CMD_SETMEASURE_TIME))) {
         ru_sktbelpa_r4_24_2_GetMeasureTimeResponce *result = &responce.getMeasureTimeResponce;
-        ru_sktbelpa_r4_24_2_GetMeasureTime_message* chanelgetMeasureTime_item = result->chanelgetMeasureTime;
+
         result->chanelgetMeasureTime_count = 0;
-        for(uint i = 0; i < FREQMETERS_COUNT; ++i) {
-            struct sSetMeasureTimeresult* chanel_result = args->setMeasureTimeResults;
-            if (chanel_result[i].chanel >= 0) {
+        for(uint32_t i = 0; i < FREQMETERS_COUNT; ++i) {
+            struct sSetMeasureTimeresult* chanel_req_info = &args->setMeasureTimeResults[i];
+            ru_sktbelpa_r4_24_2_GetMeasureTime_message *chanelgetMeasureTime_item = &result->chanelgetMeasureTime[i];
+
+            if (chanel_req_info->chanel >= 0) {
                 ++result->chanelgetMeasureTime_count;
-                chanel_result[i].result |=
-                        fm_getMeasureTime_ms(chanel_result[i].chanel, &chanelgetMeasureTime_item[i].measureTime_ms);
-                if ((enum enSetMeasureTimeError)(chanelgetMeasureTime_item[i].status = chanel_result[i].result)
-                        != ERR_MT_OK)
+                chanel_req_info->result |=
+                        fm_getMeasureTime_ms(chanel_req_info->chanel, &chanelgetMeasureTime_item->measureTime_ms);
+
+                if ((enum enSetMeasureTimeError)(chanelgetMeasureTime_item->status = chanel_req_info->result)
+                        != ERR_MT_OK) {
                     responce.Global_status = ru_sktbelpa_r4_24_2_STATUS_ERRORS_IN_SUBCOMMANDS;
-                chanelgetMeasureTime_item[i].chanelNumber = chanel_result[i].chanel;
+                    chanelgetMeasureTime_item->chanelEnabled = false;
+                } else {
+                    chanelgetMeasureTime_item->chanelEnabled = fm_isChanelEnabled(chanel_req_info->chanel);
+                }
+
+                chanelgetMeasureTime_item->chanelNumber = chanel_req_info->chanel;
             }
         }
     }
 
     if ((responce.has_getMeasureResultsResponce = (args->cmdFlags & PB_CMD_GETRESULTS))) {
+        const uint32_t chanels_result_send_mask = args->result_send.chanels_result_send_mask;
+        const uint32_t chanels_result_verbose_mask = args->result_send.chanels_result_verbose_mask;
         ru_sktbelpa_r4_24_2_GetMeasureResultsResponce* getMeasureResultsResponce = &responce.getMeasureResultsResponce;
         ru_sktbelpa_r4_24_2_MeasureResult* results = getMeasureResultsResponce->results;
         pb_size_t* results_count = &getMeasureResultsResponce->results_count;
+
         *results_count = 0;
         for (uint chanel = 0; chanel < FREQMETERS_COUNT; ++chanel) {
-            if (args->result_send.chanels_result_send_mask & (1 << chanel)) {
-                ru_sktbelpa_r4_24_2_MeasureResult *r = &results[*results_count];
+            if (chanels_result_send_mask & (1 << chanel)) {
+                ru_sktbelpa_r4_24_2_MeasureResult *res_item = &results[*results_count];
                 struct freqmeter_chanel chanel_data;
 
                 fm_getCopyOffreqmeterState(chanel, &chanel_data);
-                r->chanelNumber = chanel;
-                memcpy(&r->timestamp, &chanel_data.timestamp, sizeof(struct timespec));
-                r->chanelEnabled = chanel_data.enabled;
-                r->chanelInputSignalPresent = chanel_data.signal_present;
+                res_item->chanelNumber = chanel;
+                memcpy(&res_item->timestamp, &chanel_data.timestamp, sizeof(struct timespec));
+                res_item->chanelEnabled = chanel_data.enabled;
+                res_item->chanelInputSignalPresent = chanel_data.signal_present;
 
-                if (args->result_send.chanels_result_verbose_mask & (1 << chanel)) { // verbose
-                    r->has_master_counter_start_pos = true;
-                    r->has_master_counter_stop_pos = true;
-                    r->has_measureCyclesCounter = true;
+                if (chanels_result_verbose_mask & (1 << chanel)) { // verbose
+                    res_item->has_master_counter_start_pos = true;
+                    res_item->has_master_counter_stop_pos = true;
+                    res_item->has_measureCyclesCounter = true;
 
-                    r->master_counter_start_pos = chanel_data.res_start_v;
-                    r->master_counter_stop_pos = chanel_data.res_stop_v;
-                    r->measureCyclesCounter = chanel_data.irq_count;
+                    res_item->master_counter_start_pos = chanel_data.res_start_v;
+                    res_item->master_counter_stop_pos = chanel_data.res_stop_v;
+                    res_item->measureCyclesCounter = chanel_data.irq_count;
                 }
 
                 *results_count += 1;

@@ -76,7 +76,7 @@ if (PROTOC_EXECUTABLE)
             ${CMAKE_CURRENT_BINARY_DIR}
         )
 
-    find_program(PYTEST py.test)
+    find_program(PYTEST NAMES py.test2 py.test)
     if (PYTEST)
         add_custom_target(pb_pytest.run
             COMMAND

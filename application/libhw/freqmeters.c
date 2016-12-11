@@ -264,3 +264,7 @@ void fm_getCopyOffreqmeterState(uint8_t chanel, struct freqmeter_chanel *chanel_
     irq_enable(IS_FREQMETERS);
 #endif
 }
+
+bool fm_isChanelEnabled(uint8_t chanel) {
+    return freqmeters[chanel].enabled;
+}

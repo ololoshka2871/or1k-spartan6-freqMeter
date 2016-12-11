@@ -19,7 +19,7 @@ message Request {
     optional WriteSettingsReq   writeSettingsReq = 4;
     // Перезвгрузка
     optional RebootRequest      rebootRequest = 5;
-    // установка времени измерения
+    // установка времени измерения/разрешения работы канала
     optional SetMeasureTimeRequest      setMeasureTimeRequest = 6;
     // Запрс результатов измерений
     optional GetMeasureResultsReq       getMeasureResultsReq = 7;
@@ -41,7 +41,7 @@ message Response {
 
     // Все настройки, если таковые были запрошены
     optional SettingsResponse   settings = 5;
-    // Ответ на запрос установки времени измерения
+    // Ответ на запрос установки времени измерения/разрешения работы канала
     optional GetMeasureTimeResponce     getMeasureTimeResponce = 6;
     // Ответ с результатами измерений
     optional GetMeasureResultsResponce  getMeasureResultsResponce = 7;
@@ -86,7 +86,7 @@ message WriteSettingsReq {
     optional fixed32            setIPDefaultGateway = 3;
     // установить MAC-адрес устройству
     optional fixed64            setMAC_Addr = 4;
-    // разрешить/запрерить устрйству использовать протокол DHCP для определения
+    // разрешить/запретить устройству использовать протокол DHCP для определения
     // сетевых настроек автоматически при загрузке.
     optional bool               setUseDHCP = 5;
 
@@ -131,21 +131,22 @@ message RebootRequest {
 
 //-----------------------------------------------------------------------------
 
-// Запрос установки времени измерения
+// Запрос установки времени измерения/разрешения работы канала
 message SetMeasureTime_message {
     // Номер канала
     required fixed32            chanelNumber = 1;
     // время измерения канала, если установить, или это поля отсуствует - прочитать
     optional fixed32            measureTime_ms = 2;
-    // TODO: chanel enable
+    // Флаг включения/выключения канала
+    optional bool               chanelEnabled = 3;
 }
 
-// общий запрос установки мремени измерения
+// общий запрос установки времени измерения/разрешения работы канала
 message SetMeasureTimeRequest {
     repeated SetMeasureTime_message chanelSetMeasureTime = 1;
 }
 
-// ответ времени измерения
+// ответ времени измерения/разрешения работы канала
 message GetMeasureTime_message {
     enum ErrorDescription {
         OK = 0; // нет ошибки
@@ -157,11 +158,13 @@ message GetMeasureTime_message {
     required fixed32            chanelNumber = 2;
     // код ошибки
     required ErrorDescription   status = 1;
-    // время измерения канала (после изменения)
+    // установленное время измерения канала
     required fixed32            measureTime_ms = 3;
+    // Флаг включения/выключения канала
+    required bool               chanelEnabled = 4;
 }
 
-// общий ответ чтения ремени измерения
+// общий ответ чтения времени измерения/разрешения работы канала
 message GetMeasureTimeResponce {
     repeated GetMeasureTime_message chanelgetMeasureTime = 1;
 }
@@ -176,7 +179,7 @@ message GetMeasureResult_message {
     required bool               verbose = 2             [default = false];
 }
 
-// общий запрос результаов измерений
+// общий запрос результатов измерений
 message GetMeasureResultsReq {
     repeated GetMeasureResult_message chanels = 1;
 }
@@ -188,14 +191,14 @@ message MeasureResult {
     // таймштамп - когда измерение было фактически произведено
     required Timestamp          timestamp = 2;
 
-    // конал включен
+    // канал включен
     required bool               chanelEnabled = 4;
     // входной сигнал обнаружен
     required bool               chanelInputSignalPresent = 5;
 
     // значение счетчика опорной частоты в начале измерения
     optional fixed32            master_counter_start_pos = 6;
-    // значние счктчика опрной частоты в конце измерения
+    // знание считчика опорной частоты в конце измерения
     optional fixed32            master_counter_stop_pos = 7;
     // количество отработанных циклов измерения
     optional fixed32            measureCyclesCounter = 8;
