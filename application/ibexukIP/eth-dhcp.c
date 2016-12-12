@@ -171,12 +171,16 @@ void process_dhcp (void)
 
 		//TRY AND OPEN A UDP SOCKET
 		remote_device_info.ip_address.Val = 0xffffffff;			//Set to broadcast
+#ifdef PACKED_STRUCT
+        memset(remote_device_info.mac_address.v, 0xff, MAC_ADDR_LENGTH);
+#else
 		remote_device_info.mac_address.v[0] = 0xff;
 		remote_device_info.mac_address.v[1] = 0xff;
 		remote_device_info.mac_address.v[2] = 0xff;
 		remote_device_info.mac_address.v[3] = 0xff;
 		remote_device_info.mac_address.v[4] = 0xff;
 		remote_device_info.mac_address.v[5] = 0xff;
+#endif
 		dhcp_socket = udp_open_socket(&remote_device_info, DHCPCLIENT_PORT, DHCPSERVER_PORT);
 
 		if (dhcp_socket != UDP_INVALID_SOCKET)
@@ -258,12 +262,16 @@ void process_dhcp (void)
 		//Address must be broadcast for a request (after discover) as a DHCP server will not reply if addressed by its IP address until it has ACK'ed the first request
 		//When renewing the individual IP address can be used but there isn't any reason to so we always send broadcast
 		remote_device_info.ip_address.Val = 0xffffffff;			//Set to broadcast
+#ifdef PACKED_STRUCT
+        memset(remote_device_info.mac_address.v, 0xff, MAC_ADDR_LENGTH);
+#else
 		remote_device_info.mac_address.v[0] = 0xff;
 		remote_device_info.mac_address.v[1] = 0xff;
 		remote_device_info.mac_address.v[2] = 0xff;
 		remote_device_info.mac_address.v[3] = 0xff;
 		remote_device_info.mac_address.v[4] = 0xff;
 		remote_device_info.mac_address.v[5] = 0xff;
+#endif
 
 		dhcp_socket = udp_open_socket(&remote_device_info, DHCPCLIENT_PORT, DHCPSERVER_PORT);
 
@@ -621,10 +629,14 @@ BYTE dhcp_rx_packet (void)
 		udp_read_next_rx_byte(&data);
 
 	//GET YOUR (CLIENT) IP ADDRESS (The IP address being assigned to us)
+#if 1
+    udp_read_rx_array(&received_ip.v[0], IP_ADDR_LENGTH);
+#else
 	udp_read_next_rx_byte(&received_ip.v[0]);
 	udp_read_next_rx_byte(&received_ip.v[1]);
 	udp_read_next_rx_byte(&received_ip.v[2]);
 	udp_read_next_rx_byte(&received_ip.v[3]);
+#endif
 
 	//GET SERVER IP [4]
 	//GET RELAY AGENT IP [4]
@@ -759,12 +771,16 @@ BYTE dhcp_rx_packet (void)
 	{
 		//----- WE ARE WAITING FOR AN OFFER AND IT HAS BEEN RECEIVED -----
 		//Store the DHCP server mac address
+#ifdef PACKED_STRUCT
+        memcpy(dhcp_server_mac_addr.v, udp_socket[dhcp_socket].remote_device_info.mac_address.v, MAC_ADDR_LENGTH);
+#else
 		dhcp_server_mac_addr.v[0] = udp_socket[dhcp_socket].remote_device_info.mac_address.v[0];
 		dhcp_server_mac_addr.v[1] = udp_socket[dhcp_socket].remote_device_info.mac_address.v[1];
 		dhcp_server_mac_addr.v[2] = udp_socket[dhcp_socket].remote_device_info.mac_address.v[2];
 		dhcp_server_mac_addr.v[3] = udp_socket[dhcp_socket].remote_device_info.mac_address.v[3];
 		dhcp_server_mac_addr.v[4] = udp_socket[dhcp_socket].remote_device_info.mac_address.v[4];
 		dhcp_server_mac_addr.v[5] = udp_socket[dhcp_socket].remote_device_info.mac_address.v[5];
+#endif
 
 		//Store the offered IP address
 		dhcp_offer_ip_addr.Val = received_ip.Val;

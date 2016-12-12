@@ -76,6 +76,7 @@ WebSocket-Location: ws://localhost:9876/\r\
 Sec-WebSocket-Accept: ";
 #endif
 
+
 static const char websoc_ansver_part2[] =
 "WebSocket-Protocol: sample\r\n\r\n";
 

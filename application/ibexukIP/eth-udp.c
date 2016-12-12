@@ -231,6 +231,10 @@ BYTE udp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 	if (udp_socket[udp_socket_number].remote_device_info.ip_address.Val == 0xffffffff)
 	{
 		//Socket has broadcast IP address so is waiting for communications from anyone - copy the senders mac and ip to the socket
+#ifdef PACKED_STRUCT
+        memcpy(udp_socket[udp_socket_number].remote_device_info.mac_address.v,
+               sender_device_info->mac_address.v, MAC_ADDR_LENGTH);
+#else
 		udp_socket[udp_socket_number].remote_device_info.mac_address.v[0] = sender_device_info->mac_address.v[0];
 		udp_socket[udp_socket_number].remote_device_info.mac_address.v[1] = sender_device_info->mac_address.v[1];
 		udp_socket[udp_socket_number].remote_device_info.mac_address.v[2] = sender_device_info->mac_address.v[2];
@@ -238,6 +242,7 @@ BYTE udp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 		udp_socket[udp_socket_number].remote_device_info.mac_address.v[4] = sender_device_info->mac_address.v[4];
 		udp_socket[udp_socket_number].remote_device_info.mac_address.v[5] = sender_device_info->mac_address.v[5];
 		udp_socket[udp_socket_number].remote_device_info.ip_address.Val = sender_device_info->ip_address.Val;
+#endif
 	}
 		
 	//Store the remote port that should be replied to
@@ -334,23 +339,32 @@ BYTE udp_open_socket (DEVICE_INFO *device_info, WORD local_port, WORD remote_por
 			if (device_info)
 			{
 				//Use the supplied device info
+#ifdef PACKED_STRUCT
+                memcpy(udp_socket[socket].remote_device_info.mac_address.v,
+                       device_info->mac_address.v, MAC_ADDR_LENGTH);
+#else
 				udp_socket[socket].remote_device_info.mac_address.v[0] = device_info->mac_address.v[0];
 				udp_socket[socket].remote_device_info.mac_address.v[1] = device_info->mac_address.v[1];
 				udp_socket[socket].remote_device_info.mac_address.v[2] = device_info->mac_address.v[2];
 				udp_socket[socket].remote_device_info.mac_address.v[3] = device_info->mac_address.v[3];
 				udp_socket[socket].remote_device_info.mac_address.v[4] = device_info->mac_address.v[4];
 				udp_socket[socket].remote_device_info.mac_address.v[5] = device_info->mac_address.v[5];
+#endif
 				udp_socket[socket].remote_device_info.ip_address.Val = device_info->ip_address.Val;
 			}
 			else
 			{
 				//Device info not supplied so set to broadcast (tx to all, rx from anyone)
+#ifdef PACKED_STRUCT
+                memset(udp_socket[socket].remote_device_info.mac_address.v, 0xff, MAC_ADDR_LENGTH);
+#else
 				udp_socket[socket].remote_device_info.mac_address.v[0] = 0xff;
 				udp_socket[socket].remote_device_info.mac_address.v[1] = 0xff;
 				udp_socket[socket].remote_device_info.mac_address.v[2] = 0xff;
 				udp_socket[socket].remote_device_info.mac_address.v[3] = 0xff;
 				udp_socket[socket].remote_device_info.mac_address.v[4] = 0xff;
 				udp_socket[socket].remote_device_info.mac_address.v[5] = 0xff;
+#endif
 				udp_socket[socket].remote_device_info.ip_address.Val = 0xffffffff;
 			}
 			return (socket);

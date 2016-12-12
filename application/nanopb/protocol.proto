@@ -175,8 +175,6 @@ message GetMeasureTimeResponce {
 message GetMeasureResult_message {
     // номер канала
     required fixed32            chanelNumber = 1;
-    // Вывезти подробные данные
-    required bool               verbose = 2             [default = false];
 }
 
 // общий запрос результатов измерений
@@ -191,17 +189,10 @@ message MeasureResult {
     // таймштамп - когда измерение было фактически произведено
     required Timestamp          timestamp = 2;
 
-    // канал включен
+    // канал включен?
     required bool               chanelEnabled = 4;
     // входной сигнал обнаружен
     required bool               chanelInputSignalPresent = 5;
-
-    // значение счетчика опорной частоты в начале измерения
-    optional fixed32            master_counter_start_pos = 6;
-    // знание считчика опорной частоты в конце измерения
-    optional fixed32            master_counter_stop_pos = 7;
-    // количество отработанных циклов измерения
-    optional fixed32            measureCyclesCounter = 8;
 }
 
 //  общий ответ с результатами измерений

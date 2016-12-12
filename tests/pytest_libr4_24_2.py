@@ -374,30 +374,30 @@ def test_set_measure_times(device, chanels_set_mt):
 # ############# read values ################################
 
 @pytest.mark.parametrize("chanels_list",
-    [(0, False, True),
-     (13, True, True),
-     ((1, False, True), (2, False, True)),
-     ((6, True, True), (65, False, False), (7, False, True)),
-     (-1, False, False),
-     ((0, True, True), (1, True, True), (2, True, True), (3, True, True), (4, True, True), (5, True, True),
-      (6, True, True), (7, True, True), (8, True, True), (9, True, True), (10, True, True), (10, True, True),
-      (12, True, True), (13, True, True), (14, True, True), (15, True, True), (16, True, True), (17, True, True),
-      (18, True, True), (19, True, True), (20, True, True), (21, True, True), (22, True, True), (23, True, True))
+    [(0, True),
+     (13, True),
+     ((1, True), (2, True)),
+     ((6, True), (65, False), (7, True)),
+     (-1, False),
+     ((0, True), (1, True), (2, True), (3, True), (4, True), (5, True),
+      (6, True), (7, True), (8, True), (9, True), (10, True), (10, True),
+      (12, True), (13, True), (14, True), (15, True), (16, True), (17, True),
+      (18, True), (19, True), (20, True), (21, True), (22, True), (23, True))
     ])
 def test_get_measure_result(device, chanels_list):
     if type(chanels_list[0]) is tuple:
-        ch2v_dict = {}
         exp_res = {}
+        chlist = []
         for v in chanels_list:
-            ch2v_dict[v[0]] = v[1]
-            exp_res[v[0]] = v[2]
+            exp_res[v[0]] = v[1]
+            chlist.append(v[0])
     else:
-        ch2v_dict = {chanels_list[0]: chanels_list[1]}
-        exp_res = {chanels_list[0]: chanels_list[2]}
+        exp_res = {chanels_list[0]: chanels_list[1]}
+        chlist = [chanels_list[0],]
 
     expected_result = reduce(lambda x, y: x & y, exp_res.values())
     try:
-        req = libr4_24_2.r4_24_2_requestBuilder.build_getmeasureresults_request(ch2v_dict)
+        req = libr4_24_2.r4_24_2_requestBuilder.build_getmeasureresults_request(chlist)
     except Exception as e:
         if not expected_result:
             return  # ok
@@ -414,12 +414,6 @@ def test_get_measure_result(device, chanels_list):
     resuts = resp.getMeasureResultsResponce.results._values
 
     assert (len(resuts) == len(exp_res)) == expected_result
-
-    for ch in resuts:
-        assert ch.chanelNumber in exp_res.keys()
-        assert ch.HasField('master_counter_start_pos') == ch2v_dict[ch.chanelNumber]
-        assert ch.HasField('master_counter_stop_pos') == ch2v_dict[ch.chanelNumber]
-        assert ch.HasField('measureCyclesCounter') == ch2v_dict[ch.chanelNumber]
 
 
 # ############ Test reboot ##################################

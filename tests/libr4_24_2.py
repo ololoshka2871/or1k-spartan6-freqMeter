@@ -119,10 +119,9 @@ class r4_24_2_requestBuilder:
         req = r4_24_2_requestBuilder.build_request()
 
         product = protocol_pb2.GetMeasureResultsReq()
-        for key in chanels.keys():
+        for ch in chanels:
             chanel = product.chanels.add()
-            chanel.chanelNumber = key
-            chanel.verbose = chanels[key]
+            chanel.chanelNumber = ch
 
         req.getMeasureResultsReq.CopyFrom(product)
         return req

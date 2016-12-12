@@ -29,7 +29,6 @@ struct sSetMeasureTimeresult {
 
 struct sMeasureResultCmdOpts {
     uint32_t chanels_result_send_mask;
-    uint32_t chanels_result_verbose_mask;
     bool Request_valid;
 };
 

@@ -104,7 +104,6 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
         settings_update_crc32(&currentSettings);
         if ((ansCookie->settingResult =
                 Settings_validate(&currentSettings, Settings_read)) == SV_ERR_OK) {
-            // ok
             memcpy(&settings, &currentSettings, sizeof(struct sSettings));
             Settings_write(&settings);
             // to apply network settings reboot needed
@@ -127,7 +126,7 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
                 struct sSetMeasureTimeresult* current_res = &setMeasureTimeResults[i];
                 uint32_t ch = current->chanelNumber;
                 current_res->chanel = ch;
-                if (ch > FREQMETERS_COUNT) {
+                if (ch >= FREQMETERS_COUNT) {
                     current_res->chanel = 0;
                     current_res->result = ERR_MT_INVALID_CHANEL;
                 } else {
@@ -150,7 +149,6 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
         struct sMeasureResultCmdOpts* result_send = &ansCookie->result_send;
 
         result_send->chanels_result_send_mask = 0;
-        result_send->chanels_result_verbose_mask = 0;
         result_send->Request_valid = true;
 
         const pb_size_t chanels_count = request.getMeasureResultsReq.chanels_count;
@@ -164,8 +162,6 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
             }
             uint32_t chanel_bit = 1 << ch;
             result_send->chanels_result_send_mask |= chanel_bit;
-            if (current_chanel->verbose)
-                result_send->chanels_result_verbose_mask |= chanel_bit;
         }
     }
 
@@ -267,7 +263,6 @@ void protobuf_format_answer(protobuf_cb_output_data_writer writer, uint32_t id,
 
     if ((responce.has_getMeasureResultsResponce = (args->cmdFlags & PB_CMD_GETRESULTS))) {
         const uint32_t chanels_result_send_mask = args->result_send.chanels_result_send_mask;
-        const uint32_t chanels_result_verbose_mask = args->result_send.chanels_result_verbose_mask;
         ru_sktbelpa_r4_24_2_GetMeasureResultsResponce* getMeasureResultsResponce = &responce.getMeasureResultsResponce;
         ru_sktbelpa_r4_24_2_MeasureResult* results = getMeasureResultsResponce->results;
         pb_size_t* results_count = &getMeasureResultsResponce->results_count;
@@ -281,20 +276,10 @@ void protobuf_format_answer(protobuf_cb_output_data_writer writer, uint32_t id,
                 fm_getCopyOffreqmeterState(chanel, &chanel_data);
                 res_item->chanelNumber = chanel;
                 memcpy(&res_item->timestamp, &chanel_data.timestamp, sizeof(struct timespec));
+                clock_purify_time((struct timespec*)&res_item->timestamp);
                 res_item->chanelEnabled = chanel_data.enabled;
                 res_item->chanelInputSignalPresent = chanel_data.signal_present;
-
-                if (chanels_result_verbose_mask & (1 << chanel)) { // verbose
-                    res_item->has_master_counter_start_pos = true;
-                    res_item->has_master_counter_stop_pos = true;
-                    res_item->has_measureCyclesCounter = true;
-
-                    res_item->master_counter_start_pos = chanel_data.res_start_v;
-                    res_item->master_counter_stop_pos = chanel_data.res_stop_v;
-                    res_item->measureCyclesCounter = chanel_data.irq_count;
-                }
-
-                *results_count += 1;
+                ++(*results_count);
             }
         }
 
