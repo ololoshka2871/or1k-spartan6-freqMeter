@@ -315,7 +315,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 //----- UDP SETUP -----
-#define UDP_NO_OF_AVAILABLE_SOCKETS		4		//<<<<< SETUP FOR A NEW APPLICATION
+#define UDP_NO_OF_AVAILABLE_SOCKETS		2		//<<<<< SETUP FOR A NEW APPLICATION
 												//The number of UDP sockets available to the application (each socket uses sizeof(UDP_SOCKET_INFO) bytes of ram)
 												//Note that other stack components that use UDP will use sockets from this pool.
 

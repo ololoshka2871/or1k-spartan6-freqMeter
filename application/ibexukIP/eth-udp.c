@@ -241,8 +241,8 @@ BYTE udp_process_rx (DEVICE_INFO *sender_device_info, IP_ADDR *destination_ip_ad
 		udp_socket[udp_socket_number].remote_device_info.mac_address.v[3] = sender_device_info->mac_address.v[3];
 		udp_socket[udp_socket_number].remote_device_info.mac_address.v[4] = sender_device_info->mac_address.v[4];
 		udp_socket[udp_socket_number].remote_device_info.mac_address.v[5] = sender_device_info->mac_address.v[5];
-		udp_socket[udp_socket_number].remote_device_info.ip_address.Val = sender_device_info->ip_address.Val;
 #endif
+        udp_socket[udp_socket_number].remote_device_info.ip_address.Val = sender_device_info->ip_address.Val;
 	}
 		
 	//Store the remote port that should be replied to
