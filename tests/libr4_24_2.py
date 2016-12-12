@@ -76,7 +76,8 @@ class r4_24_2_requestBuilder:
         Создаёт запрос чтения/записи времени измерения
 
         :param chanels_read: Список каналов, врмя измерения ктороых необходимо прочитать
-        :param chanels_write: dict {номер_канала, время_измерения} ктороых необходимо записать
+        :param chanels_write: dict {номер_канала,
+                {measureTime_ms: <value>, chanelEnabled: <False/True>}} кторых необходимо записать
         :return: объект типа protocol_pb2.Request
         """
         req = r4_24_2_requestBuilder.build_request()
@@ -96,8 +97,11 @@ class r4_24_2_requestBuilder:
         for r in write_set:
             wr = product.chanelSetMeasureTime.add()
             wr.chanelNumber = r
-            wr.measureTime_ms = chanels_write[r]
-
+            d = chanels_write[r]
+            if 'measureTime_ms' in d.keys():
+                wr.measureTime_ms = d['measureTime_ms']
+            if 'chanelEnabled' in d.keys():
+                wr.chanelEnabled = d['chanelEnabled']
             if r in read_set:
                 read_set.remove(r)
 

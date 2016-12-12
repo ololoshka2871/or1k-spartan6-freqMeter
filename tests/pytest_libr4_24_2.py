@@ -341,10 +341,10 @@ def test_set_measure_times(device, chanels_set_mt):
         ch2mt_dict = {}
         exp_res = {}
         for v in chanels_set_mt:
-            ch2mt_dict[v[0]] = v[1]
+            ch2mt_dict[v[0]] = {'measureTime_ms': v[1]}
             exp_res[v[0]] = v[2]
     else:
-        ch2mt_dict = {chanels_set_mt[0]: chanels_set_mt[1]}
+        ch2mt_dict = {chanels_set_mt[0]: {'measureTime_ms': chanels_set_mt[1]}}
         exp_res = {chanels_set_mt[0]: chanels_set_mt[2]}
 
     expected_result = reduce(lambda x, y: x & y, exp_res.values())
@@ -368,7 +368,7 @@ def test_set_measure_times(device, chanels_set_mt):
         ok = (status == protocol_pb2._GETMEASURETIME_MESSAGE_ERRORDESCRIPTION.values_by_name['OK'].number)
         assert ok == exp_res[rc]
         if ok:
-            assert cv == ch2mt_dict[rc]
+            assert cv == ch2mt_dict[rc]['measureTime_ms']
 
 
 # ############# read values ################################
@@ -415,6 +415,37 @@ def test_get_measure_result(device, chanels_list):
 
     assert (len(resuts) == len(exp_res)) == expected_result
 
+
+# ############## chanel disable/enable #####################
+
+@pytest.mark.parametrize("testpattern",
+                         [
+                            # 0,
+                             ~0,
+                            0xA5A5A5A5,
+                            0x5A5A5A5A,
+                            0xFFFF0000,
+                            0x0000FFFF,
+                            0xF0F0F0F0,
+                            0x33333333
+                          ])
+def test_chanel_disable_enable(device, testpattern):
+    write_chanel_enables = {}
+    for i in range(24):
+        write_chanel_enables[i] = {'chanelEnabled': bool(testpattern & (1 << i))}
+
+    req = libr4_24_2.r4_24_2_requestBuilder.build_measure_time_request(chanels_write=write_chanel_enables)
+    resp = device.process_request_sync(req)
+
+    assert resp
+    assert resp.Global_status == protocol_pb2.STATUS.Value('OK')
+
+    results = map(lambda x: (x.chanelNumber, x.chanelEnabled, x.status),
+                         resp.getMeasureTimeResponce.chanelgetMeasureTime._values)
+
+    for ch in results:
+        assert ch[2] == protocol_pb2._GETMEASURETIME_MESSAGE_ERRORDESCRIPTION.values_by_name['OK'].number
+        assert bool(testpattern & (1 << ch[0])) == ch[1]
 
 # ############ Test reboot ##################################
 
