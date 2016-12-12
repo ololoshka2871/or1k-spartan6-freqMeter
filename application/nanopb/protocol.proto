@@ -204,6 +204,8 @@ message MeasureResult {
     required bool               chanelEnabled = 4;
     // входной сигнал обнаружен
     required bool               chanelInputSignalPresent = 5;
+    // Частота [Гц]
+    required double             Frequency = 6;
 }
 
 //  общий ответ с результатами измерений

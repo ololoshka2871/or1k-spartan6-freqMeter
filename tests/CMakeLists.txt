@@ -31,6 +31,7 @@
 
 set(PB_TESTER           ${CMAKE_CURRENT_SOURCE_DIR}/pb_tester.py)
 set(PB_PYTEST           ${CMAKE_CURRENT_SOURCE_DIR}/pytest_libr4_24_2.py)
+set(PB_READER           ${CMAKE_CURRENT_SOURCE_DIR}/pb_reader.py)
 
 add_custom_target(tests.editor
     SOURCES
@@ -40,6 +41,7 @@ add_custom_target(tests.editor
         ws_tester.html
         ${PB_TESTER}
         ${PB_PYTEST}
+        ${PB_READER}
     )
 
 find_program(PROTOC_EXECUTABLE protoc)
@@ -72,6 +74,17 @@ if (PROTOC_EXECUTABLE)
             ${CMAKE_COMMAND} -E env "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}" ${PYTHON_EXECUTABLE} ${PB_TESTER}
         DEPENDS
             ${PB_TESTER} ${protocol_python_module}
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_BINARY_DIR}
+        )
+
+    math(EXPR chanel_mask "(1 << ${F_INPUTS_COUNT}) - 1")
+    add_custom_target(pb_reader.run
+        COMMAND
+            ${CMAKE_COMMAND} -E env "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}" ${PYTHON_EXECUTABLE} ${PB_READER}
+            -c ${chanel_mask}
+        DEPENDS
+            ${PB_READER} ${protocol_python_module}
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_BINARY_DIR}
         )

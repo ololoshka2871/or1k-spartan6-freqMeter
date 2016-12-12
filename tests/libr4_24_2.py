@@ -5,6 +5,7 @@ import socket
 import select
 import threading
 import random
+import time
 
 
 class TimeoutError(RuntimeError):
@@ -239,5 +240,29 @@ class r4_24_2_io:
         thread = threading.Thread(target=self.async_listener, args=(self, request, callback, timeout_sec))
         thread.start()
 
+    def ch_ctl(self, channels, propertys):
+        ch2enable = {}
+        for ch in channels:
+            ch2enable[ch] = propertys
 
+        request = r4_24_2_requestBuilder.build_measure_time_request(chanels_write=ch2enable)
+        response = self.process_request_sync(request)
+        if response.Global_status != protocol_pb2.STATUS.Value('OK'):
+            raise RuntimeError('Error {} then trying to set clock on device'.format(response.Global_status))
 
+    def enable_channels(self, chanels):
+        self.ch_ctl(chanels, {'chanelEnabled': True})
+
+    def disable_channels(self, chanels):
+        self.ch_ctl(chanels, {'chanelEnabled': False})
+
+    def setClock(self, t):
+        request = r4_24_2_requestBuilder.build_set_time_request()
+        request.setClock.sec = long(t)
+        request.setClock.nsec = long((t - request.setClock.sec) * 1000000000)
+        response = self.process_request_sync(request)
+
+        if response.Global_status != protocol_pb2.STATUS.Value('OK'):
+            raise RuntimeError('Error {} then trying to set clock on device'.format(response.Global_status))
+
+        return response.timestamp.sec + response.timestamp.nsec / 1000000000.0

@@ -285,6 +285,7 @@ void protobuf_format_answer(protobuf_cb_output_data_writer writer, uint32_t id,
                 clock_purify_time((struct timespec*)&res_item->timestamp);
                 res_item->chanelEnabled = chanel_data.enabled;
                 res_item->chanelInputSignalPresent = chanel_data.signal_present;
+                res_item->Frequency = chanel_data.F;
                 ++(*results_count);
             }
         }
