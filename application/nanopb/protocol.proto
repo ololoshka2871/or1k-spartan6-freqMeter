@@ -3,6 +3,17 @@ syntax = "proto2";
 package ru.sktbelpa.r4_24_2;
 
 
+enum INFO {
+    // верися этого протокола
+    PROTOCOL_VERSION = 2;
+
+    // идентификатор устройства РЧ24-2.0
+    R4_24_2_ID = 0xE001;
+
+    // ИД, преднозначенный для поиска
+    ID_DISCOVER = 0xFFFF;
+}
+
 //------------------------------------------------------------------------------
 
 // Общий запрос: Вызывающий всегда посылает только этот запрос, который содержит
@@ -10,19 +21,21 @@ package ru.sktbelpa.r4_24_2;
 message Request {
     // Идентификатор запроса. Служит для определения пары запрос/ответ
     required fixed32            id = 1;
-    // версия протокола
-    required fixed32            version = 2;
+    // id устройства (идентификация)
+    required fixed32            deviceID = 2;
+    // версия протокола запрашивающего
+    required fixed32            protocolVersion = 3;
 
     // Таймштамп клиента. Если он есть в сообщении, то часы устройства будут установлены в соответствии с ним
-    optional Timestamp          setClock = 3;
+    optional Timestamp          setClock = 4;
     // Установка/Запрос настроек
-    optional WriteSettingsReq   writeSettingsReq = 4;
+    optional WriteSettingsReq   writeSettingsReq = 5;
     // Перезвгрузка
-    optional RebootRequest      rebootRequest = 5;
+    optional RebootRequest      rebootRequest = 6;
     // установка времени измерения/разрешения работы канала
-    optional SetMeasureTimeRequest      setMeasureTimeRequest = 6;
+    optional SetMeasureTimeRequest      setMeasureTimeRequest = 7;
     // Запрс результатов измерений
-    optional GetMeasureResultsReq       getMeasureResultsReq = 7;
+    optional GetMeasureResultsReq       getMeasureResultsReq = 8;
 }
 
 //------------------------------------------------------------------------------
@@ -32,26 +45,24 @@ message Request {
 message Response {
     // Идентификатор запроса, которому соответствует этот ответ
     required fixed32            id = 1;
+    // id устройства (идентификация)
+    required fixed32            deviceID = 2;
     // версия протокола
-    required fixed32            version = 2;
+    required fixed32            protocolVersion = 3;
     // общий статус выполнения
-    required STATUS             Global_status = 3;
+    required STATUS             Global_status = 4;
     // таймштамп устройства, когда фактически был сгененрирован ответ
-    required Timestamp          timestamp = 4;
+    required Timestamp          timestamp = 5;
 
     // Все настройки, если таковые были запрошены
-    optional SettingsResponse   settings = 5;
+    optional SettingsResponse   settings = 6;
     // Ответ на запрос установки времени измерения/разрешения работы канала
-    optional GetMeasureTimeResponce     getMeasureTimeResponce = 6;
+    optional GetMeasureTimeResponce     getMeasureTimeResponce = 7;
     // Ответ с результатами измерений
-    optional GetMeasureResultsResponce  getMeasureResultsResponce = 7;
+    optional GetMeasureResultsResponce  getMeasureResultsResponce = 8;
 }
 
 //------------------------------------------------------------------------------
-
-enum INFO {
-    PROTOCOL_VERSION = 1;
-}
 
 // код выполнения операции
 enum STATUS {

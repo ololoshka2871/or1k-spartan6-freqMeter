@@ -85,17 +85,21 @@ void process_protobuf_server() {
         //----- PROCESS SOCKET -----
         if (udp_check_socket_for_rx(our_udp_socket))
         {
-            enum enProtobufServer_state newstate;
-            if (protobuf_handle_request(udp_read_rx_array, &transaction_id,
-                                        &cookie) == PB_OK)
-                newstate = SM_TX_RESPONSE;
-            else
-                newstate = SM_TX_ERROR_MSG;
+            switch (protobuf_handle_request(udp_read_rx_array, &transaction_id,
+                                            &cookie)) {
+            case PB_OK:
+                our_udp_server_state = SM_TX_RESPONSE;
+                break;
+            case PB_SKIP:
+                SOCK_RESET(our_udp_socket);
+                break;
+            default:
+                our_udp_server_state = SM_TX_ERROR_MSG;
+                break;
+            }
 
             //DUMP THE PACKET
             udp_dump_rx_packet();
-            //SEND RESPONSE
-            our_udp_server_state = newstate;
         }
         return;
     case SM_TX_RESPONSE:

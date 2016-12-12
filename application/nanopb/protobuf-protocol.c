@@ -76,7 +76,12 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
         return PB_INPUT_MESSAGE_INCORRECT;
     }
 
+    if ((request.deviceID != ru_sktbelpa_r4_24_2_INFO_R4_24_2_ID) &&
+            (request.deviceID != ru_sktbelpa_r4_24_2_INFO_ID_DISCOVER))
+        return PB_SKIP;
+
     *pId = request.id;
+
     ansCookie->cmdFlags = PB_CMD_PONG;
 
     if (request.has_writeSettingsReq) {
@@ -180,7 +185,8 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
 
 static void fill_generic_fields(ru_sktbelpa_r4_24_2_Response *responce) {
     clock_gettime(0, &responce->timestamp);
-    responce->version = ru_sktbelpa_r4_24_2_INFO_PROTOCOL_VERSION;
+    responce->deviceID = ru_sktbelpa_r4_24_2_INFO_R4_24_2_ID;
+    responce->protocolVersion = ru_sktbelpa_r4_24_2_INFO_PROTOCOL_VERSION;
 }
 
 

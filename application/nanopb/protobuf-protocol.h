@@ -12,6 +12,7 @@
 enum enProtobufResult {
     PB_OK = 0,
     PB_INPUT_MESSAGE_INCORRECT = 1,
+    PB_SKIP = 2,
 };
 
 enum enProtobufCMDFlags {

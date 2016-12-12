@@ -21,7 +21,8 @@ class r4_24_2_requestBuilder:
         """
         req = protocol_pb2.Request()
         req.id = random.randrange(0xffffffff)
-        req.version = protocol_pb2.INFO.Value('PROTOCOL_VERSION')
+        req.protocolVersion = protocol_pb2.INFO.Value('PROTOCOL_VERSION')
+        req.deviceID = protocol_pb2.INFO.Value('ID_DISCOVER')
         return req
 
     @staticmethod
@@ -205,7 +206,9 @@ class r4_24_2_io:
                 except Exception:
                     continue
 
-                if (response.id == request.id) and (adr[0] == self.address):
+                if (response.id == request.id) and (adr[0] == self.address)\
+                        and response.protocolVersion <= protocol_pb2.INFO.Value('PROTOCOL_VERSION')\
+                        and response.deviceID == protocol_pb2.INFO.Value('R4_24_2_ID'):
                     return response  # ok
             timeout_sec -= self.base_timeout
 
