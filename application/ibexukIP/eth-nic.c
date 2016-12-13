@@ -231,10 +231,11 @@ void nic_write_next_byte (BYTE data) {
 //*************************************
 //*************************************
 //(nic_setup_tx must have already been called)
-void nic_write_array (BYTE *array_buffer, WORD array_length) {
+BYTE nic_write_array (BYTE *array_buffer, WORD array_length) {
     memcpy(txPointer, array_buffer, array_length);
     txPointer += array_length;
     nic_tx_len += array_length;
+    return TRUE;
 }
 
 //*************************************
@@ -273,6 +274,10 @@ void nic_write_tx_word_at_location (WORD byte_address, WORD data) {
 void write_eth_header_to_nic (MAC_ADDR *remote_mac_address, WORD ethernet_packet_type) {
     struct ethernet_header *hader = (struct ethernet_header *)txPointer;
 
+#ifdef PACKED_STRUCT
+    memcpy(hader->destmac, remote_mac_address->v, MAC_ADDR_LENGTH);
+    memcpy(hader->srcmac, our_mac_address.v, MAC_ADDR_LENGTH);
+#else
     hader->destmac[0] = remote_mac_address->v[0];
     hader->destmac[1] = remote_mac_address->v[1];
     hader->destmac[2] = remote_mac_address->v[2];
@@ -286,6 +291,7 @@ void write_eth_header_to_nic (MAC_ADDR *remote_mac_address, WORD ethernet_packet
     hader->srcmac[3] = our_mac_address.v[3];
     hader->srcmac[4] = our_mac_address.v[4];
     hader->srcmac[5] = our_mac_address.v[5];
+#endif
 
     hader->ethertype = ethernet_packet_type;
 

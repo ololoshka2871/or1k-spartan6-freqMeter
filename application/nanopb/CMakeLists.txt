@@ -75,7 +75,11 @@ set(_NANOPB_INCLUDE_DIRS
 
 add_definitions(-DPB_FIELD_16BIT)
 
-include_directories(${_NANOPB_INCLUDE_DIRS} ${LIBHW_INCLUDE_DIR})
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_definitions(-DPB_NO_ERRMSG)
+endif()
+
+include_directories(${_NANOPB_INCLUDE_DIRS} ${LIBHW_INCLUDE_DIR} ${IBEXUK_IP_INCLUDE_DIRS})
 
 add_library(nanopb STATIC ${NANOPB_SRCS} ${PROTO_SRCS} ${PROTOCOL_SRC})
 

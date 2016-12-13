@@ -34,6 +34,10 @@
 #include <string.h>
 #include <syscall.h>
 
+#include "main.h"
+#include "eth-main.h"
+#include "eth-nic.h"
+
 #include "rtc.h"
 
 #include "settings.h"
@@ -48,30 +52,28 @@
 
 
 static bool RxCallback(pb_istream_t *stream, uint8_t *buf, size_t count) {
-    protobuf_cb_input_data_reader reader = stream->state;
-
-    if (!reader(buf, count)) {
-        stream->bytes_left = 0; //eof
-        return false;
-    } else {
-        return true;
-    }
+    (void)stream;
+    return nic_read_array(buf, count);
 }
 
 
 static bool TxCallback(pb_ostream_t *stream, const uint8_t *buf, size_t count) {
-    protobuf_cb_output_data_writer writer = stream->state;
-    writer(buf, count);
+    uint8_t* pwr = stream->state;
+    if (count == 1)
+        *pwr = *buf;
+    else
+        memcpy(pwr, buf, count);
+    stream->state += count;
     return true;
 }
 
 
 enum enProtobufResult
-protobuf_handle_request(protobuf_cb_input_data_reader reader,
-                        uint32_t *pId, struct sAnsverParameters* ansCookie) {
+protobuf_handle_request(uint16_t rx_data_bytes_remaining,
+                        struct sAnsverParameters* ansCookie) {
     ru_sktbelpa_r4_24_2_Request request;
 
-    pb_istream_t input_stream = { RxCallback, reader, SIZE_MAX };
+    pb_istream_t input_stream = { RxCallback, NULL, rx_data_bytes_remaining };
     if (!pb_decode(&input_stream, ru_sktbelpa_r4_24_2_Request_fields, &request)) {
         return PB_INPUT_MESSAGE_INCORRECT;
     }
@@ -80,7 +82,7 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
             (request.deviceID != ru_sktbelpa_r4_24_2_INFO_ID_DISCOVER))
         return PB_SKIP;
 
-    *pId = request.id;
+    ansCookie->id = request.id;
 
     ansCookie->cmdFlags = PB_CMD_PONG;
 
@@ -184,37 +186,37 @@ protobuf_handle_request(protobuf_cb_input_data_reader reader,
 
 
 static void fill_generic_fields(ru_sktbelpa_r4_24_2_Response *responce) {
+    memset(responce, 0, sizeof(ru_sktbelpa_r4_24_2_Response));
     clock_gettime(0, &responce->timestamp);
     responce->deviceID = ru_sktbelpa_r4_24_2_INFO_R4_24_2_ID;
     responce->protocolVersion = ru_sktbelpa_r4_24_2_INFO_PROTOCOL_VERSION;
 }
 
 
-static void sendResponce(protobuf_cb_output_data_writer writer,
-                         ru_sktbelpa_r4_24_2_Response *responce) {
-    pb_ostream_t output_stream = { TxCallback, writer, SIZE_MAX, 0 };
+static void sendResponce(ru_sktbelpa_r4_24_2_Response *responce) {
+    uint8_t* wrpos = nic_get_wrpointer();
+    pb_ostream_t output_stream = { TxCallback, wrpos, SIZE_MAX, 0 };
     assert(pb_encode(&output_stream, ru_sktbelpa_r4_24_2_Response_fields, responce));
+    udp_writen_directly(wrpos, output_stream.bytes_written);
 }
 
 
-void protobuf_format_error_message(protobuf_cb_output_data_writer writer) {
+void protobuf_format_error_message() {
     ru_sktbelpa_r4_24_2_Response errresponce;
 
     fill_generic_fields(&errresponce);
     errresponce.id = ~0;
     errresponce.Global_status = ru_sktbelpa_r4_24_2_STATUS_PROTOCOL_ERROR;
-    errresponce.has_settings = false;
 
-    sendResponce(writer, &errresponce);
+    sendResponce(&errresponce);
 }
 
 
-void protobuf_format_answer(protobuf_cb_output_data_writer writer, uint32_t id,
-                            struct sAnsverParameters* args) {
-    ru_sktbelpa_r4_24_2_Response responce = ru_sktbelpa_r4_24_2_Response_init_default;
+void protobuf_format_answer(struct sAnsverParameters* args) {
+    ru_sktbelpa_r4_24_2_Response responce;
 
     fill_generic_fields(&responce);
-    responce.id = id;
+    responce.id = args->id;
     responce.Global_status = ru_sktbelpa_r4_24_2_STATUS_OK;
 
     if ((responce.has_settings = (args->cmdFlags & PB_CMD_SETTINGS))) {
@@ -294,5 +296,5 @@ void protobuf_format_answer(protobuf_cb_output_data_writer writer, uint32_t id,
             responce.Global_status = ru_sktbelpa_r4_24_2_STATUS_ERRORS_IN_SUBCOMMANDS;
     }
 
-    sendResponce(writer, &responce);
+    sendResponce(&responce);
 }

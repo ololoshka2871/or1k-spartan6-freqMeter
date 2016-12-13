@@ -56,7 +56,6 @@ enum enProtobufServer_state {
 void process_protobuf_server() {
     static BYTE our_udp_socket = UDP_INVALID_SOCKET;
     static enum enProtobufServer_state our_udp_server_state = SM_OPEN_SOCKET;
-    static DWORD transaction_id;
     static struct sAnsverParameters cookie;
 
     if (!nic_linked_and_ip_address_valid)
@@ -85,7 +84,7 @@ void process_protobuf_server() {
         //----- PROCESS SOCKET -----
         if (udp_check_socket_for_rx(our_udp_socket))
         {
-            switch (protobuf_handle_request(udp_read_rx_array, &transaction_id,
+            switch (protobuf_handle_request(udp_get_rx_data_bytes_remaining(our_udp_socket),
                                             &cookie)) {
             case PB_OK:
                 our_udp_server_state = SM_TX_RESPONSE;
@@ -114,13 +113,13 @@ void process_protobuf_server() {
             //udp_socket[our_udp_socket].remote_device_info.ip_address.val = 0xffffffff;
             break;
         }
-        protobuf_format_answer(udp_write_array, transaction_id, &cookie);
+        protobuf_format_answer(&cookie);
         break;
     case SM_TX_ERROR_MSG:
         if (!udp_setup_tx(our_udp_socket)) {
             break;
         }
-        protobuf_format_error_message(udp_write_array);
+        protobuf_format_error_message();
         break;
     } //switch (our_udp_server_state)
 

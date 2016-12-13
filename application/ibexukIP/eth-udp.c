@@ -426,6 +426,17 @@ BYTE udp_check_socket_for_rx (BYTE socket)
 }
 
 
+//*********************************************
+//*********************************************
+//********** UDP GET RX BYTES REMANING ********
+//*********************************************
+//*********************************************
+BYTE udp_get_rx_data_bytes_remaining (BYTE socket)
+{
+    return udp_socket[socket].rx_data_bytes_remaining;
+}
+
+
 
 
 //******************************************************
@@ -657,10 +668,19 @@ void udp_tx_packet (void)
 	ip_tx_packet();
 }
 
+//*************************************
+//*************************************
+//******* UDP WRITEEN DIRECTLY *******
+//*************************************
+//*************************************
+//add bytes writen directly to tx buffer as normal pocket data
+void udp_writen_directly (BYTE *start, WORD length)
+{
+    // set nic correct write addr -> nic_move_pointer()
+    nic_tx_writen_directly(length);
 
-
-
-
-
-
-
+    #ifdef UDP_CHECKSUMS_ENABLED
+        //ADD TO CHECKSUM
+        ip_add_bytes_to_ip_checksum (&udp_tx_checksum, &udp_tx_checksum_next_byte_low, start, length);
+    #endif
+}
