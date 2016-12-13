@@ -57,6 +57,7 @@ def main():
     device.connect()
 
     device.enable_channels(ch2rd)
+    device.setMeasureTime(ch2rd, args.measure_time)
     device.setClock(time.time())
 
     print_hader(sys.stdout, args.chanel_mask)

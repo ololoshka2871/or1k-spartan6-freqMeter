@@ -266,3 +266,6 @@ class r4_24_2_io:
             raise RuntimeError('Error {} then trying to set clock on device'.format(response.Global_status))
 
         return response.timestamp.sec + response.timestamp.nsec / 1000000000.0
+
+    def setMeasureTime(self, chanels, measure_time_ms):
+        self.ch_ctl(chanels, {'measureTime_ms': measure_time_ms})
