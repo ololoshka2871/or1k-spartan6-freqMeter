@@ -56,8 +56,8 @@ def main():
     device = libr4_24_2.r4_24_2_io(os.environ['TEST_IP'])
     device.connect()
 
-    device.setMeasureTime(ch2rd, args.measure_time)
     device.enable_channels(ch2rd)
+    device.setMeasureTime(ch2rd, args.measure_time)
     device.setClock(time.time())
 
     print_hader(sys.stdout, args.chanel_mask)

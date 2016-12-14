@@ -431,7 +431,7 @@ BYTE udp_check_socket_for_rx (BYTE socket)
 //********** UDP GET RX BYTES REMANING ********
 //*********************************************
 //*********************************************
-BYTE udp_get_rx_data_bytes_remaining (BYTE socket)
+WORD udp_get_rx_data_bytes_remaining (BYTE socket)
 {
     return udp_socket[socket].rx_data_bytes_remaining;
 }

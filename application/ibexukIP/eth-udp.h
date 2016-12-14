@@ -403,8 +403,8 @@ extern BYTE udp_setup_tx (BYTE socket);
 extern void udp_write_next_byte (BYTE data);
 extern void udp_write_array (BYTE *array_buffer, WORD array_length);
 extern void udp_tx_packet (void);
-extern BYTE udp_get_rx_data_bytes_remaining (BYTE socket);
 extern void udp_writen_directly (BYTE *start, WORD length);
+extern WORD udp_get_rx_data_bytes_remaining (BYTE socket);
 
 
 #endif

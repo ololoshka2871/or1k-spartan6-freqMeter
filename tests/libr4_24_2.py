@@ -144,7 +144,7 @@ class r4_24_2_io:
         """
         self.address = address
         self.port = port
-        self.base_timeout = 0.001  # сек
+        self.base_timeout = 1  # сек
         self.isConnected = False
         self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.udp_socket.setblocking(0)
@@ -269,3 +269,4 @@ class r4_24_2_io:
 
     def setMeasureTime(self, chanels, measure_time_ms):
         self.ch_ctl(chanels, {'measureTime_ms': measure_time_ms})
+
