@@ -26,6 +26,10 @@ progtimer_desc_t progtimer_new( progtimer_time_t period_ticks, void (*handler)(v
 void progtimer_delay( progtimer_time_t delay_ticks );
 void progtimer_reset_all( void );
 void progtimer_setclock( progtimer_time_t time_ms );
+void progtimer_set_timer_interval(progtimer_desc_t timer, progtimer_time_t interval);
+void progtimer_set_timer_counter(progtimer_desc_t timer, progtimer_time_t pos);
+progtimer_time_t progtimer_get_timer_counter(progtimer_desc_t timer);
+progtimer_time_t progtimer_get_timer_interval(progtimer_desc_t timer);
 
 #if defined(__cplusplus)
 }

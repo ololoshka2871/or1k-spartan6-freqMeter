@@ -259,3 +259,19 @@ void progtimer_setclock( progtimer_time_t time_ms )
     progtimer_reset_all();
     EXIT_CRITICAL();
 }
+
+void progtimer_set_timer_interval(progtimer_desc_t timer, progtimer_time_t interval) {
+    timer->timer_rv = interval;
+}
+
+void progtimer_set_timer_counter(progtimer_desc_t timer, progtimer_time_t pos) {
+    timer->timer_cnt = pos;
+}
+
+progtimer_time_t progtimer_get_timer_counter(progtimer_desc_t timer) {
+    return progtimer_get_interval(_current_time, timer->timer_cnt);
+}
+
+progtimer_time_t progtimer_get_timer_interval(progtimer_desc_t timer) {
+    return timer->timer_rv;
+}

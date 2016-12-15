@@ -73,11 +73,10 @@ set(_NANOPB_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
-add_definitions(-DPB_FIELD_16BIT)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_definitions(-DPB_NO_ERRMSG)
-endif()
+add_definitions(
+    -DPB_FIELD_16BIT
+    -DPB_NO_ERRMSG
+    )
 
 include_directories(${_NANOPB_INCLUDE_DIRS} ${LIBHW_INCLUDE_DIR} ${IBEXUK_IP_INCLUDE_DIRS})
 

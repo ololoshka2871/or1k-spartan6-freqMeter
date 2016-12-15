@@ -78,12 +78,13 @@ static void fm_isr_handler(unsigned int *registers) {
 #endif
     for (uint8_t ch = 0; ch < FREQMETERS_COUNT; ++ch) {
         if (chanels_to_scan & 1) {
-            freqmeters[ch].res_start_v = FM_START_VAL_CH(ch);
-            freqmeters[ch].res_stop_v = FM_STOP_VAL_CH(ch);
-            ++freqmeters[ch].irq_count;
+            struct freqmeter_chanel* chanel = &freqmeters[ch];
+            chanel->res_start_v = FM_START_VAL_CH(ch);
+            chanel->res_stop_v = FM_STOP_VAL_CH(ch);
+            ++chanel->irq_count;
 #ifndef SIM
-            clock_catch_inpure_timestamp(&freqmeters[ch].timestamp);
-            freqmeters[ch].signal_present = !!(FM_SP & (1 << ch));
+            clock_catch_inpure_timestamp(&chanel->timestamp);
+            chanel->signal_present = !!(FM_SP & (1 << ch));
 #endif
             reload_cycle(ch);
         }

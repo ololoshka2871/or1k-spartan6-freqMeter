@@ -46,20 +46,23 @@
 #error "Macro \"BULD_TIMESTAMP\" mast me defined!"
 #endif
 
-#define MS_IN_S                 1000
 #define NS_IN_MS                1000000
 #define MS_2_NS(ms)             ((ms) * NS_IN_MS)
 #define NS_2_MS(ns)             ((ns) / NS_IN_MS)
 
 static time_t local_seconds;
+static progtimer_time_t sec_point;
+static progtimer_desc_t sec_timer;
 
 static void clock_add_second(void* cookie) {
     (void)cookie;
+
     ++local_seconds;
+    sec_point = progtimer_get_ticks();
 }
 
 void rtc_init() {
-    progtimer_new(PROGTIMER_TICKS_IN_SEC, clock_add_second, NULL);
+    sec_timer = progtimer_new(PROGTIMER_TICKS_IN_SEC, clock_add_second, NULL);
 
     // sync system clock with external
     struct timespec current_time;
@@ -70,7 +73,7 @@ void rtc_init() {
     if (current_time.tv_sec < BULD_TIMESTAMP)
         current_time.tv_sec = BULD_TIMESTAMP;
     current_time.tv_nsec = 0;
-    clock_settime(0, &current_time);
+    //clock_settime(0, &current_time);
 }
 
 int clock_gettime(clockid_t clockid, struct timespec *ts) {
@@ -86,7 +89,7 @@ void clock_catch_inpure_timestamp(struct timespec *ts) {
 }
 
 void clock_purify_time(struct timespec *ts) {
-    ts->tv_nsec = MS_2_NS(ts->tv_nsec % MS_IN_S);
+    ts->tv_nsec = MS_2_NS(ts->tv_nsec - sec_point);
 }
 
 int clock_settime(clockid_t clockid, const struct timespec *ts) {
@@ -95,7 +98,13 @@ int clock_settime(clockid_t clockid, const struct timespec *ts) {
     if (ts->tv_sec < BULD_TIMESTAMP)
         return -EINVAL;
 
-    progtimer_setclock(NS_2_MS(ts->tv_nsec) % PROGTIMER_TICKS_IN_SEC);
+    sec_point = NS_2_MS(ts->tv_nsec);
+    progtimer_time_t sec_timer_pos = progtimer_get_timer_counter(sec_timer);
+    ENTER_CRITICAL();
+    progtimer_setclock(sec_point);
+    progtimer_set_timer_counter(sec_timer, sec_timer_pos + sec_point);
+    EXIT_CRITICAL();
+    sec_point = 0;
     local_seconds = ts->tv_sec;
     return ds1338z_setUnixTime(&ts->tv_sec) == DS1338Z_OK ? 0 : -ECONNREFUSED;
 }
