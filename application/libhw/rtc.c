@@ -73,7 +73,7 @@ void rtc_init() {
     if (current_time.tv_sec < BULD_TIMESTAMP)
         current_time.tv_sec = BULD_TIMESTAMP;
     current_time.tv_nsec = 0;
-    //clock_settime(0, &current_time);
+    clock_settime(0, &current_time);
 }
 
 int clock_gettime(clockid_t clockid, struct timespec *ts) {

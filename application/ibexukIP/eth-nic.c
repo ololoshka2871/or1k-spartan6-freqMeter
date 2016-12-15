@@ -124,7 +124,7 @@ __ressive_error:
 //**********************************************************
 //**********************************************************
 BYTE nic_ok_to_do_tx (void) {
-    return miniMAC_txRemaning() == 0;
+    return !miniMAC_txRemaning();
 }
 
 

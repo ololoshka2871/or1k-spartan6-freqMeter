@@ -29,7 +29,6 @@
 #*
 #****************************************************************************/
 
-set(PB_TESTER           ${CMAKE_CURRENT_SOURCE_DIR}/pb_tester.py)
 set(PB_PYTEST           ${CMAKE_CURRENT_SOURCE_DIR}/pytest_libr4_24_2.py)
 set(PB_READER           ${CMAKE_CURRENT_SOURCE_DIR}/pb_reader.py)
 
@@ -39,7 +38,6 @@ add_custom_target(tests.editor
         decodeChanels.py
         test_data_querryer.py
         ws_tester.html
-        ${PB_TESTER}
         ${PB_PYTEST}
         ${PB_READER}
     )
@@ -67,15 +65,6 @@ if (PROTOC_EXECUTABLE)
             --python_out=${CMAKE_CURRENT_BINARY_DIR}
             ${PROTOBUF_PROTO_FILE}
         DEPENDS ${PROTOBUF_PROTO_FILE}
-        )
-
-    add_custom_target(pb_tesetr.run
-        COMMAND
-            ${CMAKE_COMMAND} -E env "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}" ${PYTHON_EXECUTABLE} ${PB_TESTER}
-        DEPENDS
-            ${PB_TESTER} ${protocol_python_module}
-        WORKING_DIRECTORY
-            ${CMAKE_CURRENT_BINARY_DIR}
         )
 
     math(EXPR chanel_mask "(1 << ${F_INPUTS_COUNT}) - 1")

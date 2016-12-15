@@ -82,7 +82,7 @@ static GPIO i2c_gpio_port = NULL;
 
 static void bb_i2c_delay_05T() {
 #ifndef SIM
-    hires_timer_sleep(F_CPU / (7 /*experimental*/ * BB_I2C_BAUD / 2));
+    hires_timer_sleep(F_CPU / (14 /* 7@50MHz experimental*/ * BB_I2C_BAUD / 2));
 #endif
 }
 

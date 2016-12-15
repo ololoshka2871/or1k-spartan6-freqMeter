@@ -123,7 +123,7 @@ void miniMAC_init() {
 
 enum enMiniMACRxSlots miniMAC_findReadySlot() {
     for (enum enMiniMACRxSlots slot = MINIMAC_RX_SLOT0;
-         slot < MINIMAC_RX_SLOT_COUNT; ++slot) {
+        slot < MINIMAC_RX_SLOT_COUNT; ++slot) {
         if (MINIMAC_SLOT_STATE(slot) == MINIMAC_SLOT_STATE_DATA_RESSIVED)
             return slot;
     }
