@@ -71,6 +71,15 @@ assign csr_ack = 1'b1;
 
 parameter TRANSFER_COUNTER_LEN = $clog2(MTU);
 
+localparam MTU_ALIGNED = MTU & 2'b11 ? ((MTU & ~32'b11) + 3'b100) : MTU;
+
+localparam RX_SLOT0_ADDR = RX_MEMORY_BASE + MTU_ALIGNED * 0;
+localparam RX_SLOT1_ADDR = RX_MEMORY_BASE + MTU_ALIGNED * 1;
+localparam RX_SLOT2_ADDR = RX_MEMORY_BASE + MTU_ALIGNED * 2;
+localparam RX_SLOT3_ADDR = RX_MEMORY_BASE + MTU_ALIGNED * 3;
+
+localparam TX_SLOT_ADDR  = TX_MEMORY_BASE;
+
 reg p_sys_we;
 reg [5:2] p_sys_addr;
 wire sys_wr = ((~p_sys_we & csr_we) | (p_sys_addr != csr_a[5:2])) & csr_we;
@@ -208,21 +217,7 @@ data_synchronizier
 /******************************** TX ******************************************/
 
 /* tx addr register: Wishbone RW, ctl RO */
-reg [TX_ADDR_WIDTH - 1:2] tx_addr_sys;
-data_synchronizier
-#(
-    .DATA_WIDTH(TX_ADDR_WIDTH - 2)
-) tx_addr_sync (
-    .clk_i(rmii_clk_i),
-    .rst_i(sys_rst),
-    .Q(tx_adr),
-    .D_hip_i(tx_addr_sys),
-    .D_lop_i({(TX_ADDR_WIDTH - 2){1'b0}}),
-    .WR_hip_i(1'b1),
-    .WR_lop_i(1'b0),
-    .data_changed_o(/* open */),
-    .change_accepted_i(1'b1)
-);
+assign tx_adr = TX_SLOT_ADDR;
 
 /* tx temaning register; Wishbone RW, ctl: RW */
 reg [TRANSFER_COUNTER_LEN-1:0] tx_remaining_sys_i;
@@ -400,7 +395,6 @@ always @(posedge sys_clk) begin
         slot_count_sys_act <= 4'b0;
 
         tx_remaining_sys_wr <= 1'b0;
-        tx_addr_sys <= 0;
 
         rst_ctl_sys_wr <= 1'b0;
     end else begin
@@ -446,7 +440,6 @@ always @(posedge sys_clk) begin
                 // slot3_count is read-only
 
                 // TX slot
-                4'd14: tx_addr_sys <= csr_di[TX_ADDR_WIDTH-1:2];
                 4'd15: begin
                     tx_remaining_sys_i <= csr_di[TRANSFER_COUNTER_LEN-1:0];
                     tx_remaining_sys_wr <= sys_wr;
@@ -474,8 +467,7 @@ always @(posedge sys_clk) begin
             4'd12: csr_do <= {RX_MEMORY_BASE[31:RX_ADDR_WIDTH], slot_adr[3], 2'b0};
             4'd13: csr_do <= slot_count_sys_o[3];
 
-            // TX slots
-            4'd14: csr_do <= {TX_MEMORY_BASE[31:TX_ADDR_WIDTH], tx_addr_sys, 2'b0};
+            // TX slot
             4'd15: csr_do <= tx_remaining_sys_o;
 
             default:
