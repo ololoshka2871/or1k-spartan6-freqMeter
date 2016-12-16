@@ -48,6 +48,8 @@ module myminimac
     input  wire [31:0]              csr_dat_i,      // control logick data input
     output wire [31:0]              csr_dat_o,      // control logick data output
     output                          csr_ack_o,      // control logick ack
+    input                           csr_stb_i,      // control logick strobe
+    input                           csr_cyc_i,      // control logick select
 
     // system bus port A (rx memory)
     input  wire [31:0]              rx_mem_adr_i,    // ADR_I() address
@@ -102,7 +104,7 @@ wire tx_last_byte;
 wire [TX_ADDR_WIDTH-1:2] tx_adr;
 wire tx_next;
 
-myminimac_ctlif_cd
+myminimac_ctlif_cd2
 #(
     .RX_MEMORY_BASE(RX_MEMORY_BASE),
     .TX_MEMORY_BASE(TX_MEMORY_BASE),
@@ -121,6 +123,8 @@ myminimac_ctlif_cd
     .csr_di(csr_dat_i),
     .csr_do(csr_dat_o),
     .csr_ack(csr_ack_o),
+    .csr_stb(csr_stb_i),
+    .csr_cyc(csr_cyc_i),
 
     .rmii_clk_i(phy_rmii_clk),
 

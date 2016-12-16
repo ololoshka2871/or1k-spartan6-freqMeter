@@ -35,7 +35,7 @@
 #include "gdb-stub-sections.h"
 
 #include "freqmeters.h"
-#include "minimac.h"
+#include "minimac2.h"
 #include "mdio.h"
 #include "GPIO.h"
 #include "i2c.h"
@@ -71,6 +71,7 @@ static void GDB_STUB_SECTION_TEXT test_mdio() {
 static void GDB_STUB_SECTION_TEXT test_minmac() {
     memcpy(0x11300000, 0x11300100, 0x100);
 
+#if 0
     miniMAC_control(true, true);
 
     for (uint8_t i = 0; i < 5; ++i) {
@@ -81,6 +82,16 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
         while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_RX)));
         IRQ_STATUS = (1 << IRQ_MINIMAC_RX);
     }
+#else
+    miniMAC_init();
+    for (uint8_t i = 0; i < /*5*/1; ++i) {
+        miniMAC_startTramcmission((12 * sizeof(uint32_t) - 2) * (i + 1));
+        while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_TX)));
+        IRQ_STATUS = (1 << IRQ_MINIMAC_TX);
+        while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_RX)));
+        IRQ_STATUS = (1 << IRQ_MINIMAC_RX);
+    }
+#endif
 }
 
 static void GDB_STUB_SECTION_TEXT test_i2c() {

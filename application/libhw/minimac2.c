@@ -34,9 +34,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "irq.h"
-#include "mem_managment.h"
-
 #include "minimac2.h"
 
 #ifndef MAC_CTL_BASE

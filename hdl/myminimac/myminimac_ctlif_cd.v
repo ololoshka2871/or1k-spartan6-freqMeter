@@ -49,6 +49,7 @@ module myminimac_ctlif_cd
     input       [31:0]              csr_di,             // control logick data input
     output reg  [31:0]              csr_do,             // control logick data output
     output                          csr_ack,            // control logick acknolage
+    input                           csr_stb,            // control logick strobe
 
     input                           rmii_clk_i,         // 50 MHz
 
@@ -71,7 +72,7 @@ assign csr_ack = 1'b1;
 
 parameter TRANSFER_COUNTER_LEN = $clog2(MTU);
 
-localparam MTU_ALIGNED = MTU & 2'b11 ? ((MTU & ~32'b11) + 3'b100) : MTU;
+localparam MTU_ALIGNED = (MTU & 2'b11) ? ((MTU & ~32'b11) + 3'b100) : MTU;
 
 localparam RX_SLOT0_ADDR = RX_MEMORY_BASE + MTU_ALIGNED * 0;
 localparam RX_SLOT1_ADDR = RX_MEMORY_BASE + MTU_ALIGNED * 1;
@@ -170,36 +171,20 @@ wire select3 = slot_state_ctl_o[3][0] & ~slot_state_ctl_o[2][0] & ~slot_state_ct
     & ~slot_state_ctl_o[0][0];
 
 // rx_valid == 1 if any of rx slots are ready
-wire rx_valid_sys = slot_state_ctl_o[0][0] | slot_state_ctl_o[1][0] |
+assign rx_valid = slot_state_ctl_o[0][0] | slot_state_ctl_o[1][0] |
     slot_state_ctl_o[2][0] | slot_state_ctl_o[3][0];
-
-// syncronysing to rmii_clk
-data_synchronizier
-#(
-    .DATA_WIDTH(1)
-) rx_valid_sync (
-    .clk_i(rmii_clk_i),
-    .rst_i(sys_rst),
-    .Q(rx_valid),
-    .D_hip_i(rx_valid_sys),
-    .D_lop_i(1'b0),
-    .WR_hip_i(1'b1),
-    .WR_lop_i(1'b0),
-    .data_changed_o(/* open */),
-    .change_accepted_i(1'b1)
-);
 
 // address of ready slot
 assign rx_adr =
         select0 ? RX_SLOT0_ADDR[RX_ADDR_WIDTH-1:2] :
         select1 ? RX_SLOT1_ADDR[RX_ADDR_WIDTH-1:2] :
         select2 ? RX_SLOT2_ADDR[RX_ADDR_WIDTH-1:2] :
-        select3 ? RX_SLOT3_ADDR[RX_ADDR_WIDTH-1:2] : 0;
+        RX_SLOT3_ADDR[RX_ADDR_WIDTH-1:2];
 
 
 /******************************** TX ******************************************/
 
-/* tx addr register: Wishbone RW, ctl RO */
+/* tx addr register */
 assign tx_adr = TX_SLOT_ADDR;
 
 /* tx temaning register; Wishbone RW, ctl: RW */
