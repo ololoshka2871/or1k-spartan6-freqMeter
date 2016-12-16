@@ -48,6 +48,7 @@ module myminimac_ctlif_cd
     input                           csr_we,             // control logick write enable
     input       [31:0]              csr_di,             // control logick data input
     output reg  [31:0]              csr_do,             // control logick data output
+    output                          csr_ack,            // control logick acknolage
 
     input                           rmii_clk_i,         // 50 MHz
 
@@ -65,6 +66,8 @@ module myminimac_ctlif_cd
     output      [TX_ADDR_WIDTH-1:2] tx_adr,             // address of next byte to send
     input                           tx_next             // request to update tx_adr
 );
+
+assign csr_ack = 1'b1;
 
 parameter TRANSFER_COUNTER_LEN = $clog2(MTU);
 

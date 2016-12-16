@@ -124,7 +124,7 @@ __ressive_error:
 //**********************************************************
 //**********************************************************
 BYTE nic_ok_to_do_tx (void) {
-    return !miniMAC_txRemaning();
+    return miniMAC_isReadyToTx();
 }
 
 
@@ -192,7 +192,6 @@ void nic_rx_dump_packet (void) {
 //Checks the nic to see if it is ready to accept a new tx packet.  If so it sets up the nic ready for the first byte of the data area to be sent.
 //Returns 1 if nic ready, 0 if not.
 BYTE nic_setup_tx (void) {
-    miniMAC_txSlotPrepare();
     txPointer = miniMAC_txSlotData();
     nic_tx_len = 0;
 

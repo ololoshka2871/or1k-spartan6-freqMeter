@@ -95,6 +95,7 @@ wire [31:0]         ethernet_ctl_addr;
 wire [31:0]         ethernet_ctl_data_r;
 wire [31:0]         ethernet_ctl_data_w;
 wire                ethernet_ctl_we;
+wire                ethernet_ctl_ack;
 
 // Data Memory 2 (0x11200000 - 0x112FFFFF)
 wire [31:0]         ethernet_txbuf_addr;
@@ -155,7 +156,7 @@ dmem_mux4
     .out1_stb_o(/*open*/),
     .out1_cyc_o(/*open*/),
     .out1_cti_o(/*open*/),
-    .out1_ack_i(1'b1),
+    .out1_ack_i(ethernet_ctl_ack),
     .out1_stall_i(1'b0),
 
     // 0x11200000 - 0x112FFFFF
@@ -236,6 +237,7 @@ myminimac
     .csr_we_i(ethernet_ctl_we),
     .csr_dat_i(ethernet_ctl_data_w),
     .csr_dat_o(ethernet_ctl_data_r),
+    .csr_ack_o(ethernet_ctl_ack),
 
     .rx_mem_adr_i(ethernet_rxbuf_addr),
     .rx_mem_dat_i(ethernet_rxbuf_data_w),

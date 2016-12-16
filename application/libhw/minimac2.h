@@ -85,12 +85,11 @@ void miniMAC_init();
 
 enum enMiniMACRxSlots miniMAC_findReadySlot();
 void miniMAC_resetIfError();
-uint32_t miniMAC_txRemaning();
+uint32_t miniMAC_isReadyToTx();
 uint16_t miniMAC_rxCount(enum enMiniMACRxSlots slot);
 uint8_t *miniMAC_rxSlotData(enum enMiniMACRxSlots slot);
 void miniMAC_acceptSlot(enum enMiniMACRxSlots slot);
 void miniMAC_resetRxSlot(enum enMiniMACRxSlots slot);
-void miniMAC_txSlotPrepare();
 uint8_t* miniMAC_txSlotData();
 void miniMAC_startTramcmission(uint16_t size);
 

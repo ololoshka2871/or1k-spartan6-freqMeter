@@ -47,6 +47,7 @@ module myminimac
     input  wire                     csr_we_i,       // control logick write enable
     input  wire [31:0]              csr_dat_i,      // control logick data input
     output wire [31:0]              csr_dat_o,      // control logick data output
+    output                          csr_ack_o,      // control logick ack
 
     // system bus port A (rx memory)
     input  wire [31:0]              rx_mem_adr_i,    // ADR_I() address
@@ -119,6 +120,7 @@ myminimac_ctlif_cd
     .csr_we(csr_we_i),
     .csr_di(csr_dat_i),
     .csr_do(csr_dat_o),
+    .csr_ack(csr_ack_o),
 
     .rmii_clk_i(phy_rmii_clk),
 

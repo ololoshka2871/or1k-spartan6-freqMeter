@@ -104,7 +104,12 @@
             MINIMAC_RST_CTL |= MINIMAC_RST_TX;\
     } while (0)
 
-#define align32(v)  ((v) & 0b11) ? (((v) & (~0b11)) + 0b100) : (v)
+
+static uint32_t Rx_slots[MINIMAC_RX_SLOT_COUNT];
+
+static inline uint32_t align32(uint32_t v) {
+    return (v & 0b11) ? ((v & ~0b11) + 0b100) : v;
+}
 
 static void assert_slot(enum enMiniMACRxSlots slot) {
     assert(slot < MINIMAC_RX_SLOT_COUNT);
@@ -116,7 +121,8 @@ void miniMAC_init() {
 
     for(enum enMiniMACRxSlots slot = MINIMAC_RX_SLOT0;
              slot < MINIMAC_RX_SLOT_COUNT; ++slot) {
-        MINIMAC_SLOT_ADDR(slot) = align32(slot * MTU);
+        Rx_slots[slot] = ((uint32_t)MAC_RX_MEM_BASE + align32((uint32_t)MTU * slot));
+        MINIMAC_SLOT_ADDR(slot) = Rx_slots[slot];
         MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
     }
 }
@@ -153,8 +159,8 @@ void miniMAC_resetIfError() {
     }
 }
 
-uint32_t miniMAC_txRemaning() {
-    return MINIMAC_TX_REMAINING;
+uint32_t miniMAC_isReadyToTx() {
+    return !MINIMAC_TX_REMAINING;
 }
 
 uint16_t miniMAC_rxCount(enum enMiniMACRxSlots slot) {
@@ -166,7 +172,7 @@ uint16_t miniMAC_rxCount(enum enMiniMACRxSlots slot) {
 uint8_t *miniMAC_rxSlotData(enum enMiniMACRxSlots slot) {
     assert_slot(slot);
 
-    return (uint8_t*)MINIMAC_SLOT_ADDR(slot);
+    return (uint8_t*)Rx_slots[slot];
 }
 
 void miniMAC_resetRxSlot(enum enMiniMACRxSlots slot) {
@@ -175,12 +181,8 @@ void miniMAC_resetRxSlot(enum enMiniMACRxSlots slot) {
     MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
 }
 
-void miniMAC_txSlotPrepare() {
-    MINIMAC_TX_SLOT_ADDR = MAC_TX_MEM_BASE;
-}
-
 uint8_t* miniMAC_txSlotData() {
-    return (uint8_t*)MINIMAC_TX_SLOT_ADDR;
+    return (uint8_t*)MAC_TX_MEM_BASE;
 }
 
 void miniMAC_startTramcmission(uint16_t size) {
