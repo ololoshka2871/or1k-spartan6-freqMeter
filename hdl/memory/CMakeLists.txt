@@ -114,8 +114,7 @@ add_custom_command(
             --blocksize ${MEMORY_UNIT_SIZE_BYTES} > ${SYSTEM_MEMORY_MODULE_SIM}
     DEPENDS
         bootloader
-        ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}
-        ${COUNT_TEST_MEMORY_IMAGE}
+        ${BOOTLOADER_SIM_IMAGE}
         ${SYSTEM_MEMORY_FILE_NAME_IN}
         ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
         ${MK_SYSMEM_MODULE}

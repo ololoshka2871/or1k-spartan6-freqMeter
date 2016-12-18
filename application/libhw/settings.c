@@ -124,8 +124,8 @@ void Settings_init() {
     default_MAC_settings(&settings);
     settings_update_crc32(&settings);
 #endif
-    if (Settings_validate(&settings, settings_defaults) != SV_ERR_OK)
-        Settings_write(&settings);
+    Settings_validate(&settings, settings_defaults);
+    Settings_write(&settings);
 }
 
 static bool isIPInvalid(union IP_ADDR ip) {
@@ -189,6 +189,11 @@ Settings_validate(struct sSettings *validateing_object, validate_restorer restor
         if ((validateing_object->ReferenceFrequency < REFERENCE_FREQ_MIN) ||
             (validateing_object->ReferenceFrequency > REFERENCE_FREQ_MAX)) {
             validateing_object->ReferenceFrequency = restored.ReferenceFrequency;
+            result |= SV_ERR_F_REF;
+        }
+
+        if (validateing_object->DHCP > 1) {
+            validateing_object->DHCP = restored.DHCP;
             result |= SV_ERR_F_REF;
         }
     }

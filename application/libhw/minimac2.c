@@ -38,52 +38,39 @@
 
 #ifndef MAC_CTL_BASE
 #warning "MAC_CTL_BASE undefined!"
-#define MAC_CTL_BASE            (FIO_BASE + 0x00100000)
+#define MAC_CTL_BASE             (FIO_BASE + 0x00100000)
 #endif
 
 #ifndef MAC_TX_MEM_BASE
 #warning "MAC_TX_MEM_BASE undefined!"
-#define MAC_TX_MEM_BASE         (FIO_BASE + 0x00200000)
+#define MAC_TX_MEM_BASE          (FIO_BASE + 0x00200000)
 #endif
 
 #ifndef MAC_RX_MEM_BASE
 #warning "MAC_RX_MEM_BASE undefined!"
-#define MAC_RX_MEM_BASE         (FIO_BASE + 0x00300000)
+#define MAC_RX_MEM_BASE          (FIO_BASE + 0x00300000)
 #endif
 
 #ifndef MTU
 #warning "MTU undefined!"
-#define MTU                     1530
+#define MTU                      1530
 #endif
 
 
 // Registers
-#define REG_OFFSET(N)           (sizeof(uint32_t) * (N))
+#define REG_OFFSET(N)            ((N) << 2)
 
-#define MINIMAC_RST_CTL         (*(REG32 (MAC_CTL_BASE + REG_OFFSET(0))))
-#define MINIMAC_RST_RX          (1 << 0)
-#define MINIMAC_RST_TX          (1 << 1)
+#define STATE_OFFSET             REG_OFFSET(0)
+#define COUNT_OFFSET             REG_OFFSET(4)
 
-#define MINIMAC_MDIO_BB         (*(REG32 (MAC_CTL_BASE + REG_OFFSET(1))))
-#define MINIMAC_MDIO_BB_DO      (1 << 0)
-#define MINIMAC_MDIO_BB_DO_0    0
-#define MINIMAC_MDIO_BB_DI      (1 << 1) //RO
-#define MINIMAC_MDIO_BB_DI_0    0
-#define MINIMAC_MDIO_BB_OE      (1 << 2)
-#define MINIMAC_MDIO_BB_OE_0    0
-#define MINIMAC_MDIO_BB_CLK     (1 << 3)
-#define MINIMAC_MDIO_BB_CLK_0   0
+#define MINIMAC_RST_CTL          (*(REG32 (MAC_CTL_BASE + REG_OFFSET(15))))
+#define MINIMAC_RST_RX           (1 << 0)
+#define MINIMAC_RST_TX           (1 << 1)
 
-#define MINIMAC_SLOT0_STATE     (*(REG32 (MAC_CTL_BASE + REG_OFFSET(2))))
-#define MINIMAC_SLOT0_ADDR      (*(REG32 (MAC_CTL_BASE + REG_OFFSET(3))))
-#define MINIMAC_SLOT0_COUNT     (*(REG32 (MAC_CTL_BASE + REG_OFFSET(4)))) // RO
-#define MINIMAC_SLOT_STATE(slot) (*(REG32 (MAC_CTL_BASE + REG_OFFSET(2 + (slot) * 3))))
-#define MINIMAC_SLOT_ADDR(slot)  (*(REG32 (MAC_CTL_BASE + REG_OFFSET(3 + (slot) * 3))))
-#define MINIMAC_SLOT_COUNT(slot) (*(REG32 (MAC_CTL_BASE + REG_OFFSET(4 + (slot) * 3))))// RO
+#define MINIMAC_SLOT_STATE(slot) (*(REG32 (MAC_CTL_BASE + STATE_OFFSET + REG_OFFSET(slot))))
+#define MINIMAC_SLOT_COUNT(slot) (*(REG32 (MAC_CTL_BASE + COUNT_OFFSET + REG_OFFSET(slot))))  // RO
 
-
-#define MINIMAC_TX_SLOT_ADDR    (*(REG32 (MAC_CTL_BASE + REG_OFFSET(14))))
-#define MINIMAC_TX_REMAINING    (*(REG32 (MAC_CTL_BASE + REG_OFFSET(15))))
+#define MINIMAC_TX_REMAINING     (*(REG32 (MAC_CTL_BASE + REG_OFFSET(14))))
 
 #define MINIMAC_ENABLE_RX(enable) \
     do {\
@@ -119,7 +106,6 @@ void miniMAC_init() {
     for(enum enMiniMACRxSlots slot = MINIMAC_RX_SLOT0;
              slot < MINIMAC_RX_SLOT_COUNT; ++slot) {
         Rx_slots[slot] = ((uint32_t)MAC_RX_MEM_BASE + align32((uint32_t)MTU * slot));
-        MINIMAC_SLOT_ADDR(slot) = Rx_slots[slot];
         MINIMAC_SLOT_STATE(slot) = MINIMAC_SLOT_STATE_READY;
     }
 }
@@ -127,7 +113,8 @@ void miniMAC_init() {
 enum enMiniMACRxSlots miniMAC_findReadySlot() {
     for (enum enMiniMACRxSlots slot = MINIMAC_RX_SLOT0;
         slot < MINIMAC_RX_SLOT_COUNT; ++slot) {
-        if (MINIMAC_SLOT_STATE(slot) == MINIMAC_SLOT_STATE_DATA_RESSIVED)
+        enum enMiniMACSlotStates slot_state = MINIMAC_SLOT_STATE(slot);
+        if (slot_state == MINIMAC_SLOT_STATE_DATA_RESSIVED)
             return slot;
     }
 
@@ -182,6 +169,6 @@ uint8_t* miniMAC_txSlotData() {
     return (uint8_t*)MAC_TX_MEM_BASE;
 }
 
-void miniMAC_startTramcmission(uint16_t size) {
+void miniMAC_startTransmission(uint16_t size) {
     MINIMAC_TX_REMAINING = size;
 }

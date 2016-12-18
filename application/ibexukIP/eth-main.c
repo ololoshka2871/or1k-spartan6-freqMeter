@@ -247,7 +247,13 @@ void tcp_ip_process_stack (void)
 				process_stack_again = 1;				//Process the stack again for this received packet or if this packet is dumped for any other packet that may be waiting
 
 				//----- GET THE ETHERNET HEADER -----
-				//Get the destination mac address [6]
+#ifdef PACKED_STRUCT
+                //Get the destination mac address [6]
+                nic_read_array(&rx_destination_mac_address.v[0], MAC_ADDR_LENGTH);
+                //Get the source mac address [6]
+                nic_read_array(&remote_device_info.mac_address.v[0], MAC_ADDR_LENGTH);
+#else
+                //Get the destination mac address [6]
 				nic_read_next_byte(&rx_destination_mac_address.v[0]);
 				nic_read_next_byte(&rx_destination_mac_address.v[1]);
 				nic_read_next_byte(&rx_destination_mac_address.v[2]);
@@ -262,6 +268,7 @@ void tcp_ip_process_stack (void)
 				nic_read_next_byte(&remote_device_info.mac_address.v[3]);
 				nic_read_next_byte(&remote_device_info.mac_address.v[4]);
 				nic_read_next_byte(&remote_device_info.mac_address.v[5]);
+#endif
 
                 //Get the header type [2]
 #ifdef __ORDER_BIG_ENDIAN__

@@ -133,7 +133,7 @@ int main(void)
         tcp_ip_process_stack();
 
 #ifdef PROCESS_SERVER_UDP
-        process_protobuf_server();
+        //process_protobuf_server();
 #endif
 
 #ifdef PROCESS_SERVER_WEBSOC

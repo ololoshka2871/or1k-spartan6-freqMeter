@@ -91,6 +91,6 @@ uint8_t *miniMAC_rxSlotData(enum enMiniMACRxSlots slot);
 void miniMAC_acceptSlot(enum enMiniMACRxSlots slot);
 void miniMAC_resetRxSlot(enum enMiniMACRxSlots slot);
 uint8_t* miniMAC_txSlotData();
-void miniMAC_startTramcmission(uint16_t size);
+void miniMAC_startTransmission(uint16_t size);
 
 #endif // MINMAC_H

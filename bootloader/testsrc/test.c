@@ -84,14 +84,15 @@ static void GDB_STUB_SECTION_TEXT test_minmac() {
     }
 #else
     miniMAC_init();
-    for (uint8_t i = 0; i < /*5*/1; ++i) {
-        miniMAC_startTramcmission((12 * sizeof(uint32_t) - 2) * (i + 1));
-        while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_TX)));
-        IRQ_STATUS = (1 << IRQ_MINIMAC_TX);
-        while (!(IRQ_STATUS & (1 << IRQ_MINIMAC_RX)));
-        IRQ_STATUS = (1 << IRQ_MINIMAC_RX);
+    for (uint8_t i = 0; i < 5; ++i) {
+        miniMAC_startTransmission((12 * sizeof(uint32_t) - 2) * (i + 1));
+        while (!miniMAC_isReadyToTx());
     }
 #endif
+    miniMAC_acceptSlot(miniMAC_findReadySlot());
+    miniMAC_rxCount(MINIMAC_RX_SLOT1);
+    memcpy(miniMAC_txSlotData(), miniMAC_rxSlotData(MINIMAC_RX_SLOT2),miniMAC_rxCount(MINIMAC_RX_SLOT2));
+    miniMAC_resetRxSlot(MINIMAC_RX_SLOT3);
 }
 
 static void GDB_STUB_SECTION_TEXT test_i2c() {

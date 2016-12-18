@@ -325,6 +325,6 @@ void nic_tx_packet (void) {
 
     nic_tx_len += sizeof(crc);
 
-    miniMAC_startTramcmission(nic_tx_len);
+    miniMAC_startTransmission(nic_tx_len);
 }
 
