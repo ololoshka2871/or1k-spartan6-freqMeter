@@ -542,7 +542,7 @@ generate
             .SLEW("SLOW") // Specify the output slew rate
         ) IOBUF_inst (
             .O(gpio_i[gpio_index]),   // Buffer output
-            .IO(_gpio[gpio_index]),   // Buffer inout port (connect directly to top-level port)
+            .IO(gpio[gpio_index]),    // Buffer inout port (connect directly to top-level port)
             .I(gpio_o[gpio_index]),   // Buffer input
             .T(~gpio_oe[gpio_index])  // 3-state enable input, high=input, low=output
         );
