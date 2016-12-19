@@ -38,6 +38,7 @@
 #include "irq.h"
 #include "graycode.h"
 #include "rtc.h"
+#include "settings.h"
 #endif
 
 #ifndef FREQMETER_MEASURE_TIME_MAX
@@ -71,32 +72,33 @@ static void reload_cycle(uint8_t chanel_num) {
 
 static void fm_isr_handler(unsigned int *registers) {
     (void)registers;
-    uint32_t chanels_to_scan = FM_IE & FM_IF;
+    uint32_t chanels_to_scan;
 #if VERBOSE_DEBUG
     if (!chanels_to_scan)
         asm volatile("l.trap 0");
 #endif
-    for (uint8_t ch = 0; ch < FREQMETERS_COUNT; ++ch) {
-        if (chanels_to_scan & 1) {
-            struct freqmeter_chanel* chanel = &freqmeters[ch];
-            chanel->res_start_v = FM_START_VAL_CH(ch);
-            chanel->res_stop_v = FM_STOP_VAL_CH(ch);
-            ++chanel->irq_count;
+    while((chanels_to_scan = FM_IE & FM_IF)) {
+        for (uint8_t ch = 0; ch < FREQMETERS_COUNT; ++ch) {
+            if (chanels_to_scan & 1) {
+                struct freqmeter_chanel* chanel = &freqmeters[ch];
+                chanel->res_start_v = FM_START_VAL_CH(ch);
+                chanel->res_stop_v = FM_STOP_VAL_CH(ch);
 #ifndef SIM
-            clock_catch_inpure_timestamp(&chanel->timestamp);
-            chanel->signal_present = !!(FM_SP & (1 << ch));
+                clock_catch_inpure_timestamp(&chanel->timestamp);
+                chanel->signal_present = !!(FM_SP & (1 << ch));
 #endif
-            reload_cycle(ch);
-        }
+                reload_cycle(ch);
+            }
 
-        chanels_to_scan >>= 1;
-        if (!chanels_to_scan)
-            break;      
+            chanels_to_scan >>= 1;
+            if (!chanels_to_scan)
+                break;
+        }
     }
 }
 
 
-static uint32_t measure_time_ms2ticks(double F, uint16_t _measure_time_ms) {
+static uint32_t measure_time_ms2ticks(freq_type_t F, uint16_t _measure_time_ms) {
 #ifndef SIM
     if (_measure_time_ms > FREQMETER_MEASURE_TIME_MAX)
         _measure_time_ms = FREQMETER_MEASURE_TIME_MAX;
@@ -105,7 +107,7 @@ static uint32_t measure_time_ms2ticks(double F, uint16_t _measure_time_ms) {
         reload_val = 1;
     return reload_val;
 #else
-    return 0;
+    return 1;
 #endif
 }
 
@@ -113,7 +115,6 @@ void fm_init() {
     struct freqmeter_chanel init_value;
     init_value.enabled = 0;
     init_value.reloadVals.newReload_val = 1;
-    init_value.irq_count = 0;
     init_value.enabled = true;
     init_value.reloadVals.newReload_val =
             measure_time_ms2ticks(STARTUP_FREQUNCY, SYSTEM_MEASURE_TIME_DEFAULT);
@@ -165,13 +166,13 @@ uint32_t fm_getActualMeasureTime_pulses_pulses(uint8_t chanel) {
 
 
 enum enSetMeasureTimeError
-fm_getActualMeasureTime_ms(uint8_t chanel, double* res) {
+fm_getActualMeasureTime_ms(uint8_t chanel, freq_type_t *res) {
 #ifndef SIM
     if (chanel >= FREQMETERS_COUNT)
         return ERR_MT_INVALID_CHANEL;
 #endif
-    double pulses = (double)fm_getActualMeasureTime_pulses_pulses(chanel);
-    double F = freqmeters[chanel].F;
+    freq_type_t pulses = (freq_type_t)fm_getActualMeasureTime_pulses_pulses(chanel);
+    freq_type_t F = freqmeters[chanel].F;
     *res = pulses / F * 1000.0;
     return ERR_MT_OK;
 }
@@ -212,10 +213,6 @@ uint32_t fm_getActualReloadValue(uint8_t chanel) {
     return freqmeters[chanel].reloadVals.readyReload_val;
 }
 
-uint32_t fm_getIRQCount(uint8_t chanel) {
-    return freqmeters[chanel].irq_count;
-}
-
 void fm_process() {
     for (uint8_t chanel = 0; chanel < FREQMETERS_COUNT; ++chanel) {
         if (freqmeters[chanel].signal_present) {
@@ -225,14 +222,19 @@ void fm_process() {
             uint32_t periods = fm_getActualReloadValue(chanel);
             uint32_t value   = fm_getActualMeasureTime_pulses_pulses(chanel);
 #ifndef SIM
-            //clock_purify_time(&freqmeters[chanel].timestamp);
             irq_enable(IS_FREQMETERS);
 #endif
 
             if ((!value) || (!periods))
                 continue;
 
-            double F = (double)periods / (double)value * (double)F_REF;
+            freq_type_t F = (freq_type_t)periods / (freq_type_t)value *
+#ifdef SIM
+                    (freq_type_t)F_REF
+#else
+                    (freq_type_t)(settings.ReferenceFrequency * FREQMETER_MASTER_CLOCK_RATIO)
+#endif
+                    ;
             freqmeters[chanel].F = F;
 
             freqmeters[chanel].reloadVals.newReload_val = measure_time_ms2ticks(F, measure_time_ms[chanel]);
@@ -250,7 +252,7 @@ enum enSetMeasureTimeError fm_setMeasureTime(uint8_t chanel, uint16_t new_measur
         return ERR_MT_TOO_SMALL;
 #endif
     measure_time_ms[chanel] = new_measure_time_ms;
-    double F = (freqmeters[chanel].enabled && (freqmeters[chanel].F > 0)) ?
+    freq_type_t F = (freqmeters[chanel].enabled && (freqmeters[chanel].F > 0)) ?
                 freqmeters[chanel].F : STARTUP_FREQUNCY;
     fm_setChanelReloadValue(chanel, measure_time_ms2ticks(F, new_measure_time_ms), true);
     return ERR_MT_OK;

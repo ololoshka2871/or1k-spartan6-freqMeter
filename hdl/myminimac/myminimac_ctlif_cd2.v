@@ -39,39 +39,36 @@ module myminimac_ctlif_cd2
     parameter TX_ADDR_WIDTH         = $clog2(1 * MTU),
     parameter TRANSFER_COUNTER_LEN  = $clog2(MTU)
 ) (
-    input                                               sys_clk,            // SYS clock
-    input                                               sys_rst,            // SYS reset
+    input                               sys_clk,            // SYS clock
+    input                               sys_rst,            // SYS reset
 
-    output reg                                          irq_rx,             // RX interrupt
-    output reg                                          irq_tx,             // TX interrupt
+    output reg                          irq_rx,             // RX interrupt
+    output reg                          irq_tx,             // TX interrupt
 
-    input       [5:0]                                   csr_a,              // control logic addr
-    input                                               csr_we,             // control logick write enable
-    input       [31:0]                                  csr_di,             // control logick data input
-    output reg  [TRANSFER_COUNTER_LEN-1:0]              csr_do,             // control logick data output
-    output reg                                          csr_ack,            // control logick acknolage
-    input                                               csr_stb,            // control logick strobe
-    input                                               csr_cyc,            // control logick select
+    input       [5:0]                   csr_a,              // control logic addr
+    input                               csr_we,             // control logick write enable
+    input       [31:0]                  csr_di,             // control logick data input
+    output wire [31:0]                  csr_do,             // control logick data output
+    output reg                          csr_ack,            // control logick acknolage
+    input                               csr_stb,            // control logick strobe
+    input                               csr_cyc,            // control logick select
 
-    input                                               rmii_clk_i,         // 50 MHz
+    input                               rmii_clk_i,         // 50 MHz
 
-    output                                              rx_rst,             // reset rx request
-    output                                              rx_valid,           // rx memory ready to write
-    output      [RX_ADDR_WIDTH-1:2]                     rx_adr,             // base address to write ressived bytes
-    input                                               rx_resetcount,      // reset rx address
-    input                                               rx_incrcount,       // if 1 we are increment curent rx slot ressived counter
-    input                                               rx_endframe,        // if 1 we are set state "10 -> slot has received a packet" for current slot
-    input                                               rx_error,           // error ocures during reset
+    output                              rx_rst,             // reset rx request
+    output                              rx_valid,           // rx memory ready to write
+    output      [RX_ADDR_WIDTH-1:2]     rx_adr,             // base address to write ressived bytes
+    input                               rx_resetcount,      // reset rx address
+    input                               rx_incrcount,       // if 1 we are increment curent rx slot ressived counter
+    input                               rx_endframe,        // if 1 we are set state "10 -> slot has received a packet" for current slot
+    input                               rx_error,           // error ocures during reset
 
-    output                                              tx_rst,             // reset Tx request
-    output                                              tx_valid,           // 1 - enable transmission
-    output                                              tx_last_byte,       // last bate remaining
-    output      [TX_ADDR_WIDTH-1:2]                     tx_adr,             // address of next byte to send
-    input                                               tx_next             // request to update tx_adr
+    output                              tx_rst,             // reset Tx request
+    output                              tx_valid,           // 1 - enable transmission
+    output                              tx_last_byte,       // last bate remaining
+    output      [TX_ADDR_WIDTH-1:2]     tx_adr,             // address of next byte to send
+    input                               tx_next             // request to update tx_adr
 );
-
-
-
 
 localparam MTU_ALIGNED = (MTU & 2'b11) ? ((MTU & ~32'b11) + 3'b100) : MTU;
 
@@ -103,6 +100,9 @@ localparam REG_RESET_CTL    = 4'd15;
 wire [3:0] reg_selector = csr_a[5:2];
 
 wire       wr_transaction = csr_we & csr_stb;
+
+reg  [TRANSFER_COUNTER_LEN-1:0] _csr_do;
+assign csr_do = {{(32-TRANSFER_COUNTER_LEN){1'b0}}, _csr_do};
 
 //////////////////////////////// RESET ///////////////////////////////////////
 
@@ -315,7 +315,7 @@ end
 always  @(posedge sys_clk) begin
     if(sys_rst) begin
         csr_ack <= 1'b0;
-        csr_do <= 0;
+        _csr_do <= 0;
     end else begin
         if (csr_cyc) begin
             if(csr_we) begin
@@ -323,35 +323,35 @@ always  @(posedge sys_clk) begin
                 csr_ack <=  rst_ctl_wr_done_sys |
                             tx_counter_wr_done_sys |
                             (|rx_slot_state_wr_done_sys);
-                csr_do <= 0;
+                _csr_do <= 0;
             end else begin
                 //read
                 case (reg_selector)
                     REG_RESET_CTL:
-                        csr_do <= rst_ctl_sys;
+                        _csr_do <= rst_ctl_sys;
 
                     REG_SLOT0_STATE:
-                        csr_do <= slot_state_sys[0];
+                        _csr_do <= slot_state_sys[0];
                     REG_SLOT1_STATE:
-                        csr_do <= slot_state_sys[1];
+                        _csr_do <= slot_state_sys[1];
                     REG_SLOT2_STATE:
-                        csr_do <= slot_state_sys[2];
+                        _csr_do <= slot_state_sys[2];
                     REG_SLOT3_STATE:
-                        csr_do <= slot_state_sys[3];
+                        _csr_do <= slot_state_sys[3];
 
                     REG_SLOT0_COUNT:
-                        csr_do <= slot_count_sys[0];
+                        _csr_do <= slot_count_sys[0];
                     REG_SLOT1_COUNT:
-                        csr_do <= slot_count_sys[1];
+                        _csr_do <= slot_count_sys[1];
                     REG_SLOT2_COUNT:
-                        csr_do <= slot_count_sys[2];
+                        _csr_do <= slot_count_sys[2];
                     REG_SLOT3_COUNT:
-                        csr_do <= slot_count_sys[3];
+                        _csr_do <= slot_count_sys[3];
 
                     REG_TX_REMANING:
-                        csr_do <= {31'd0, tx_busy};
+                        _csr_do <= {31'd0, tx_busy};
                     default:
-                        csr_do <= 0;
+                        _csr_do <= 0;
                 endcase
                 csr_ack <= !csr_ack;
             end

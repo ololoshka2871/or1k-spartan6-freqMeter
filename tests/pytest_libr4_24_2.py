@@ -255,10 +255,10 @@ def test_incorrect_gateway_subnetmask(device, settings_req, test_mask, test_gate
 
 
 @pytest.mark.parametrize("test_f,result",
-    [(1038.68, False),
+    [(1038, False),
      (50500000, False),
-     (47999999.1, True),
-     (48000010.89, True)])
+     (47999999, True),
+     (48000010, True)])
 def test_referrence_frequency(device, settings_req, test_f, result):
     settings_req.writeSettingsReq.setReferenceFrequency = test_f
     resp = device.process_request_sync(settings_req)
@@ -266,7 +266,7 @@ def test_referrence_frequency(device, settings_req, test_f, result):
     assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == result
     assert (resp.settings.status !=
             protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['ERR_F_REF'].number) == result
-    assert (abs(resp.settings.ReferenceFrequency - settings_req.writeSettingsReq.setReferenceFrequency) < 0.01) == result
+    assert (resp.settings.ReferenceFrequency == settings_req.writeSettingsReq.setReferenceFrequency) == result
 
 
 # ################ clock ####################################
@@ -420,8 +420,8 @@ def test_get_measure_result(device, chanels_list):
 
 @pytest.mark.parametrize("testpattern",
                          [
-                            # 0,
-                             ~0,
+                            0,
+                            ~0,
                             0xA5A5A5A5,
                             0x5A5A5A5A,
                             0xFFFF0000,

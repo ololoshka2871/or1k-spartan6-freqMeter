@@ -30,7 +30,7 @@ struct sSettings {
     uint8_t MAC_ADDR[MAC_ADDRESS_SIZE];
     uint8_t DHCP;
 
-    double ReferenceFrequency;
+    uint32_t ReferenceFrequency;
 
     uint32_t CRC32; // 4 bytes
 };

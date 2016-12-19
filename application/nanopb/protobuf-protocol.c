@@ -37,6 +37,7 @@
 #include "main.h"
 #include "eth-main.h"
 #include "eth-nic.h"
+#include "eth-udp.h"
 
 #include "rtc.h"
 
@@ -119,7 +120,7 @@ protobuf_handle_request(uint16_t rx_data_bytes_remaining,
 
     if (request.has_setClock) {
         ansCookie->cmdFlags |= PB_CMD_SETCLOCK;
-        ansCookie->settimeResult = clock_settime(0, (struct tm*)&request.setClock);
+        ansCookie->settimeResult = clock_settime(0, (struct timespec*)&request.setClock);
     }
 
     if (request.has_setMeasureTimeRequest) {
@@ -187,7 +188,7 @@ protobuf_handle_request(uint16_t rx_data_bytes_remaining,
 
 static void fill_generic_fields(ru_sktbelpa_r4_24_2_Response *responce) {
     memset(responce, 0, sizeof(ru_sktbelpa_r4_24_2_Response));
-    clock_gettime(0, &responce->timestamp);
+    clock_gettime(0, (struct timespec*)&responce->timestamp);
     responce->deviceID = ru_sktbelpa_r4_24_2_INFO_R4_24_2_ID;
     responce->protocolVersion = ru_sktbelpa_r4_24_2_INFO_PROTOCOL_VERSION;
 }
@@ -252,6 +253,7 @@ void protobuf_format_answer(struct sAnsverParameters* args) {
             ru_sktbelpa_r4_24_2_GetMeasureTime_message *chanelgetMeasureTime_item = &result->chanelgetMeasureTime[i];
 
             if (chanel_req_info->chanel >= 0) {
+                chanelgetMeasureTime_item->chanelNumber = chanel_req_info->chanel;
                 ++result->chanelgetMeasureTime_count;
                 chanel_req_info->result |=
                         fm_getMeasureTime_ms(chanel_req_info->chanel, &chanelgetMeasureTime_item->measureTime_ms);
@@ -263,8 +265,6 @@ void protobuf_format_answer(struct sAnsverParameters* args) {
                 } else {
                     chanelgetMeasureTime_item->chanelEnabled = fm_isChanelEnabled(chanel_req_info->chanel);
                 }
-
-                chanelgetMeasureTime_item->chanelNumber = chanel_req_info->chanel;
             }
         }
     }

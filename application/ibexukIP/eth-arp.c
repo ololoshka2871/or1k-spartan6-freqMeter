@@ -49,12 +49,16 @@ void arp_initialise (void)
 
 	sm_arp = SM_ARP_IDLE;
 
+#ifdef PACKED_STRUCT
+    memset(arp_last_received_response.mac_address.v, 0, MAC_ADDR_LENGTH);
+#else
 	arp_last_received_response.mac_address.v[0] = 0;
 	arp_last_received_response.mac_address.v[1] = 0;
 	arp_last_received_response.mac_address.v[2] = 0;
 	arp_last_received_response.mac_address.v[3] = 0;
 	arp_last_received_response.mac_address.v[4] = 0;
 	arp_last_received_response.mac_address.v[5] = 0;
+#endif
 	arp_last_received_response.ip_address.Val = 0x00000000;
 }
 
@@ -79,12 +83,16 @@ BYTE arp_resolve_ip_address(IP_ADDR *ip_address_to_resolve)
 	arp_last_received_response.ip_address.Val = 0x00000000;
 
 	//Setup packet to tx
+#ifdef PACKED_STRUCT
+    memset(remote_device_info.mac_address.v, 0xff, MAC_ADDR_LENGTH);
+#else
 	remote_device_info.mac_address.v[0] = 0xff;
 	remote_device_info.mac_address.v[1] = 0xff;
 	remote_device_info.mac_address.v[2] = 0xff;
 	remote_device_info.mac_address.v[3] = 0xff;
 	remote_device_info.mac_address.v[4] = 0xff;
 	remote_device_info.mac_address.v[5] = 0xff;
+#endif
 	
 	remote_device_info.ip_address = *ip_address_to_resolve;
 
@@ -112,12 +120,16 @@ BYTE arp_is_resolve_complete (IP_ADDR *ip_address_being_resolved, MAC_ADDR *reso
         ((our_gateway_ip_address.Val != 0x00000000) && (arp_last_received_response.ip_address.Val == our_gateway_ip_address.Val))	//or if the last returned IP address is the gateway IP address then arp
     )																																//is resolved (this would mean the target IP is on a different subnet so
 	{
+#ifdef PACKED_STRUCT
+        memcpy(resolved_mac_address->v, arp_last_received_response.mac_address.v, MAC_ADDR_LENGTH);
+#else
         resolved_mac_address->v[0] = arp_last_received_response.mac_address.v[0];
         resolved_mac_address->v[1] = arp_last_received_response.mac_address.v[1];
         resolved_mac_address->v[2] = arp_last_received_response.mac_address.v[2];
         resolved_mac_address->v[3] = arp_last_received_response.mac_address.v[3];
         resolved_mac_address->v[4] = arp_last_received_response.mac_address.v[4];
         resolved_mac_address->v[5] = arp_last_received_response.mac_address.v[5];
+#endif
         return(1);
     }
     return(0);
@@ -221,12 +233,16 @@ BYTE arp_process_rx (void)
 			//----- ARP REQUEST RECEIVED -----
 			//--------------------------------
 			//Store the remote device details in case we can't tx our response now
+#ifdef PACKED_STRUCT
+            memcpy(remote_device_info.mac_address.v, arp_packet.sender_mac_addr.v, MAC_ADDR_LENGTH);
+#else
 			remote_device_info.mac_address.v[0] = arp_packet.sender_mac_addr.v[0];
 			remote_device_info.mac_address.v[1] = arp_packet.sender_mac_addr.v[1];
 			remote_device_info.mac_address.v[2] = arp_packet.sender_mac_addr.v[2];
 			remote_device_info.mac_address.v[3] = arp_packet.sender_mac_addr.v[3];
 			remote_device_info.mac_address.v[4] = arp_packet.sender_mac_addr.v[4];
 			remote_device_info.mac_address.v[5] = arp_packet.sender_mac_addr.v[5];
+#endif
 			remote_device_info.ip_address.Val = arp_packet.sender_ip_addr.Val;
 			
 			sm_arp = SM_ARP_SEND_REPLY;
@@ -238,6 +254,9 @@ BYTE arp_process_rx (void)
 			//----- ARP RESPONSE RECEIVED -----
 			//---------------------------------
 			//Store the response ready for the requesting function to check when its next called
+#ifdef PACKED_STRUCT
+            memcpy(arp_last_received_response.mac_address.v, arp_packet.sender_mac_addr.v, MAC_ADDR_LENGTH);
+#else
 			arp_last_received_response.mac_address.v[0] = arp_packet.sender_mac_addr.v[0];
 			arp_last_received_response.mac_address.v[1] = arp_packet.sender_mac_addr.v[1];
 			arp_last_received_response.mac_address.v[2] = arp_packet.sender_mac_addr.v[2];
@@ -245,6 +264,7 @@ BYTE arp_process_rx (void)
 			arp_last_received_response.mac_address.v[4] = arp_packet.sender_mac_addr.v[4];
 			arp_last_received_response.mac_address.v[5] = arp_packet.sender_mac_addr.v[5];
 			arp_last_received_response.ip_address.Val = arp_packet.sender_ip_addr.Val;
+#endif
 			return(1);
 		}
 		else
@@ -317,7 +337,11 @@ void arp_tx_packet (DEVICE_INFO *remote_device_info, WORD op_code)
 	nic_write_next_byte((BYTE)(op_code >> 8));
 	nic_write_next_byte((BYTE)(op_code & 0x00ff));
 
-	//SEND OUR MAC ADDRESS [6]
+#ifdef PACKED_STRUCT
+    nic_write_array(our_mac_address.v, MAC_ADDR_LENGTH); //SEND OUR MAC ADDRESS [6]
+    nic_write_array(our_ip_address.v, IP_ADDR_LENGTH); //SEND OUR IP ADDRESS [4]
+#else
+    //SEND OUR MAC ADDRESS [6]
 	nic_write_next_byte(our_mac_address.v[0]);
 	nic_write_next_byte(our_mac_address.v[1]);
 	nic_write_next_byte(our_mac_address.v[2]);
@@ -325,22 +349,27 @@ void arp_tx_packet (DEVICE_INFO *remote_device_info, WORD op_code)
 	nic_write_next_byte(our_mac_address.v[4]);
 	nic_write_next_byte(our_mac_address.v[5]);
 
-	//SEND OUR IP ADDRESS [4]
-	nic_write_next_byte(our_ip_address.v[0]);
-	nic_write_next_byte(our_ip_address.v[1]);
-	nic_write_next_byte(our_ip_address.v[2]);
-	nic_write_next_byte(our_ip_address.v[3]);
+    //SEND OUR IP ADDRESS [4]
+    nic_write_next_byte(our_ip_address.v[0]);
+    nic_write_next_byte(our_ip_address.v[1]);
+    nic_write_next_byte(our_ip_address.v[2]);
+    nic_write_next_byte(our_ip_address.v[3]);
+#endif
 
 	//SEND DESTINATION MAC ADDRESS [6]
 	if (op_code == ARP_OPCODE_RESPONSE)
 	{
-		//Sending a response - return to senders mac
+        //Sending a response - return to senders mac
+#ifdef PACKED_STRUCT
+        nic_write_array(remote_device_info->mac_address.v, MAC_ADDR_LENGTH);
+#else
 		nic_write_next_byte(remote_device_info->mac_address.v[0]);
 		nic_write_next_byte(remote_device_info->mac_address.v[1]);
 		nic_write_next_byte(remote_device_info->mac_address.v[2]);
 		nic_write_next_byte(remote_device_info->mac_address.v[3]);
 		nic_write_next_byte(remote_device_info->mac_address.v[4]);
 		nic_write_next_byte(remote_device_info->mac_address.v[5]);
+#endif
 	}
 	else
 	{
@@ -363,18 +392,26 @@ void arp_tx_packet (DEVICE_INFO *remote_device_info, WORD op_code)
 		((our_ip_address.v[3] ^ remote_device_info->ip_address.v[3]) & our_subnet_mask.v[3]) )
 	{
 		//TARGET IS NOT ON OUR SUBNET - USE THE GATEWAY IP ADDRESS
+#ifdef PACKED_STRUCT
+        nic_write_array(our_gateway_ip_address.v, IP_ADDR_LENGTH);
+#else
 		nic_write_next_byte(our_gateway_ip_address.v[0]);
 		nic_write_next_byte(our_gateway_ip_address.v[1]);
 		nic_write_next_byte(our_gateway_ip_address.v[2]);
 		nic_write_next_byte(our_gateway_ip_address.v[3]);
+#endif
 	}
 	else
 	{
 		//TARET IS ON OUR SUBNET - USE THE TARGET IP ADDRESS
+#ifdef PACKED_STRUCT
+        nic_write_array(remote_device_info->ip_address.v, IP_ADDR_LENGTH);
+#else
 		nic_write_next_byte(remote_device_info->ip_address.v[0]);
 		nic_write_next_byte(remote_device_info->ip_address.v[1]);
 		nic_write_next_byte(remote_device_info->ip_address.v[2]);
 		nic_write_next_byte(remote_device_info->ip_address.v[3]);
+#endif
 	}
 
 

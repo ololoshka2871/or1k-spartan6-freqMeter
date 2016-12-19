@@ -107,10 +107,6 @@ wire tx_last_byte;
 wire [TX_ADDR_WIDTH-1:2] tx_adr;
 wire tx_next;
 
-wire [csr_do_len - 1:0] _csr_dat_o;
-
-assign csr_dat_o = {{(31 - csr_do_len){1'b0}}, _csr_dat_o};
-
 myminimac_ctlif_cd2
 #(
     .RX_MEMORY_BASE(RX_MEMORY_BASE),
@@ -128,7 +124,7 @@ myminimac_ctlif_cd2
     .csr_a(csr_adr_i[5:0]),
     .csr_we(csr_we_i),
     .csr_di(csr_dat_i),
-    .csr_do(_csr_dat_o),
+    .csr_do(csr_dat_o),
     .csr_ack(csr_ack_o),
     .csr_stb(csr_stb_i),
     .csr_cyc(csr_cyc_i),

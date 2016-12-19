@@ -20,11 +20,11 @@ enum INFO {
 // все возможные данные как необязательные поля.
 message Request {
     // Идентификатор запроса. Служит для определения пары запрос/ответ
-    required fixed32            id = 1;
+    required uint32             id = 1;
     // id устройства (идентификация)
-    required fixed32            deviceID = 2;
+    required uint32             deviceID = 2;
     // версия протокола запрашивающего
-    required fixed32            protocolVersion = 3;
+    required uint32             protocolVersion = 3;
 
     // Таймштамп клиента. Если он есть в сообщении, то часы устройства будут установлены в соответствии с ним
     optional Timestamp          setClock = 4;
@@ -44,11 +44,11 @@ message Request {
 // все возможные данные как необязательные поля.
 message Response {
     // Идентификатор запроса, которому соответствует этот ответ
-    required fixed32            id = 1;
+    required uint32             id = 1;
     // id устройства (идентификация)
-    required fixed32            deviceID = 2;
+    required uint32             deviceID = 2;
     // версия протокола
-    required fixed32            protocolVersion = 3;
+    required uint32             protocolVersion = 3;
     // общий статус выполнения
     required STATUS             Global_status = 4;
     // таймштамп устройства, когда фактически был сгененрирован ответ
@@ -78,8 +78,8 @@ enum STATUS {
 
 // Таймштамп (аналогично struct timespec)
 message Timestamp {
-    required fixed32            sec = 1;
-    required fixed32            nsec = 2;
+    required uint32             sec = 1;
+    required uint32             nsec = 2;
 }
 
 //-----------------------------------------------------------------------------
@@ -90,11 +90,11 @@ message Timestamp {
 // Можно послать сообщение вообще без полей, тогда это просто запрос на чтение настроек
 message WriteSettingsReq {
     // установить статический IP-адрес устройству
-    optional fixed32            setIPAddr = 1;
+    optional uint32             setIPAddr = 1;
     // установить маску подсети устройству
-    optional fixed32            setIPmask = 2;
+    optional uint32             setIPmask = 2;
     // установить шлюз устройству
-    optional fixed32            setIPDefaultGateway = 3;
+    optional uint32             setIPDefaultGateway = 3;
     // установить MAC-адрес устройству
     optional fixed64            setMAC_Addr = 4;
     // разрешить/запретить устройству использовать протокол DHCP для определения
@@ -104,7 +104,7 @@ message WriteSettingsReq {
 
     // Частота задающего генератора
     // позволяет установить точное значение после измерения
-    optional double             setReferenceFrequency = 6;
+    optional uint32             setReferenceFrequency = 6;
 }
 
 // Ответ: Все настройки, после изменения, если таковое было
@@ -122,13 +122,13 @@ message SettingsResponse {
     required ErrorDescription   status = 1; // комбинация флагов
 
     // далее поля аналогичны полям в сообщении WriteSettigsReq
-    required fixed32            IPAddr = 3;
-    required fixed32            IPmask = 4;
-    required fixed32            IPDefaultGateway = 5;
+    required uint32             IPAddr = 3;
+    required uint32             IPmask = 4;
+    required uint32             IPDefaultGateway = 5;
     required fixed64            MAC_Addr = 6;
     required bool               UseDHCP = 7;
 
-    required double             ReferenceFrequency = 8;
+    required uint32             ReferenceFrequency = 8;
 }
 
 //-----------------------------------------------------------------------------
@@ -145,9 +145,9 @@ message RebootRequest {
 // Запрос установки времени измерения/разрешения работы канала
 message SetMeasureTime_message {
     // Номер канала
-    required fixed32            chanelNumber = 1;
+    required uint32             chanelNumber = 1;
     // время измерения канала, если установить, или это поля отсуствует - прочитать
-    optional fixed32            measureTime_ms = 2;
+    optional uint32             measureTime_ms = 2;
     // Флаг включения/выключения канала
     optional bool               chanelEnabled = 3;
 }
@@ -166,11 +166,11 @@ message GetMeasureTime_message {
         ERR_VALUE_TOO_SMALL = 4;    // слишком малое время измерения
     }
     // Номер канала
-    required fixed32            chanelNumber = 2;
+    required uint32             chanelNumber = 2;
     // код ошибки
     required ErrorDescription   status = 1;
     // установленное время измерения канала
-    required fixed32            measureTime_ms = 3;
+    required uint32             measureTime_ms = 3;
     // Флаг включения/выключения канала
     required bool               chanelEnabled = 4;
 }
@@ -185,7 +185,7 @@ message GetMeasureTimeResponce {
 // запрос результата измерений
 message GetMeasureResult_message {
     // номер канала
-    required fixed32            chanelNumber = 1;
+    required uint32             chanelNumber = 1;
 }
 
 // общий запрос результатов измерений
@@ -196,7 +196,7 @@ message GetMeasureResultsReq {
 // ответ - результат измерения
 message MeasureResult {
     // номер канала
-    required fixed32            chanelNumber = 1;
+    required uint32             chanelNumber = 1;
     // таймштамп - когда измерение было фактически произведено
     required Timestamp          timestamp = 2;
 
@@ -205,7 +205,7 @@ message MeasureResult {
     // входной сигнал обнаружен
     required bool               chanelInputSignalPresent = 5;
     // Частота [Гц]
-    required double             Frequency = 6;
+    required @SYSTEM_FREQ_TYPE@ Frequency = 6;
 }
 
 //  общий ответ с результатами измерений
