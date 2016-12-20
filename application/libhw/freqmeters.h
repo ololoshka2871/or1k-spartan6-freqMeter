@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #ifndef SIM
 #include "rtc.h"
+#include "prog_timer.h"
 #endif
 #include "mem_map.h"
 
@@ -64,7 +65,7 @@ struct freqmeter_chanel {
 
     freq_type_t   F;
 #ifndef SIM
-    struct timespec timestamp;
+    progtimer_time_t timestamp;
 #endif
     uint8_t enabled;
     uint8_t signal_present;

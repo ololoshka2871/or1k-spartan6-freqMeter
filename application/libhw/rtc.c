@@ -72,39 +72,29 @@ void rtc_init() {
         return;
     if (current_time.tv_sec < BULD_TIMESTAMP)
         current_time.tv_sec = BULD_TIMESTAMP;
-    current_time.tv_nsec = 0;
-    clock_settime(0, &current_time);
+    clock_settime(0, current_time.tv_sec * 1000);
 }
 
 int clock_gettime(clockid_t clockid, struct timespec *ts) {
     (void)clockid;
-    clock_catch_inpure_timestamp(ts);
-    clock_purify_time(ts);
+    uint64_t timestamp = progtimer_get_ticks();
+    ts->tv_sec = timestamp / 1000;
+    ts->tv_nsec = timestamp - ts->tv_sec * 1000;
     return 0;
 }
 
-void clock_catch_inpure_timestamp(struct timespec *ts) {
-    ts->tv_sec = local_seconds;
-    ts->tv_nsec = progtimer_get_ticks();
+progtimer_time_t inline clock_catch_timestamp() {
+    return progtimer_get_ticks();
 }
 
-void clock_purify_time(struct timespec *ts) {
-    ts->tv_nsec = MS_2_NS(ts->tv_nsec - sec_point);
-}
-
-int clock_settime(clockid_t clockid, const struct timespec *ts) {
+int clock_settime(clockid_t clockid, uint64_t ts) {
     (void)clockid;
 
-    if (ts->tv_sec < BULD_TIMESTAMP)
+    if (ts < ((uint64_t)BULD_TIMESTAMP * 1000))
         return -EINVAL;
 
-    sec_point = NS_2_MS(ts->tv_nsec);
-    progtimer_time_t sec_timer_pos = progtimer_get_timer_counter(sec_timer);
-    ENTER_CRITICAL();
-    progtimer_setclock(sec_point);
-    progtimer_set_timer_counter(sec_timer, sec_timer_pos + sec_point);
-    EXIT_CRITICAL();
-    sec_point = 0;
-    local_seconds = ts->tv_sec;
-    return ds1338z_setUnixTime(&ts->tv_sec) == DS1338Z_OK ? 0 : -ECONNREFUSED;
+    progtimer_setclock(ts);
+
+    struct timespec _ts = {ts / 1000, 0};
+    return ds1338z_setUnixTime(&_ts) == DS1338Z_OK ? 0 : -ECONNREFUSED;
 }

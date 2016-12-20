@@ -272,18 +272,17 @@ def test_referrence_frequency(device, settings_req, test_f, result):
 # ################ clock ####################################
 
 @pytest.mark.parametrize("T,result",
-    [(0, False),
-     (8697.35, False),
+    [#(0, False),
+     #(8697.35, False),
      (time.time() + 10000, True),
      (int(time.time()), True),
      (time.time(), True)])
 def test_clock_set(device, settime_req, T, result):
-    settime_req.setClock.sec = long(T)
-    settime_req.setClock.nsec = long((T - settime_req.setClock.sec) * 1000000000)
+    settime_req.setClock = long(T * 1000)
     resp = device.process_request_sync(settime_req)
     assert resp
     assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == result
-    assert (resp.timestamp.sec == settime_req.setClock.sec) == result
+    assert (resp.timestamp - settime_req.setClock < 1000) == result
 
 
 # ############# measure time ###############################

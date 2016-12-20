@@ -120,7 +120,7 @@ protobuf_handle_request(uint16_t rx_data_bytes_remaining,
 
     if (request.has_setClock) {
         ansCookie->cmdFlags |= PB_CMD_SETCLOCK;
-        ansCookie->settimeResult = clock_settime(0, (struct timespec*)&request.setClock);
+        ansCookie->settimeResult = clock_settime(0, request.setClock);
     }
 
     if (request.has_setMeasureTimeRequest) {
@@ -188,7 +188,7 @@ protobuf_handle_request(uint16_t rx_data_bytes_remaining,
 
 static void fill_generic_fields(ru_sktbelpa_r4_24_2_Response *responce) {
     memset(responce, 0, sizeof(ru_sktbelpa_r4_24_2_Response));
-    clock_gettime(0, (struct timespec*)&responce->timestamp);
+    responce->timestamp = clock_catch_timestamp();
     responce->deviceID = ru_sktbelpa_r4_24_2_INFO_R4_24_2_ID;
     responce->protocolVersion = ru_sktbelpa_r4_24_2_INFO_PROTOCOL_VERSION;
 }
@@ -283,8 +283,7 @@ void protobuf_format_answer(struct sAnsverParameters* args) {
 
                 fm_getCopyOffreqmeterState(chanel, &chanel_data);
                 res_item->chanelNumber = chanel;
-                memcpy(&res_item->timestamp, &chanel_data.timestamp, sizeof(struct timespec));
-                clock_purify_time((struct timespec*)&res_item->timestamp);
+                res_item->timestamp = chanel_data.timestamp;
                 res_item->chanelEnabled = chanel_data.enabled;
                 res_item->chanelInputSignalPresent = chanel_data.signal_present;
                 res_item->Frequency = chanel_data.F;

@@ -11,20 +11,20 @@ import protocol_pb2
 
 
 def print_hader(stream, chanel_mask):
-    stream.write('Время [c];Время[мс];Время обработки запроса[мс];')
+    stream.write('Время[мс];Время обработки запроса[мс];')
     for i in range(32):
         if chanel_mask & (1 << i):
-            stream.write('Канал {0} измерен в [c];Канал {0} измерен в [мc];Канал {0} частота [Гц];'.format(i))
+            stream.write('Канал {0} измерен в [мc];Канал {0} частота [Гц];'.format(i))
 
     stream.write('\n')
 
 
 def gen_pattern(chanel_mask):
-    res = '{0};{1};{2};'
-    c = 3
+    res = '{0};{1};'
+    c = 2
     for i in range(32):
         if chanel_mask & (1 << i):
-            res += ('{fn[0]};{fn[1]};{fn[2]};'.replace('fn', str(c)))
+            res += ('{fn[0]};{fn[1]};'.replace('fn', str(c)))
             c += 1
 
     return res
@@ -72,14 +72,15 @@ def main():
 
         results = {}
         for i in response.getMeasureResultsResponce.results._values:
-            results[i.chanelNumber] = (i.timestamp.sec, i.timestamp.nsec / 1000000, i.Frequency)
+            results[i.chanelNumber] = (i.timestamp, i.Frequency)
 
         res_list = []
         for key in sorted(results.keys()):
             res_list.append(results[key])
 
         pr_time = time.time()
-        print(pattern.format(long(pr_time), long((pr_time - long(pr_time)) * 1000), long((req_time - start) * 1000),
+        print(pattern.format(long(pr_time * 1000),
+                             long((pr_time - start) * 1000),
                              *res_list))
 
         # sleep if needed

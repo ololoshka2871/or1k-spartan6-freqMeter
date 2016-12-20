@@ -7,6 +7,8 @@ import threading
 import random
 import time
 
+from __builtin__ import long
+
 
 class TimeoutError(RuntimeError):
     pass
@@ -54,8 +56,7 @@ class r4_24_2_requestBuilder:
         :return: объект типа protocol_pb2.Request
         """
         req = r4_24_2_requestBuilder.build_request()
-        ts = protocol_pb2.Timestamp()
-        req.setClock.CopyFrom(ts)
+        req.setClock = long(time.time() / 1000)
         return req
 
     @staticmethod
@@ -258,14 +259,13 @@ class r4_24_2_io:
 
     def setClock(self, t):
         request = r4_24_2_requestBuilder.build_set_time_request()
-        request.setClock.sec = long(t)
-        request.setClock.nsec = long((t - request.setClock.sec) * 1000000000)
+        request.setClock = long(t * 1000)
         response = self.process_request_sync(request)
 
         if response.Global_status != protocol_pb2.STATUS.Value('OK'):
             raise RuntimeError('Error {} then trying to set clock on device'.format(response.Global_status))
 
-        return response.timestamp.sec + response.timestamp.nsec / 1000000000.0
+        return response.timestamp / 1000.0
 
     def setMeasureTime(self, chanels, measure_time_ms):
         self.ch_ctl(chanels, {'measureTime_ms': measure_time_ms})

@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-typedef uint32_t progtimer_time_t;
+typedef uint64_t progtimer_time_t;
 
 typedef struct sProgtimer* progtimer_desc_t;
 

@@ -84,7 +84,7 @@ static void fm_isr_handler(unsigned int *registers) {
                 chanel->res_start_v = FM_START_VAL_CH(ch);
                 chanel->res_stop_v = FM_STOP_VAL_CH(ch);
 #ifndef SIM
-                clock_catch_inpure_timestamp(&chanel->timestamp);
+                chanel->timestamp = clock_catch_timestamp();
                 chanel->signal_present = !!(FM_SP & (1 << ch));
 #endif
                 reload_cycle(ch);
