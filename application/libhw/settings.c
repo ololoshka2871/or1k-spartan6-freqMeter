@@ -51,7 +51,7 @@ struct sSettings settings;
 
 void settings_update_crc32(struct sSettings *settings) {
     settings->CRC32 = 0;
-    settings->CRC32 = crc32(settings, sizeof(struct sSettings), 0);
+    settings->CRC32 = crc32(settings, sizeof(struct sSettings));
 }
 
 

@@ -104,7 +104,7 @@ WORD nic_check_for_rx (void) {
                 ((uint32_t)rxPointer[rxlen-3] <<  8) |
                 ((uint32_t)rxPointer[rxlen-4]);
     uint32_t computed_crc =
-            crc32(rxPointer, rxlen - sizeof(ressived_crc), 0);
+            crc32(rxPointer, rxlen - sizeof(ressived_crc));
 
     if (ressived_crc != computed_crc) goto __ressive_error;
 
@@ -317,7 +317,7 @@ void nic_tx_packet (void) {
         txPointer = pocket_start + nic_tx_len;
     }
 
-    DWORD crc = crc32(pocket_start, nic_tx_len, 0);
+    DWORD crc = crc32(pocket_start, nic_tx_len);
     *txPointer++ = crc;
     *txPointer++ = crc >> 8;
     *txPointer++ = crc >> 16;

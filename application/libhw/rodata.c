@@ -137,7 +137,7 @@ static bool rodata_init() {
 
     uint32_t origin_crc = table->hader.rodata_table_crc;
     table->hader.rodata_table_crc = 0;
-    uint32_t calculed_crc = crc32(table, prodata_fs_size, 0);
+    uint32_t calculed_crc = crc32(table, prodata_fs_size);
 
     if (origin_crc != calculed_crc)
         return false; // table content invalid

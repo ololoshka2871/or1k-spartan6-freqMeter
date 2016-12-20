@@ -24,7 +24,7 @@
 #define GPIO_BASE               (IO_BASE + 0x400)
 #define MDIO_BASE               (IO_BASE + 0x500)
 #define IICMB_BASE_ADDR         (IO_BASE + 0x600)
-#define UART1_BASE              (IO_BASE + 0x700)
+#define CRC32_BASE              (IO_BASE + 0x700)
 
 //-----------------------------------------------------------------
 // Interrupts
@@ -36,7 +36,6 @@
 #define IRQ_GPIO		4
 #define IRQ_MDIO                5
 #define IRQ_I2C                 6
-#define IRQ_UART1               7
 
 #define IRQ_FREQMETERS          8
 #define IRQ_MINIMAC_TX          9

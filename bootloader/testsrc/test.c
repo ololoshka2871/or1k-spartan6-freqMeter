@@ -39,6 +39,7 @@
 #include "mdio.h"
 #include "GPIO.h"
 #include "i2c.h"
+#include "crc32.h"
 
 static void GDB_STUB_SECTION_TEXT test_freqmeter() {
     fm_init();
@@ -124,6 +125,13 @@ static void GDB_STUB_SECTION_TEXT test_gpio() {
     gpio_port_set_all(gpio, ~0xA5A5A5A5);
 }
 
+static void GDB_STUB_SECTION_TEXT test_crc32() {
+    static const char test_data[] = "Test_Data_string01zd";
+    uint32_t res = 0;
+    while(res != 0xE4D2E6C2)
+        res = crc32(test_data, sizeof(test_data));
+}
+
 void GDB_STUB_SECTION_TEXT start_tests() {
 #ifdef SIM_TEST_FREQMETER
     test_freqmeter();
@@ -151,5 +159,9 @@ void GDB_STUB_SECTION_TEXT start_tests() {
 
 #ifdef SIM_TEST_GPIO
     test_gpio();
+#endif
+
+#ifdef SIM_TEST_CRC32
+    test_crc32();
 #endif
 }

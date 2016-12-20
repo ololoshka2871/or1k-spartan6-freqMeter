@@ -52,11 +52,6 @@ module top
     input               rx0,
     output              tx0,
 
-`ifdef UART1_ENABLED_STR
-    input               rx1,
-    output              rx1,
-`endif
-
     // reset CPU key
     input wire          rst_i,
 
@@ -328,7 +323,6 @@ soc
     .ENABLE_SYSTICK_TIMER("ENABLED"),
     .ENABLE_HIGHRES_TIMER("ENABLED"),
     .BAUD_UART0(`BAUD_UART0),
-    .BAUD_UART1(`BAUD_UART1),
     .BAUD_MDIO(`BAUD_MDIO),
     .BAUD_I2C(`BAUD_I2C),
     .EXTERNAL_INTERRUPTS(3)
@@ -343,11 +337,6 @@ u_soc
 
     .uart0_tx_o(tx0),
     .uart0_rx_i(rx0),
-
-`ifdef UART1_ENABLED_STR
-    .uart0_tx_o(tx1),
-    .uart0_rx_i(rx1),
-`endif
 
     // Memory Port
     .io_addr_i(soc_addr),    

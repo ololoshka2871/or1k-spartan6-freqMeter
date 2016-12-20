@@ -36,29 +36,91 @@ module crc32_calc
     // WISHBONE bus slave interface
     input  wire				clk_i,         // clock
     input  wire				rst_i,         // reset (asynchronous active low)
-    input  wire				cyc_i,         // cycle
-    input  wire				stb_i,         // strobe
-    input  wire [2:0]                   adr_i,         // address
-    input  wire				we_i,          // write enable
+    input  wire [2:0]                   addr_i,        // address
     input  wire [31:0]                  dat_i,         // data input
     output wire [31:0]                  dat_o,         // data output
-    output wire				ack_o          // normal bus termination
+    input  wire				stb_i,         // strobe
+    input  wire				we_i           // write enable
 );
 
-assign ack_o = 1'b1;
+// addr 000 - add
+wire crc32_add_value = stb_i & we_i & !addr_i[2];
 
-// addr == 3'b000 - W -> add value R-> read result
-wire crc32_add_value = !adr_i[2] & stb_i & we_i;
+// addr 100 - reset
+wire reset_crc = (stb_i & we_i & addr_i[2]) | rst_i;
 
-// addr == 3'b100 - W -> reset CRC value R -> nothing
-wire reset_crc = (adr_i[2] & stb_i & we_i) | rst_i;
+///////////////////////////////////////////////////////////////////////////////
 
-crc32 calculator (
-        .clk (clk_i),
-        .reset (reset_crc),
-        .rx_we (crc32_add_value),
-        .rx_byte (dat_i[7:0]),
-        .tx_crc (dat_o)
-);
+// polynomial: x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + 1
+// data width: 8
+// convention: the first serial bit is D[7]
+function [31:0] nextCRC32_D8;
+
+input [7:0] Data;
+input [31:0] crc;
+reg [7:0] d;
+reg [31:0] c;
+reg [31:0] newcrc;
+begin
+    d = Data;
+    c = crc;
+
+    newcrc[0] = d[6] ^ d[0] ^ c[24] ^ c[30];
+    newcrc[1] = d[7] ^ d[6] ^ d[1] ^ d[0] ^ c[24] ^ c[25] ^ c[30] ^ c[31];
+    newcrc[2] = d[7] ^ d[6] ^ d[2] ^ d[1] ^ d[0] ^ c[24] ^ c[25] ^ c[26] ^ c[30] ^ c[31];
+    newcrc[3] = d[7] ^ d[3] ^ d[2] ^ d[1] ^ c[25] ^ c[26] ^ c[27] ^ c[31];
+    newcrc[4] = d[6] ^ d[4] ^ d[3] ^ d[2] ^ d[0] ^ c[24] ^ c[26] ^ c[27] ^ c[28] ^ c[30];
+    newcrc[5] = d[7] ^ d[6] ^ d[5] ^ d[4] ^ d[3] ^ d[1] ^ d[0] ^ c[24] ^ c[25] ^ c[27] ^ c[28] ^ c[29] ^ c[30] ^ c[31];
+    newcrc[6] = d[7] ^ d[6] ^ d[5] ^ d[4] ^ d[2] ^ d[1] ^ c[25] ^ c[26] ^ c[28] ^ c[29] ^ c[30] ^ c[31];
+    newcrc[7] = d[7] ^ d[5] ^ d[3] ^ d[2] ^ d[0] ^ c[24] ^ c[26] ^ c[27] ^ c[29] ^ c[31];
+    newcrc[8] = d[4] ^ d[3] ^ d[1] ^ d[0] ^ c[0] ^ c[24] ^ c[25] ^ c[27] ^ c[28];
+    newcrc[9] = d[5] ^ d[4] ^ d[2] ^ d[1] ^ c[1] ^ c[25] ^ c[26] ^ c[28] ^ c[29];
+    newcrc[10] = d[5] ^ d[3] ^ d[2] ^ d[0] ^ c[2] ^ c[24] ^ c[26] ^ c[27] ^ c[29];
+    newcrc[11] = d[4] ^ d[3] ^ d[1] ^ d[0] ^ c[3] ^ c[24] ^ c[25] ^ c[27] ^ c[28];
+    newcrc[12] = d[6] ^ d[5] ^ d[4] ^ d[2] ^ d[1] ^ d[0] ^ c[4] ^ c[24] ^ c[25] ^ c[26] ^ c[28] ^ c[29] ^ c[30];
+    newcrc[13] = d[7] ^ d[6] ^ d[5] ^ d[3] ^ d[2] ^ d[1] ^ c[5] ^ c[25] ^ c[26] ^ c[27] ^ c[29] ^ c[30] ^ c[31];
+    newcrc[14] = d[7] ^ d[6] ^ d[4] ^ d[3] ^ d[2] ^ c[6] ^ c[26] ^ c[27] ^ c[28] ^ c[30] ^ c[31];
+    newcrc[15] = d[7] ^ d[5] ^ d[4] ^ d[3] ^ c[7] ^ c[27] ^ c[28] ^ c[29] ^ c[31];
+    newcrc[16] = d[5] ^ d[4] ^ d[0] ^ c[8] ^ c[24] ^ c[28] ^ c[29];
+    newcrc[17] = d[6] ^ d[5] ^ d[1] ^ c[9] ^ c[25] ^ c[29] ^ c[30];
+    newcrc[18] = d[7] ^ d[6] ^ d[2] ^ c[10] ^ c[26] ^ c[30] ^ c[31];
+    newcrc[19] = d[7] ^ d[3] ^ c[11] ^ c[27] ^ c[31];
+    newcrc[20] = d[4] ^ c[12] ^ c[28];
+    newcrc[21] = d[5] ^ c[13] ^ c[29];
+    newcrc[22] = d[0] ^ c[14] ^ c[24];
+    newcrc[23] = d[6] ^ d[1] ^ d[0] ^ c[15] ^ c[24] ^ c[25] ^ c[30];
+    newcrc[24] = d[7] ^ d[2] ^ d[1] ^ c[16] ^ c[25] ^ c[26] ^ c[31];
+    newcrc[25] = d[3] ^ d[2] ^ c[17] ^ c[26] ^ c[27];
+    newcrc[26] = d[6] ^ d[4] ^ d[3] ^ d[0] ^ c[18] ^ c[24] ^ c[27] ^ c[28] ^ c[30];
+    newcrc[27] = d[7] ^ d[5] ^ d[4] ^ d[1] ^ c[19] ^ c[25] ^ c[28] ^ c[29] ^ c[31];
+    newcrc[28] = d[6] ^ d[5] ^ d[2] ^ c[20] ^ c[26] ^ c[29] ^ c[30];
+    newcrc[29] = d[7] ^ d[6] ^ d[3] ^ c[21] ^ c[27] ^ c[30] ^ c[31];
+    newcrc[30] = d[7] ^ d[4] ^ c[22] ^ c[28] ^ c[31];
+    newcrc[31] = d[5] ^ c[23] ^ c[29];
+    nextCRC32_D8 = newcrc;
+end
+endfunction
+
+///////////////////////////////////////////////////////////////////////////////
+
+wire [7:0] next_byte = {dat_i[0], dat_i[1], dat_i[2], dat_i[3],
+                        dat_i[4], dat_i[5], dat_i[6], dat_i[7]};
+
+reg [31:0] crc32_;
+always @(posedge clk_i) begin
+    if (reset_crc)
+        crc32_ <= 32'hFFFFFFFF;
+    if(crc32_add_value)
+        crc32_ <= nextCRC32_D8( next_byte , crc32_ );
+end
+
+assign dat_o = { ~crc32_[0], ~crc32_[1], ~crc32_[2], ~crc32_[3],
+                 ~crc32_[4], ~crc32_[5], ~crc32_[6], ~crc32_[7],
+                 ~crc32_[8], ~crc32_[9], ~crc32_[10], ~crc32_[11],
+                 ~crc32_[12], ~crc32_[13], ~crc32_[14], ~crc32_[15],
+                 ~crc32_[16], ~crc32_[17], ~crc32_[18], ~crc32_[19],
+                 ~crc32_[20], ~crc32_[21], ~crc32_[22], ~crc32_[23],
+                 ~crc32_[24], ~crc32_[25], ~crc32_[26], ~crc32_[27],
+                 ~crc32_[28], ~crc32_[29], ~crc32_[30], ~crc32_[31]};
 
 endmodule

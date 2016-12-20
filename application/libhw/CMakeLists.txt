@@ -35,7 +35,6 @@ SET(LIBHW_SOURCES
     cache.c
     irq.c
     serial0.c
-    serial1.c
     timer.c
     GPIO.c
     syscall.c
@@ -51,6 +50,7 @@ SET(LIBHW_SOURCES
     ds1338z.c
     rtc.c
     settings.c
+    crc32.c
     )
 
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR} ${LIBBASE_INCLUDE_DIR})
@@ -112,6 +112,10 @@ endif()
 
 if (ETHERNET_MAC_ADDRESS_FORCE)
     list(APPEND difenitions MAC_ADDR_FORCE)
+endif()
+
+if (PERIPHERIAL_ENABLE_CRC32)
+    list(APPEND difenitions CRC32_HW)
 endif()
 
 add_library(hw STATIC ${LIBHW_SOURCES})

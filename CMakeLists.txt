@@ -107,8 +107,8 @@ set(PERIPHERIAL_ENABLE_TIMER    ON
     CACHE BOOL  "Enable timer at 0x12000100")
 set(PERIPHERIAL_ENABLE_UART0    ON
     CACHE BOOL  "Enable UART0 IPCore at 0x12000000")
-set(PERIPHERIAL_ENABLE_UART1    OFF
-    CACHE BOOL  "Enable UART1 IPCore at 0x12000700")
+set(PERIPHERIAL_ENABLE_CRC32    OFF
+    CACHE BOOL  "Enable CRC32 calculaton unit at 0x12000700")
 set(PERIPHERIAL_ENABLE_GPIO     ON
     CACHE BOOL  "Enable i2c IPCore at 0x12000400")
 set(PERIPHERIAL_ENABLE_I2C      OFF
@@ -120,8 +120,6 @@ set(PERIPHERIAL_ENABLE_ETHERNET ON
 #---------------------------------- SERIALs ------------------------------------
 set(BAUD_UART0                  115200
     CACHE STRING "UART0 (debug) speed")
-set(BAUS_UART1                  921600
-    CACHE STRING "UART1 speed")
 set(BAUD_MDIO                   2500000
     CACHE STRING "MDIO speed")
 set(BAUD_SPI_CLK_DEVIDER_LEN    4
@@ -206,6 +204,8 @@ set(SIM_TEST_I2C            OFF
     CACHE BOOL  "Bootloader firmware tests I2C interface")
 set(SIM_TEST_GPIO           OFF
     CACHE BOOL  "Bootloader firmware tests GPIO pins")
+set(SIM_TEST_CRC32          OFF
+    CACHE BOOL  "Bootloader firmware tests crc32")
 
 #------------------------------/tests-------------------------------------------
 

@@ -65,6 +65,10 @@ if (PERIPHERIAL_ENABLE_I2C)
      add_definitions(-DIICMB_I2C)
 endif()
 
+if (PERIPHERIAL_ENABLE_CRC32)
+    add_definitions(-DCRC32_HW)
+endif()
+
 if (SIM_TEST_FREQMETER)
     add_definitions(-DSIM_TEST_FREQMETER)
 endif()
@@ -91,6 +95,10 @@ endif()
 
 if (SIM_TEST_GPIO)
     add_definitions(-DSIM_TEST_GPIO)
+endif()
+
+if (SIM_TEST_CRC32)
+    add_definitions(-DSIM_TEST_CRC32)
 endif()
 
 include_directories(. ${GDB_STUB_DIR})

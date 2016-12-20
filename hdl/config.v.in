@@ -52,7 +52,7 @@
 
 // peripherial
 @UART0_ENABLED_STR@
-@UART1_ENABLED_STR@
+@CRC32_ENABLED_STR@
 @TIMER_ENABLED_STR@
 @ETHERNET_ENABLED_STR@
 @GPIO_ENABLED_STR@
@@ -61,7 +61,6 @@
 
 // uarts
 `define     BAUD_UART0                  @BAUD_UART0@
-`define     BAUD_UART1                  @BAUD_UART1@
 
 // inputs
 `define     F_INPUTS_COUNT              @F_INPUTS_COUNT@
