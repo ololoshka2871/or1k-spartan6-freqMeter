@@ -60,6 +60,8 @@ def main():
     device.setMeasureTime(ch2rd, args.measure_time)
     device.setClock(time.time())
 
+    time.sleep(2 * args.measure_time / 1000.0)
+
     print_hader(sys.stdout, args.chanel_mask)
     pattern = gen_pattern(args.chanel_mask)
 
