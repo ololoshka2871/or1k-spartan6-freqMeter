@@ -80,7 +80,7 @@ def main():
 
         pr_time = time.time()
         print(pattern.format(long(pr_time * 1000),
-                             long((pr_time - start) * 1000),
+                             long((req_time - start) * 1000),
                              *res_list))
 
         # sleep if needed

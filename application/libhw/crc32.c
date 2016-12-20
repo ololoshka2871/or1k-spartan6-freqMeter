@@ -22,7 +22,7 @@
 #include "mem_map.h"
 
 /// compute CRC32 (half-byte algoritm)
-static uint32_t _crc32(const void* data, uint32_t length)
+static inline uint32_t _crc32(const void* data, uint32_t length)
 {
   uint32_t crc = ~0; // same as 0xFFFFFFFF
   const uint8_t* current = (const uint8_t*) data;
@@ -53,17 +53,13 @@ static uint32_t _crc32(const void* data, uint32_t length)
 uint32_t crc32(const void* data, uint32_t length) {
     CRC32_RESET_REG = 1; // reset
 
-    volatile uint32_t r0 = _crc32(data, length);
-
     const uint8_t* current = (const uint8_t*) data;
 
     while (length--) {
         CRC32_IO_REG = *current++;
     }
 
-    uint32_t r = CRC32_IO_REG;
-
-    return r != r0 ? r0 : r;
+    return CRC32_IO_REG;
 }
 #else
 uint32_t crc32(const void* data, uint32_t length) { return _crc32(data, length); }
