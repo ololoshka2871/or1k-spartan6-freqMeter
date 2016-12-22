@@ -13,9 +13,6 @@
 //*    notice, this list of conditions and the following disclaimer in
 //*    the documentation and/or other materials provided with the
 //*    distribution.
-//* 3. Neither the name NuttX nor the names of its contributors may be
-//*    used to endorse or promote products derived from this software
-//*    without specific prior written permission.
 //*
 //* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 //* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -46,17 +43,12 @@ module coder
 
 
 integer i;
-/*
-always @(inputs) begin
-    outputs = {OUTPUTS_COUNT{1'b0}};
-    error = 1'b1;
-    for (i = 0; i < INPUTS_COUNT; i = i + 1) begin : U
-*/
+
 always @(posedge clk_i) begin
     outputs = {OUTPUTS_COUNT{1'b0}};
     error = 1'b1;
     for (i = 0; i < INPUTS_COUNT; i = i + 1) begin
-        if(inputs == (1 << i)) begin
+        if(inputs[i]) begin
             outputs = i;
             error = 1'b0;
         end

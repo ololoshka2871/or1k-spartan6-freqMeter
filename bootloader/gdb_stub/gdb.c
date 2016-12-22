@@ -67,6 +67,7 @@
 #define REG_SP                                1
 #define REG_ARG0                              3
 #define REG_ARG1                              4
+#define REG_ARG2                              5
 #define REG_PC                                33
 #define REG_SR                                34
 #define REG_NUM                               35
@@ -105,6 +106,8 @@ static const char GDB_STUB_SECTION_RODATA _hex_char[] = "0123456789abcdef" ;
 
 static GDB_STUB_SECTION_BSS unsigned int * (*syscall_handler)(unsigned int *registers);
 static GDB_STUB_SECTION_BSS unsigned int * (*irq_handler)(unsigned int *registers);
+
+static GDB_STUB_SECTION_BSS uint8_t cs_found;
 
 //-----------------------------------------------------------------
 // gdb_atoi_hex: Convert from hex character to integer
@@ -382,6 +385,43 @@ gdb_syscall(unsigned int *registers)
           return registers;
       }
       //---------------------------------------------------
+      // l.sys 6 -> read boot flash
+      // R3 - addr to read from
+      // R4 - destination buffer
+      // R5 - size to read
+      // Return R3 == R5 if success or 0 if error
+      //---------------------------------------------------
+      case 6:
+          if (!cs_found) {
+              registers[REG_ARG0] = 0;
+          } else {
+            uint32_t read_addr = registers[REG_ARG0];
+            unsigned char* destbuf = (unsigned char*)registers[REG_ARG1];
+            uint32_t size_to_read = registers[REG_ARG2];
+            spi_flash_read(cs_found, read_addr, destbuf, size_to_read);
+            registers[REG_ARG0] = size_to_read;
+          }
+
+          return registers;
+      //---------------------------------------------------
+      // l.sys 7 -> reboot
+      // No input
+      // Return void
+      //---------------------------------------------------
+      case 7:
+        asm volatile(
+        /* Change SR to User Mode */
+        "l.mfspr r3,r0,17\n" /* copy SR to R3 */
+        "l.andi r3,r3,0xFFFE\n" /* change bit 0 to 0 */
+        "l.mtspr r0,r3,17\n" /* move back to SR */
+
+        /* Jump to main */
+        "l.movhi r2,hi(vector_reset)\n"
+        "l.ori r2,r2,lo(vector_reset)\n"
+        "l.jr r2\n"
+        "l.nop\n");
+
+      //---------------------------------------------------
       // Default: User syscall
       //---------------------------------------------------
       default:
@@ -634,7 +674,7 @@ void GDB_STUB_SECTION_TEXT try_load(void) {
         uint32_t buf;
 
         //Probing flash
-        uint8_t cs_found = spi_probe_flash(1, 2);
+        cs_found = spi_probe_flash(1, 2);
 
         if (!cs_found)
             FATAL_no_bootable_code_found(0);
@@ -645,10 +685,10 @@ void GDB_STUB_SECTION_TEXT try_load(void) {
             addr += sizeof(uint32_t)) {
             spi_flash_read(cs_found, addr, (unsigned char*)&buf,
                            sizeof(uint32_t));
-            if (buf == HEADER_W1) {
+            if (buf == SYSTEM_HEADER_W1) {
                 spi_flash_read(cs_found, addr + sizeof(uint32_t),
                                (unsigned char*)&buf, sizeof(uint32_t));
-                if (buf == HEADER_W2) {
+                if (buf == SYSTEM_HEADER_W2) {
                     struct Hader user_code_hader;
                     spi_flash_read(cs_found, addr + 2 * sizeof(uint32_t),
                                    (unsigned char*)&user_code_hader,

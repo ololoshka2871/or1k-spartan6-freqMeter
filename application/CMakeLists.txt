@@ -1,5 +1,4 @@
 #****************************************************************************
-#* CMakeLists.txt
 #*
 #*   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
 #*   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -14,9 +13,6 @@
 #*    notice, this list of conditions and the following disclaimer in
 #*    the documentation and/or other materials provided with the
 #*    distribution.
-#* 3. Neither the name NuttX nor the names of its contributors may be
-#*    used to endorse or promote products derived from this software
-#*    without specific prior written permission.
 #*
 #* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -39,18 +35,28 @@ project(or1k-spartan6-platform_application ASM C)
 
 INCLUDE("or1k_toolchain")
 
-# указать путь до модулей
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
+include_directories(${TOOLCHAIN_INCLUDE_PATH})
 
+add_subdirectory(scripts)
 
-set(MK_APP_LD_SCRIPT   "${CMAKE_CURRENT_SOURCE_DIR}/scripts/mkldscript.sh")
 set(LD_SCRIPT_FILE_IN  "${CMAKE_CURRENT_SOURCE_DIR}/link.app.ld.in")
 set(LD_SCRIPT_FILE     "${CMAKE_CURRENT_BINARY_DIR}/link.app.ld")
 
+function(calc_mac_memory_size OUT_VARIABLE SLOTS)
+    execute_process(COMMAND
+        ${PYTHON_EXECUTABLE} -c "import math; print(int(\
+            ${MEMORY_UNIT_SIZE} / 8 * int(math.ceil(${MTU}.0 * ${SLOTS} / (${MEMORY_UNIT_SIZE} / 8)))))"
+        OUTPUT_VARIABLE res)
+    string(REGEX REPLACE "\n" "" res ${res}) # trim
+    set(${OUT_VARIABLE} ${res} PARENT_SCOPE)
+endfunction()
+
+calc_mac_memory_size(MAC_TX_MEM_SIZE ${MYMINMAC_TX_SLOTS})
+calc_mac_memory_size(MAC_RX_MEM_SIZE ${MYMINMAC_RX_SLOTS})
+
 add_custom_target(mkldscript.files
     SOURCES
-        ${MK_APP_LD_SCRIPT} ${LD_SCRIPT_FILE_IN}
+        ${LD_SCRIPT_FILE_IN}
     )
 
 add_custom_command(
@@ -60,9 +66,13 @@ add_custom_command(
         ${MK_APP_LD_SCRIPT}
             ${LD_SCRIPT_FILE_IN}
             ${BOOTLOADER_IMAGE_ELF}
-            ${HEADER_W1}
-            ${HEADER_W2}
+            ${SYSTEM_HEADER_W1}
+            ${SYSTEM_HEADER_W2}
             ${USER_CODE_FLASH_OFFSET}
+            ${MAC_TX_MEM_BASE}
+            ${MAC_RX_MEM_BASE}
+            ${MAC_RX_MEM_SIZE}
+            ${MAC_TX_MEM_SIZE}
             ${TOOLCHAIN_PREFIX} > ${LD_SCRIPT_FILE}
     DEPENDS
         ${BOOTLOADER_IMAGE_ELF} ${LD_SCRIPT_FILE_IN}
@@ -73,27 +83,89 @@ add_custom_command(
 INCLUDE("or1k_toolchain")
 
 add_definitions(
+    -DF_CPU=${CPU_CLOCK_HZ}
+    -DBB_I2C_BAUD=${BAUD_I2C}
     -DFREQMETERS_COUNT=${F_INPUTS_COUNT}
     -DF_REF=${REFERENCE_CLOCK_HZ}UL
+    -DFREQMETERS_BASE=${FREQMETERS_BASE}
+    -DSYSTEM_FREF_COUNTER_LEN=${SYSTEM_FREF_COUNTER_LEN}
+    -DSYSTEM_FREQ_TYPE=${SYSTEM_FREQ_TYPE}
     )
+
+if(SERVER_UDP)
+    add_definitions(-DPROCESS_SERVER_UDP)
+endif()
+
+if(SERVER_WEBSOC)
+    add_definitions(-DPROCESS_SERVER_WEBSOC)
+endif()
 
 add_custom_target(mkldscript DEPENDS ${LD_SCRIPT_FILE})
 
-add_subdirectory(hw)
-add_subdirectory(lib)
+add_subdirectory(libbase)
+add_subdirectory(libhw)
+add_subdirectory(ibexukIP)
+add_subdirectory(nanopb)
+add_subdirectory(servers)
 
-include_directories(hw)
-include_directories(lib)
-
+set(MAIN_SRC             ${CMAKE_CURRENT_SOURCE_DIR}/main.c)
 set(APPLICATION_ELF_NAME app.elf)
+
+set(ETHERNET_CONFIG_INCLUDE_FILE    ${CMAKE_CURRENT_BINARY_DIR}/ETH_config.h)
+
+if(ETHERNET_MAC_ADDRESS_FORCE)
+    set(_gen_MAC        ${ETHERNET_MAC_ADDRESS_FORCED})
+else(ETHERNET_MAC_ADDRESS_FORCE)
+    set(_gen_MAC        ${ETHERNET_MAC_ADDRESS_MSB})
+endif(ETHERNET_MAC_ADDRESS_FORCE)
+
+set(_genMAC_ARGUMENTS ${_gen_MAC} ${ETHERNET_STATIC_IP_ADDR} ${ETHERNET_STATIC_IP_NETMASK} ${ETHERNET_STATIC_IP_GATEWAY})
+
+add_custom_command(
+    OUTPUT ${ETHERNET_CONFIG_INCLUDE_FILE}
+    COMMAND
+        ${GEN_ETH_CONFIG} ${_genMAC_ARGUMENTS} > ${ETHERNET_CONFIG_INCLUDE_FILE}
+    DEPENDS ${MACADDR_GENERATOR}
+    COMMENT
+        "Generating random MAC address"
+    )
+
+add_custom_target(gen_mac DEPENDS ${ETHERNET_CONFIG_INCLUDE_FILE})
+
+add_custom_target(regen_mac
+    COMMAND
+        touch ${MAIN_SRC}
+    COMMAND
+        ${GEN_ETH_CONFIG} ${_genMAC_ARGUMENTS} > ${ETHERNET_CONFIG_INCLUDE_FILE}
+    DEPENDS ${MACADDR_GENERATOR}
+    COMMENT
+        "Force regenerate MAC address on next build"
+    )
+
+include_directories(
+    ${CMAKE_CURRENT_BINARY_DIR}
+    libhw libbase libnet servers
+    ${IBEXUK_IP_INCLUDE_DIRS}
+    )
+
+get_target_property(hwlib_difenitions hw COMPILE_DEFINITIONS)
+get_target_property(ibexukIP_difenitions ibexukIP COMPILE_DEFINITIONS)
+
 
 add_executable(${APPLICATION_ELF_NAME}
     ${APP_STARTUP_SRC}
-    main.c
+    ${MAIN_SRC}
     )
+add_dependencies(${APPLICATION_ELF_NAME} gen_mac)
 target_link_libraries(${APPLICATION_ELF_NAME}
-    hw
+    -Wl,--start-group hw ibexukIP servers base nanopb -Wl,--end-group)
+
+set(difenitions
+    ${hwlib_difenitions}
+    ${ibexukIP_difenitions}
     )
+
+set_target_properties(${APPLICATION_ELF_NAME} PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
 add_dependencies(${APPLICATION_ELF_NAME} mkldscript)
 
 function(elf2bin ELF_FILE BIN_FILE)
@@ -117,6 +189,38 @@ set(application_BIN	    ${CMAKE_CURRENT_BINARY_DIR}/app.bin)
 
 elf2bin(${APPLICATION_ELF_NAME} ${application_BIN})
 
-add_custom_target(application DEPENDS ${application_BIN})
+set(SUMMARY_FILE_NAME       ${CMAKE_CURRENT_BINARY_DIR}/firmware_summary.txt)
+
+add_custom_target(firmware_summary
+    COMMAND ${SUMMARY_GENERATOR}
+            ${BOOTLOADER_IMAGE_ELF}
+            ${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_ELF_NAME}
+            ${TOOLCHAIN_PREFIX}
+            ${SUMMARY_FILE_NAME}
+            ${PYTHON_EXECUTABLE}
+    DEPENDS ${BOOTLOADER_IMAGE_ELF} ${APPLICATION_ELF_NAME}
+    )
+
+set(gen_callgraph_script        ${tools_DIR}/gen-callgraph.py)
+set(callgraph_outfile           ${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_ELF_NAME}-callgraph.svg)
+
+find_package(Doxygen)
+
+if (DOXYGEN_DOT_FOUND)
+add_custom_target(application_call_graph
+    COMMAND ${gen_callgraph_script}
+        --toolprefix ${TOOLCHAIN_PREFIX}
+        --call_cmd ${JUMP_INSTRUCTION}
+        ${APPLICATION_ELF_NAME}
+        | ${DOXYGEN_DOT_EXECUTABLE} -Tsvg -o${callgraph_outfile}
+    COMMAND
+        echo "Callgraph saved to ${callgraph_outfile}"
+    DEPENDS ${APPLICATION_ELF_NAME}
+    COMMENT
+        "Building application callgraph")
+endif(DOXYGEN_DOT_FOUND)
+
+add_custom_target(application DEPENDS ${application_BIN} firmware_summary)
 
 SET(APPLICATION_BINARY		${application_BIN}	    PARENT_SCOPE)
+set(PROTOBUF_PROTO_FILE         ${PROTOBUF_PROTO_FILE}      PARENT_SCOPE)

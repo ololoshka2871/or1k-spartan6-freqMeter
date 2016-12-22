@@ -13,9 +13,6 @@
 #*    notice, this list of conditions and the following disclaimer in
 #*    the documentation and/or other materials provided with the
 #*    distribution.
-#* 3. Neither the name NuttX nor the names of its contributors may be
-#*    used to endorse or promote products derived from this software
-#*    without specific prior written permission.
 #*
 #* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -38,7 +35,7 @@ cmake_minimum_required(VERSION 3.0.2)
 file(GLOB_RECURSE
     TESTBENCH_HDL_V
     FOLLOW_SYMLINKS
-    "*.v"
+    "tb_*.v"
     )
 
 # Fake target: add sources to project tree (Qt Creator)
@@ -47,5 +44,6 @@ add_custom_target(testbench_sources
 	${TESTBENCH_HDL_V}
     )
 
-set(TESTBENCH_HDL_V		    ${TESTBENCH_HDL_V}		PARENT_SCOPE)
-set(TESTBENCH_DIR		    ${CMAKE_CURRENT_BINARY_DIR}	PARENT_SCOPE)
+set(TESTBENCH_HDL_V	${TESTBENCH_HDL_V}                      PARENT_SCOPE)
+set(TESTBENCH_DIR	${CMAKE_CURRENT_BINARY_DIR}             PARENT_SCOPE)
+set(TESTBENCH_TOP       ${CMAKE_CURRENT_SOURCE_DIR}/tb_top.v    PARENT_SCOPE)

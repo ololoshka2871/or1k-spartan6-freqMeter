@@ -13,9 +13,6 @@
 //*    notice, this list of conditions and the following disclaimer in
 //*    the documentation and/or other materials provided with the
 //*    distribution.
-//* 3. Neither the name NuttX nor the names of its contributors may be
-//*    used to endorse or promote products derived from this software
-//*    without specific prior written permission.
 //*
 //* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 //* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -43,7 +40,8 @@
 
 module spi_boot
 #(
-    parameter WB_DATA_WIDTH =	32
+    parameter WB_DATA_WIDTH     =	32,
+    parameter SPI_CLK_DEVIDER   =        4             // actualy 2^SPI_CLK_DEVIDER
 ) (
     // WISHBONE bus slave interface
     input  wire				clk_i,         // clock
@@ -101,7 +99,8 @@ wire[WB_DATA_WIDTH-1:0]   data_spi_o;
 
 tiny_spi #
 (
-    .SPI_MODE(-1)
+    .SPI_MODE(-1),
+    .BAUD_WIDTH()
 ) spi (
     .rst_i(rst_i),
     .clk_i(clk_i),

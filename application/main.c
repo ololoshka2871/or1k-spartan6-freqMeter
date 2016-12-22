@@ -1,5 +1,4 @@
 /****************************************************************************
- * app_main.c
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -14,9 +13,6 @@
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
- * 3. Neither the name NuttX nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -33,76 +29,116 @@
  *
  ****************************************************************************/
 
-#include "fixedptc.h"
+#include <string.h>
+#include <stdio.h>
+#include <assert.h>
 
 #include "irq.h"
 #include "freqmeters.h"
+#include "mdio.h"
+#include "prog_timer.h"
+#include "rtc.h"
 #include "GPIO.h"
-#include "seg7_display.h"
-#include "serial.h"
+#include "prog_timer.h"
+#include "settings.h"
 
-static uint32_t timestamps[FREQMETERS_COUNT];
+#include "main.h"
+#include "eth-dhcp.h"
+#include "udp-protobuf_server.h"
+#include "websoc_server.h"
 
-void DELAY() {
-    for (int i = 0; i < 100000; ++i)
-        asm volatile("l.nop");
+const char hostname[15] =
+#ifdef ETHERNET_HOSTNAME
+        ETHERNET_HOSTNAME;
+#else
+        "SCTB_FM-24_v2";
+#endif
+
+
+#define FORCE_STATIC_IP_PIN         (1 << 3)
+#define IS_STATIC_IP_FORCED()       (~gpio_port_get_val(GPIO_PORTA) & FORCE_STATIC_IP_PIN)
+
+static void configure_ethernet_PHY() {
+    // force 100 Mb/s FD
+    MDIO_WriteREG(-1, PHY_BMCR, PHY_BMCR_SPEED100MB | PHY_BMCR_FULL_DUPLEX);
+
+    // set elastic bufer max len
+    uint8_t v;
+    v = MDIO_ReadREG_sync(-1, PHY_RBR);
+    MDIO_WriteREG(-1, PHY_RBR, (v & ~(PHY_RBR_ELAST_BUF_MSK))
+                  | PHY_RBR_RMII_REV1_0
+                  | (0b00 << PHY_RBR_ELAST_BUF_SH));
 }
 
-void Send_Data() {
-    uint8_t buff[128];
-    for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        uint32_t ts = fm_GetMeasureTimestamp(i);
-        if (ts != timestamps[i]) {
-            timestamps[i] = ts;
-            uint32_t periods = fm_getActualReloadValue(i);
-            uint32_t value   = fm_getActualMeasureTime(i);
-            if ((!value) || (!periods))
-                continue;
-            fixedpt F = fixedpt_div(fixedpt_fromint(periods),
-                                    fixedpt_fromint(value));
-            F = fixedpt_mul(F, F_REF / 1000);
-            F = fixedpt_mul(F, 1000);
-            fixedpt_str(F, buff, -1);
+static void init_tcpip() {
+    //----- CONFIGURE ETHERNET -----
+    eth_dhcp_our_name_pointer = (BYTE*)hostname;
 
-            serial1_putchar('0' + i);
-            serial1_putchar(';');
-            serial1_putstr(buff);
-            serial1_putchar('\n');
-        }
+    if (settings.DHCP &&
+#if GPIO_ENABLED
+        !IS_STATIC_IP_FORCED()
+#endif
+        ) {
+        eth_dhcp_using_manual_settings = 0;
+    } else {
+        eth_dhcp_using_manual_settings = 1;
     }
+
+    // ---- IP Addr settings
+    memcpy(our_ip_address.v, settings.IP_addr.u8, sizeof(union IP_ADDR));
+    memcpy(our_subnet_mask.v, settings.IP_mask.u8, sizeof(union IP_ADDR));
+    memcpy(our_gateway_ip_address.v, settings.IP_gateway.u8, sizeof(union IP_ADDR));
+
+    //----- SET OUR ETHENET UNIQUE MAC ADDRESS -----
+    memcpy(our_mac_address.v, settings.MAC_ADDR, sizeof(MAC_ADDR));
+
+    //----- INITIALISE ETHERNET -----
+    tcp_ip_initialise();
 }
 
-void main(void)
-{
-    interrupts_init();
+#define LED_MASK    (0b111)
 
+static void led_blinker(void* cookie) {
+    (void)cookie;
+    uint32_t v = gpio_port_get_val(GPIO_PORTA) & LED_MASK;
+    uint32_t new_v = (v & (LED_MASK >> 1)) ? (v << 1) : 1;
+
+    gpio_port_set_val(GPIO_PORTA, new_v, v);
+}
+
+static void initAll() {
+    interrupts_init();
+    progtimer_init();
     fm_init();
 
-    for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        fm_setChanelReloadValue(i, 100, false);
-        fm_enableChanel(i, true);
-    }
+#if GPIO_ENABLED
+    gpio_port_init(GPIO_PORTA, LED_MASK);
+    progtimer_new(1000, led_blinker, NULL);
+#endif
 
-    GPIO portA = gpio_port_init(GPIO_PORTA, 0b1111);
-    uint8_t v = 1;
-    uint16_t count = 0;
+    rtc_init();
+    Settings_init();
 
-    irq_enable(IS_FREQMETERS);
+    configure_ethernet_PHY();
+    init_tcpip();
+}
 
+int main(void)
+{
+    initAll();
     EXIT_CRITICAL();
 
-    seg7_PutStr("1234", 4, ' ');
     while(1) {
-        //DELAY();
-        if (v == 1 << 4) v = 1;
-        gpio_port_set_all(portA, ~v);
-        seg7_printHex(fm_getActualMeasureTime(count));
-        for (uint8_t i = 0; i < 4; ++i) {
-            seg7_dpSet(seg7_num2Segment(i), v & (1 << i));
-        }
-        v <<= 1;
-        count = (count + 1) % FREQMETERS_COUNT;
-        Send_Data();
-        //fm_updateChanel(count);
+        fm_process();
+        tcp_ip_process_stack();
+
+#ifdef PROCESS_SERVER_UDP
+        process_protobuf_server();
+#endif
+
+#ifdef PROCESS_SERVER_WEBSOC
+        process_websoc_server();
+#endif
     }
+    return 0;
 }

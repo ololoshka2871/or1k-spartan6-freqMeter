@@ -13,9 +13,6 @@
 //*    notice, this list of conditions and the following disclaimer in
 //*    the documentation and/or other materials provided with the
 //*    distribution.
-//* 3. Neither the name NuttX nor the names of its contributors may be
-//*    used to endorse or promote products derived from this software
-//*    without specific prior written permission.
 //*
 //* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 //* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -32,34 +29,57 @@
 //*
 //****************************************************************************/
 
-`define     INPUT_CLOCK_HZ          @INPUT_CLOCK_HZ@
-`define     INPUT_CLOCK_PERIOD_NS_F @INPUT_CLOCK_PERIOD_NS_F@
-`define	    NUM_OF_16k_MEM	    @FPGA_DP_MEMORY_USE@
+`define     DEVICE_PART_FAMILY          @DEVICE_PART_FAMILY@
 
-`define     MASER_FREQ_COUNTER_LEN  @MASER_FREQ_COUNTER_LEN@
-`define     INPUT_FREQ_COUNTER_LEN  @INPUT_FREQ_COUNTER_LEN@
-`define     TEST_SIGNAL_DEVIDER     @TEST_SIGNAL_DEVIDER@
+`define     MEMORY_UNIT_SIZE            @MEMORY_UNIT_SIZE@
+`define	    NUM_OF_SYS_MEM_UNITS        @SYSTEM_FPGA_BMEMORY_USE@
+
+`define     DEVICE_REF_CLOCK_HZ         @DEVICE_REF_CLOCK_HZ@
+`define     INPUT_CLOCK_PERIOD_NS_F     @INPUT_CLOCK_PERIOD_NS_F@
+
+`define     SYSTEM_FREF_COUNTER_LEN     @SYSTEM_FREF_COUNTER_LEN@
+`define     SYSTEM_INPUTS_COUNTER_LEN   @SYSTEM_INPUTS_COUNTER_LEN@
+`define     TEST_SIGNAL_DEVIDER         @TEST_SIGNAL_DEVIDER@
 
 // Clock
-`define     PLL_MULTIPLYER          @PLL_MULTIPLYER@
-`define     REFERENCE_CLOCK_DEVIDER @REFERENCE_CLOCK_DEVIDER@
-`define     CPU_CLOCK_DEVIDER       @CPU_CLOCK_DEVIDER@
+`define     CLOCK_FREF_PLL_MULTIPLYER   @CLOCK_FREF_PLL_MULTIPLYER@
+`define     CLOCK_FREF_CLOCK_DEVIDER    @CLOCK_FREF_CLOCK_DEVIDER@
+
+`define     CLOCK_CPU_PLL_MULTIPLYER    @CLOCK_CPU_PLL_MULTIPLYER@
+`define     CLOCK_CPU_CLOCK_DEVIDER     @CLOCK_CPU_CLOCK_DEVIDER@
+
+`define     BAUD_SPI_CLK_DEVIDER_LEN    @BAUD_SPI_CLK_DEVIDER_LEN@
 
 // peripherial
-@GPIO_ENABLED_STR@
-@SEG7_ENABLED_STR@
 @UART0_ENABLED_STR@
-@UART1_ENABLED_STR@
+@CRC32_ENABLED_STR@
+@HW_MUL_ENABLED_STR@
 @TIMER_ENABLED_STR@
 @ETHERNET_ENABLED_STR@
-
-// leds
-`define     LEDS_COUNT              @LEDS_COUNT@
+@GPIO_ENABLED_STR@
+@I2C_ENABLED_STR@
+@I2C_PRESENT_STR@
 
 // uarts
-`define     UART0_BAUD              @UART0_BAUD@
-`define     UART1_BAUD              @UART1_BAUD@
+`define     BAUD_UART0                  @BAUD_UART0@
 
 // inputs
-`define     F_INPUTS_COUNT          @F_INPUTS_COUNT@
+`define     F_INPUTS_COUNT              @F_INPUTS_COUNT@
 @USE_PHISICAL_INPUTS@
+@MASTER_HYBRID_COUNTER_STR@
+
+// mdio
+`define     BAUD_MDIO                   @BAUD_MDIO@
+
+// i2c
+`define     BAUD_I2C                    @BAUD_I2C@
+
+// gpio
+@GPIO_PRESENT_STR@
+`define     GPIO_COUNT                  @GPIO_COUNT@
+@I2C_OVER_GPIO_SDA_PIN_STR@
+@I2C_OVER_GPIO_SCL_PIN_STR@
+
+// tests
+`define     TEST_IMAGE_FOR_DMA_MEMORY_NAME "@TEST_IMAGE_FOR_DMA_MEMORY_NAME@"
+`define     COUNT_TEST_MEMORY_IMAGE        "@COUNT_TEST_MEMORY_IMAGE@"

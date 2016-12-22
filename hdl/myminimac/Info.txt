@@ -1,0 +1,2 @@
+http://www.jsykora.info/2016/01/connecting-mcu-and-fpga-at-100mbits-using-ethernet-rmii-part-1/
+http://www.compel.ru/lib/ne/2010/12/6-promyishlennyiy-ethernet-ot-st-vsyo-i-srazu

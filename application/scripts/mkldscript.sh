@@ -2,28 +2,36 @@
 
 LD_SCRIPT_TEMPLATE=$1
 BOOTLOADER_ELF=$2
-#CMAKE_CACHE_FILE=$3
-HEADER_W1=$3
-HEADER_W2=$4
+SYSTEM_HEADER_W1=$3
+SYSTEM_HEADER_W2=$4
 USER_CODE_FLASH_OFFSET=$5
-TOOLCHAIN_PREFIX=$6
+MAC_TX_MEM_BASE=$6
+MAC_RX_MEM_BASE=$7
+MAC_RX_MEM_SIZE=$8
+MAC_TX_MEM_SIZE=$9
+TOOLCHAIN_PREFIX=${10}
 
-if [[ $# -ne 6 ]]; then
-    echo "Usage: $0 <ld_script_template> <bootloader_elf>\
-        <HEADER_W1> <HEADER_W2> <user_code_flash_offset> [toolcahin-prefix]"
+if [[ $# -ne 10 ]]; then
+    echo "Incorrect call. Only for internal use."
     exit 1
 fi
 
-BOOTLOADER_START=`${TOOLCHAIN_PREFIX}readelf -l $BOOTLOADER_ELF | grep -P "LOAD.*RWE" | awk '{print $3}'`
-BOOTLOADER_SIZE=`${TOOLCHAIN_PREFIX}readelf -l $BOOTLOADER_ELF | grep -P "LOAD.*RWE" | awk '{print $6}'`
-BOOTLOADER_END=`${TOOLCHAIN_PREFIX}readelf -l $BOOTLOADER_ELF | grep -P "LOAD.*RW " | awk '{print $3}'`
+get_section_info="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/elf_get_section_info.sh
+
+BOOTLOADER_START=`$get_section_info $BOOTLOADER_ELF "LOAD.*RWE" 3 ${TOOLCHAIN_PREFIX}readelf`
+BOOTLOADER_SIZE=`$get_section_info $BOOTLOADER_ELF "LOAD.*RWE" 6 ${TOOLCHAIN_PREFIX}readelf`
+BOOTLOADER_END=`$get_section_info $BOOTLOADER_ELF "LOAD.*RW " 3 ${TOOLCHAIN_PREFIX}readelf`
 
 APP_START="$BOOTLOADER_START + $BOOTLOADER_SIZE + 8"
 APP_SIZE="$BOOTLOADER_END - ($APP_START)"
 
 sed -e "s/@APP_START@/$APP_START/"\
     -e "s/@APP_SIZE@/$APP_SIZE/"\
-    -e "s/@HEADER_W1@/$HEADER_W1/"\
-    -e "s/@HEADER_W2@/$HEADER_W2/"\
+    -e "s/@SYSTEM_HEADER_W1@/$SYSTEM_HEADER_W1/"\
+    -e "s/@SYSTEM_HEADER_W2@/$SYSTEM_HEADER_W2/"\
     -e "s/@FLASH_TEXT_START@/$USER_CODE_FLASH_OFFSET/"\
+    -e "s/@MAC_TX_MEM_BASE@/$MAC_TX_MEM_BASE/"\
+    -e "s/@MAC_RX_MEM_BASE@/$MAC_RX_MEM_BASE/"\
+    -e "s/@MAC_TX_MEM_SIZE@/$MAC_TX_MEM_SIZE/"\
+    -e "s/@MAC_RX_MEM_SIZE@/$MAC_RX_MEM_SIZE/"\
     $LD_SCRIPT_TEMPLATE

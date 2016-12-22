@@ -1,0 +1,458 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+import pytest
+import libr4_24_2
+import protocol_pb2
+import struct
+import socket
+import time
+
+
+def print_help():
+    print("Возможно вы пытаитесь запустить этот файл напрямую?\n"
+    "Запстите: $ TEST_IP=<ip_аддресс> make pb_unittest.run\n")
+
+
+@pytest.fixture
+def device(request):
+    if not ('TEST_IP' in os.environ.keys()):
+        print("Не указан IP адрес для теста!\n")
+        print_help()
+        assert 0
+
+    d = libr4_24_2.r4_24_2_io(os.environ['TEST_IP'])
+    d.connect()
+
+    def fin():
+        d.disconnect()
+
+    request.addfinalizer(fin)
+    return d
+
+
+@pytest.fixture
+def settime_req():
+    return libr4_24_2.r4_24_2_requestBuilder.build_set_time_request()
+
+
+def ip2int( addr):
+    return struct.unpack("!I", socket.inet_aton(addr))[0]
+
+
+def int2ip(addr):
+    return socket.inet_ntoa(struct.pack("!I", addr))
+
+
+@pytest.fixture
+def settings_req():
+    return libr4_24_2.r4_24_2_requestBuilder.build_settings_request()
+
+
+def read_settings(device, settings_req):
+    resp = device.process_request_sync(settings_req)
+    assert resp
+    assert resp.settings.status == protocol_pb2.SettingsResponse.OK
+    assert resp.Global_status == protocol_pb2.STATUS.Value('OK')
+    return resp.settings
+
+
+def restore_settings(device, saved_settings):
+    req = settings_req()
+    req.writeSettingsReq.setIPAddr = saved_settings.IPAddr
+    req.writeSettingsReq.setIPmask = saved_settings.IPmask
+    req.writeSettingsReq.setIPDefaultGateway = saved_settings.IPDefaultGateway
+    req.writeSettingsReq.setMAC_Addr = saved_settings.MAC_Addr
+    req.writeSettingsReq.setUseDHCP = saved_settings.UseDHCP
+    resp = device.process_request_sync(req)
+    assert resp
+    assert resp.Global_status == protocol_pb2.STATUS.Value('OK')
+    assert resp.settings.status == protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['OK'].number
+
+
+def test_prepare_request(device, settings_req):
+    assert device
+    assert settings_req
+
+
+def test_ping(device):
+    req = libr4_24_2.r4_24_2_requestBuilder.build_ping_request()
+    resp = device.process_request_sync(req)
+    assert resp
+    assert resp.Global_status == protocol_pb2.STATUS.Value('OK')
+
+
+# ############## settings simple tests ###############
+
+
+def test_read_settings(device, settings_req):
+    assert read_settings(device, settings_req)
+
+
+def test_write_settings_back(device, settings_req):
+    saved_settings = read_settings(device, settings_req)
+    restore_settings(device, saved_settings)
+
+
+def test_change_IPsettings(device, settings_req):
+    # save
+    saved_settings = read_settings(device, settings_req)
+
+    # test
+    req = libr4_24_2.r4_24_2_requestBuilder.build_settings_request()
+    req.writeSettingsReq.setIPAddr = ip2int('192.168.0.198')
+    resp = device.process_request_sync(req)
+    assert resp
+    assert resp.Global_status == protocol_pb2.STATUS.Value('OK')
+    assert resp.settings.status == protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['OK'].number
+    assert resp.settings.IPAddr == req.writeSettingsReq.setIPAddr
+
+    # restore
+    restore_settings(device, saved_settings)
+    assert read_settings(device, settings_req).IPAddr == saved_settings.IPAddr
+
+def test_change_IPMasksettings(device, settings_req):
+    # save
+    saved_settings = read_settings(device, settings_req)
+
+    # test
+    req = libr4_24_2.r4_24_2_requestBuilder.build_settings_request()
+    req.writeSettingsReq.setIPmask = ip2int('255.255.255.128')
+    resp = device.process_request_sync(req)
+    assert resp
+    assert resp.Global_status == protocol_pb2.STATUS.Value('OK')
+    assert resp.settings.status == protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['OK'].number
+    assert resp.settings.IPmask == req.writeSettingsReq.setIPmask
+
+    # restore
+    restore_settings(device, saved_settings)
+    assert read_settings(device, settings_req).IPmask == saved_settings.IPmask
+
+
+def test_change_IPGatewaysettings(device, settings_req):
+    # save
+    saved_settings = read_settings(device, settings_req)
+
+    # test
+    req = libr4_24_2.r4_24_2_requestBuilder.build_settings_request()
+    req.writeSettingsReq.setIPDefaultGateway = ip2int('192.168.0.35')
+    resp = device.process_request_sync(req)
+    assert resp
+    assert resp.Global_status == protocol_pb2.STATUS.Value('OK')
+    assert resp.settings.status == protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['OK'].number
+    assert resp.settings.IPDefaultGateway == req.writeSettingsReq.setIPDefaultGateway
+
+    # restore
+    restore_settings(device, saved_settings)
+    assert read_settings(device, settings_req).IPDefaultGateway == saved_settings.IPDefaultGateway
+
+
+def test_change_MACAdress(device, settings_req):
+    # save
+    saved_settings = read_settings(device, settings_req)
+
+    # test
+    req = libr4_24_2.r4_24_2_requestBuilder.build_settings_request()
+    req.writeSettingsReq.setMAC_Addr = 0x0013261859ca
+    resp = device.process_request_sync(req)
+    assert resp
+    assert resp.Global_status == protocol_pb2.STATUS.Value('OK')
+    assert resp.settings.status == protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['OK'].number
+    assert resp.settings.MAC_Addr == req.writeSettingsReq.setMAC_Addr
+
+    # restore
+    restore_settings(device, saved_settings)
+    assert read_settings(device, settings_req).MAC_Addr == saved_settings.MAC_Addr
+
+def test_change_DHCP(device, settings_req):
+    # save
+    saved_settings = read_settings(device, settings_req)
+
+    # test
+    req = libr4_24_2.r4_24_2_requestBuilder.build_settings_request()
+    req.writeSettingsReq.setUseDHCP = not saved_settings.UseDHCP
+    resp = device.process_request_sync(req)
+    assert resp
+    assert resp.Global_status == protocol_pb2.STATUS.Value('OK')
+    assert resp.settings.status == protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['OK'].number
+    assert resp.settings.UseDHCP == req.writeSettingsReq.setUseDHCP
+
+    # restore
+    restore_settings(device, saved_settings)
+    assert read_settings(device, settings_req).UseDHCP == saved_settings.UseDHCP
+
+# ############## settings complex ###############
+
+
+def test_change_setIP_and_MAC(device, settings_req):
+    # save
+    saved_settings = read_settings(device, settings_req)
+
+    # test
+    req = libr4_24_2.r4_24_2_requestBuilder.build_settings_request()
+    req.writeSettingsReq.setIPAddr = ip2int('192.168.0.198')
+    req.writeSettingsReq.setMAC_Addr = 0x0013261859ca
+    resp = device.process_request_sync(req)
+    assert resp
+    assert resp.Global_status == protocol_pb2.STATUS.Value('OK')
+    assert resp.settings.status == protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['OK'].number
+    assert resp.settings.IPAddr == req.writeSettingsReq.setIPAddr
+    assert resp.settings.MAC_Addr == req.writeSettingsReq.setMAC_Addr
+
+    # restore
+    restore_settings(device, saved_settings)
+    restored_settings = read_settings(device, settings_req)
+    assert restored_settings.IPAddr == saved_settings.IPAddr
+    assert restored_settings.MAC_Addr == saved_settings.MAC_Addr
+
+# ############## settings incorrect ###############
+
+@pytest.mark.parametrize("test_mac,result",
+    [(0x0a13261859ca, False),
+     (0x0a0000000000, False),
+     (0x013dac5e3270, False),
+     (0x0013261859ca, True)])
+def test_incorrectMAC(device, settings_req, test_mac, result):
+    settings_req.writeSettingsReq.setMAC_Addr = test_mac
+    resp = device.process_request_sync(settings_req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == result
+    assert (resp.settings.status !=
+            protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['ERR_MAC'].number) == result
+    assert (resp.settings.MAC_Addr == settings_req.writeSettingsReq.setMAC_Addr) == result
+
+
+@pytest.mark.parametrize("test_mask,result",
+    [(ip2int('255.34.255.0'), False),
+     (ip2int('0.255.255.0'), False),
+     (ip2int('255.255.11.0'), False),
+     (ip2int('255.255.254.0'), True)])
+def test_incorrect_subnetmask(device, settings_req, test_mask, result):
+    settings_req.writeSettingsReq.setIPmask = test_mask
+    resp = device.process_request_sync(settings_req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == result
+    assert (resp.settings.status !=
+            protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['ERR_NETMASK'].number) == result
+    assert (resp.settings.IPmask == settings_req.writeSettingsReq.setIPmask) == result
+
+
+@pytest.mark.parametrize("test_mask,test_gateway,result",
+    [(ip2int('255.255.255.0'), ip2int('192.168.32.11'), False),
+     (ip2int('255.255.0.0'), ip2int('192.163.0.26'), False),
+     (ip2int('255.255.255.0'), ip2int('192.168.0.1'), True)])
+def test_incorrect_gateway_subnetmask(device, settings_req, test_mask, test_gateway, result):
+    settings_req.writeSettingsReq.setIPmask = test_mask
+    settings_req.writeSettingsReq.setIPDefaultGateway = test_gateway
+    resp = device.process_request_sync(settings_req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == result
+    assert (resp.settings.status !=
+            protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['ERR_GATEWAY'].number) == result
+    assert (resp.settings.IPmask == settings_req.writeSettingsReq.setIPmask) == result
+    assert (resp.settings.IPDefaultGateway == settings_req.writeSettingsReq.setIPDefaultGateway) == result
+
+
+@pytest.mark.parametrize("test_f,result",
+    [(1038, False),
+     (50500000, False),
+     (47999999, True),
+     (48000010, True)])
+def test_referrence_frequency(device, settings_req, test_f, result):
+    settings_req.writeSettingsReq.setReferenceFrequency = test_f
+    resp = device.process_request_sync(settings_req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == result
+    assert (resp.settings.status !=
+            protocol_pb2._SETTINGSRESPONSE_ERRORDESCRIPTION.values_by_name['ERR_F_REF'].number) == result
+    assert (resp.settings.ReferenceFrequency == settings_req.writeSettingsReq.setReferenceFrequency) == result
+
+
+# ################ clock ####################################
+
+@pytest.mark.parametrize("T,result",
+    [#(0, False),
+     #(8697.35, False),
+     (time.time() + 10000, True),
+     (int(time.time()), True),
+     (time.time(), True)])
+def test_clock_set(device, settime_req, T, result):
+    settime_req.setClock = long(T * 1000)
+    resp = device.process_request_sync(settime_req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == result
+    assert (resp.timestamp - settime_req.setClock < 1000) == result
+
+
+# ############# measure time ###############################
+
+@pytest.mark.parametrize("chanels",
+    [(0, True),
+     (10, True),
+     (-1, False),
+     (0xffffffff, False),
+     (33, False),
+     (23, True),
+     ((0, True), (5, True), (7, True), (3, True), (11, True)),
+     ((3, True), (8, True), (3, True), (16, True), (0xfc, False))
+    ])
+def test_get_measure_times(device, chanels):
+    if type(chanels[0]) is tuple:
+        chanel_item = map(lambda x: x[0], chanels)
+        item_exp_res = map(lambda x: x[1], chanels)
+    else:
+        chanel_item = (chanels[0],)
+        item_exp_res = (chanels[1],)
+
+    expected_result = reduce(lambda x, y: x & y, item_exp_res)
+    try:
+        req = libr4_24_2.r4_24_2_requestBuilder.build_measure_time_request(chanels_read=chanel_item)
+    except Exception as e:
+        if not expected_result:
+            return  # ok
+        else:
+            raise(e)
+    resp = device.process_request_sync(req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == expected_result
+
+    result_chanels = set(map(lambda x: x.chanelNumber, resp.getMeasureTimeResponce.chanelgetMeasureTime._values))
+    for i in range(len(chanel_item)):  # check if all result marked ai True present in ansver
+        if item_exp_res[i]:
+            assert chanel_item[i] in result_chanels
+
+
+@pytest.mark.parametrize("chanels_set_mt",
+    [(0, 10, True),
+     (16, 350, True),
+     (23, 1000, True),
+     (8, 5000, False),
+     (3, 6, True),
+     (-1, -1, False),
+     (6, -1, False),
+     ((0, 100, True,), (1, 15, True), (9, 1000, True), (7, 85, True)),
+     ((9, 20, True), (15, -1, False), (3, 5000, False), (7, 70, True)),
+     ((38, 10, False), (-1, -1, False), (9, 50, True), (13, 5, True)),
+    ])
+def test_set_measure_times(device, chanels_set_mt):
+    if type(chanels_set_mt[0]) is tuple:
+        ch2mt_dict = {}
+        exp_res = {}
+        for v in chanels_set_mt:
+            ch2mt_dict[v[0]] = {'measureTime_ms': v[1]}
+            exp_res[v[0]] = v[2]
+    else:
+        ch2mt_dict = {chanels_set_mt[0]: {'measureTime_ms': chanels_set_mt[1]}}
+        exp_res = {chanels_set_mt[0]: chanels_set_mt[2]}
+
+    expected_result = reduce(lambda x, y: x & y, exp_res.values())
+    try:
+        req = libr4_24_2.r4_24_2_requestBuilder.build_measure_time_request(chanels_write=ch2mt_dict)
+    except Exception as e:
+        if not expected_result:
+            return  # ok
+        else:
+            raise(e)
+
+    resp = device.process_request_sync(req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == expected_result
+
+    results = map(lambda x: (x.chanelNumber, x.measureTime_ms, x.status),
+                         resp.getMeasureTimeResponce.chanelgetMeasureTime._values)
+
+    for r in results:
+        rc, cv, status = r
+        ok = (status == protocol_pb2._GETMEASURETIME_MESSAGE_ERRORDESCRIPTION.values_by_name['OK'].number)
+        assert ok == exp_res[rc]
+        if ok:
+            assert cv == ch2mt_dict[rc]['measureTime_ms']
+
+
+# ############# read values ################################
+
+@pytest.mark.parametrize("chanels_list",
+    [(0, True),
+     (13, True),
+     ((1, True), (2, True)),
+     ((6, True), (65, False), (7, True)),
+     (-1, False),
+     ((0, True), (1, True), (2, True), (3, True), (4, True), (5, True),
+      (6, True), (7, True), (8, True), (9, True), (10, True), (10, True),
+      (12, True), (13, True), (14, True), (15, True), (16, True), (17, True),
+      (18, True), (19, True), (20, True), (21, True), (22, True), (23, True))
+    ])
+def test_get_measure_result(device, chanels_list):
+    if type(chanels_list[0]) is tuple:
+        exp_res = {}
+        chlist = []
+        for v in chanels_list:
+            exp_res[v[0]] = v[1]
+            chlist.append(v[0])
+    else:
+        exp_res = {chanels_list[0]: chanels_list[1]}
+        chlist = [chanels_list[0],]
+
+    expected_result = reduce(lambda x, y: x & y, exp_res.values())
+    try:
+        req = libr4_24_2.r4_24_2_requestBuilder.build_getmeasureresults_request(chlist)
+    except Exception as e:
+        if not expected_result:
+            return  # ok
+        else:
+            raise(e)
+
+    resp = device.process_request_sync(req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == expected_result
+
+    assert (resp.getMeasureResultsResponce.status ==
+            protocol_pb2._GETMEASURERESULTSRESPONCE_ERRORDESCRIPTION.values_by_name['OK'].number) == expected_result
+
+    resuts = resp.getMeasureResultsResponce.results._values
+
+    assert (len(resuts) == len(exp_res)) == expected_result
+
+
+# ############## chanel disable/enable #####################
+
+@pytest.mark.parametrize("testpattern",
+                         [
+                            0,
+                            ~0,
+                            0xA5A5A5A5,
+                            0x5A5A5A5A,
+                            0xFFFF0000,
+                            0x0000FFFF,
+                            0xF0F0F0F0,
+                            0x33333333
+                          ])
+def test_chanel_disable_enable(device, testpattern):
+    write_chanel_enables = {}
+    for i in range(24):
+        write_chanel_enables[i] = {'chanelEnabled': bool(testpattern & (1 << i))}
+
+    req = libr4_24_2.r4_24_2_requestBuilder.build_measure_time_request(chanels_write=write_chanel_enables)
+    resp = device.process_request_sync(req)
+
+    assert resp
+    assert resp.Global_status == protocol_pb2.STATUS.Value('OK')
+
+    results = map(lambda x: (x.chanelNumber, x.chanelEnabled, x.status),
+                         resp.getMeasureTimeResponce.chanelgetMeasureTime._values)
+
+    for ch in results:
+        assert ch[2] == protocol_pb2._GETMEASURETIME_MESSAGE_ERRORDESCRIPTION.values_by_name['OK'].number
+        assert bool(testpattern & (1 << ch[0])) == ch[1]
+
+# ############ Test reboot ##################################
+
+@pytest.mark.skipif(True, reason='Not needed yet')
+def test_reboot(device):
+    reboot_req = libr4_24_2.r4_24_2_requestBuilder.build_reboot_request(True)
+    try:
+        device.process_request_sync(reboot_req)
+    except libr4_24_2.TimeoutError:
+        pass
+

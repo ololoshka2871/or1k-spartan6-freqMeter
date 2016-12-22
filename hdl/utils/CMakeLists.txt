@@ -13,9 +13,6 @@
 #*    notice, this list of conditions and the following disclaimer in
 #*    the documentation and/or other materials provided with the
 #*    distribution.
-#* 3. Neither the name NuttX nor the names of its contributors may be
-#*    used to endorse or promote products derived from this software
-#*    without specific prior written permission.
 #*
 #* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -47,4 +44,5 @@ add_custom_target(utils_sources
 	${UTILS_HDL_V}
     )
 
-set(UTILS_HDL_V	    ${UTILS_HDL_V}		PARENT_SCOPE)
+set(UTILS_HDL_V             ${UTILS_HDL_V}		PARENT_SCOPE)
+set(UTILS_INCLUDE_PATH      ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)

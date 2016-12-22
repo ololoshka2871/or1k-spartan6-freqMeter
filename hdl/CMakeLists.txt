@@ -13,9 +13,6 @@
 #*    notice, this list of conditions and the following disclaimer in
 #*    the documentation and/or other materials provided with the
 #*    distribution.
-#* 3. Neither the name NuttX nor the names of its contributors may be
-#*    used to endorse or promote products derived from this software
-#*    without specific prior written permission.
 #*
 #* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -34,18 +31,10 @@
 
 cmake_minimum_required(VERSION 3.0.2)
 
-function(build_prj resultvar pattern filelist)
-    set(result)
-    foreach(f ${filelist})
-	string(REPLACE "%f" ${f} line ${pattern})
-	list(APPEND result ${line})
-    endforeach(f)
-    set(${resultvar} ${result} PARENT_SCOPE)
-endfunction(build_prj)
-
 set(TOP_MODULE_NAME	top)
 
 add_subdirectory(scripts)
+add_subdirectory(ucf)
 
 #-------------------------------------------------------------------------------
 set(PRJ_FILE_NAME	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.prj")
@@ -54,31 +43,59 @@ set(XST_IN_FILE_NAME	"${CMAKE_CURRENT_SOURCE_DIR}/${TOP_MODULE_NAME}.xst.in")
 set(UT_FILE_NAME	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.ut")
 set(UT_IN_FILE_NAME	"${CMAKE_CURRENT_SOURCE_DIR}/${TOP_MODULE_NAME}.ut.in")
 
-if (NOT PART_NAME)
+if (NOT DEVICE_CHIP_NAME)
     message(WARNING "PART_NAME not selected, default: xc6slx9-3-tqg144")
-    set(PART_NAME "xc6slx9-3-tqg144")
-    set(PART_NAME ${PART_NAME}	PARENT_SCOPE)
-endif(NOT PART_NAME)
+    set(DEVICE_CHIP_NAME "xc6slx9-3-tqg144")
+    set(DEVICE_CHIP_NAME ${DEVICE_CHIP_NAME}	PARENT_SCOPE)
+endif(NOT DEVICE_CHIP_NAME)
 
 set(config_v_file_name_in	    "${CMAKE_CURRENT_SOURCE_DIR}/config.v.in")
 set(config_v_file_name		    "${CMAKE_CURRENT_BINARY_DIR}/config.v")
 
 #--------------------------------config-----------------------------------------
 
-Verilog_GenControlMacro(GPIO_ENABLED_STR "GPIO_ENABLED" ${PERIPHERIAL_ENABLE_GPIO})
-Verilog_GenControlMacro(SEG7_ENABLED_STR "SEG7_ENABLED" ${PERIPHERIAL_ENABLE_SEG7})
 Verilog_GenControlMacro(UART0_ENABLED_STR "UART0_ENABLED" ${PERIPHERIAL_ENABLE_UART0})
-Verilog_GenControlMacro(UART1_ENABLED_STR "UART1_ENABLED" ${PERIPHERIAL_ENABLE_UART1})
+Verilog_GenControlMacro(CRC32_ENABLED_STR "CRC32_ENABLED" ${PERIPHERIAL_ENABLE_CRC32})
+Verilog_GenControlMacro(HW_MUL_ENABLED_STR "HW_MUL_ENABLED" ${PERIPHERIAL_ENABLE_HW_MUL})
 Verilog_GenControlMacro(TIMER_ENABLED_STR "TIMER_ENABLED" ${PERIPHERIAL_ENABLE_TIMER})
 Verilog_GenControlMacro(ETHERNET_ENABLED_STR "ETHERNET_ENABLED" ${PERIPHERIAL_ENABLE_ETHERNET})
+Verilog_GenControlMacro(SYSTEM_FREF_COUNTER_HYBRID_STR "SYSTEM_FREF_COUNTER_HYBRID" ${SYSTEM_FREF_COUNTER_HYBRID})
+Verilog_GenControlMacro(I2C_ENABLED_STR   "I2C_ENABLED"   ${PERIPHERIAL_ENABLE_I2C})
+Verilog_GenControlMacro(GPIO_ENABLED_STR  "GPIO_ENABLED"  ${PERIPHERIAL_ENABLE_GPIO})
+
+if (PERIPHERIAL_ENABLE_I2C OR PERIPHERIAL_ENABLE_GPIO)
+    set(I2C_PRESENT_STR "`define I2C_PRESENT")
+    set(I2C_PRESENT                         1)
+else()
+    set(I2C_PRESENT_STR "// Macro I2C_PRESENT is not defined")
+    set(I2C_PRESENT                         0)
+endif()
 
 #---------------------------------files-----------------------------------------
 
 add_subdirectory(altor32)
 add_subdirectory(soc)
+add_subdirectory(iicmb)
 add_subdirectory(memory)
+add_subdirectory(mdio)
+add_subdirectory(myminimac)
 add_subdirectory(utils)
-add_subdirectory(ucf)
+
+#--------------------------------config-----------------------------------------
+
+Verilog_GenControlMacro(GPIO_PRESENT_STR "GPIO_PRESENT" ${GPIO_PRESENT})
+
+if(I2C_OVER_GPIO_SDA_PIN)
+    set(I2C_OVER_GPIO_SDA_PIN_STR "`define I2C_OVER_GPIO_SDA_PIN ${I2C_OVER_GPIO_SDA_PIN}")
+else()
+    set(I2C_OVER_GPIO_SDA_PIN_STR "// SDA is not gpio pin")
+endif()
+
+if(I2C_OVER_GPIO_SCL_PIN)
+    set(I2C_OVER_GPIO_SCL_PIN_STR "`define I2C_OVER_GPIO_SCL_PIN ${I2C_OVER_GPIO_SCL_PIN}")
+else()
+    set(I2C_OVER_GPIO_SCL_PIN_STR "// SCL is not gpio pin")
+endif()
 
 #-------------------------------top module--------------------------------------
 
@@ -99,21 +116,32 @@ add_custom_target(top_hdl_src
 configure_file(${config_v_file_name_in} ${config_v_file_name} @ONLY)
 
 build_prj(ALTOR32_CORE_PRJ  "verilog altor32	%f\n"	"${ALTOR32_HDL_V}")
-build_prj(SOC_PRJ	    "verilog soc	%f\n"	"${SOC_HDL_V}")
+build_prj(SOC_V_PRJ	    "verilog soc	%f\n"	"${SOC_HDL_V}")
+build_prj(SOC_VHDL_PRJ	    "vhdl    soc        %f\n"	"${SOC_HDL_VHDL}")
 build_prj(MEMORY_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_V}")
+build_prj(MDIO_PRJ	    "verilog mdio	%f\n"	"${MDIO_HDL_V}")
+build_prj(I2C_PRJ           "vhdl    i2c        %f\n"   "${I2C_HDL_VHDL}")
+build_prj(MYMINMAC_PRJ	    "verilog myminimac	%f\n"	"${MYMINMAC_HDL_V}")
+build_prj(MYMINMAC_VHDL_PRJ "vhdl    myminimac	%f\n"	"${MYMINMAC_HDL_VHDL}")
 build_prj(UTILS_PRJ	    "verilog utils	%f\n"	"${UTILS_HDL_V}")
 build_prj(CONFIG_PRJ        "verilog config     %f\n"   "${config_v_file_name}")
 
 set(PRJ_TEXT
     ${CONFIG_PRJ}
     ${ALTOR32_CORE_PRJ}
-    ${SOC_PRJ}
-    ${MEMORY_PRJ}
+    ${SOC_V_PRJ}
+    ${SOC_VHDL_PRJ}
+    ${MDIO_PRJ}
+    ${I2C_PRJ}
+    ${MYMINMAC_PRJ}
+    ${MYMINMAC_VHDL_PRJ}
     ${UTILS_PRJ}
     ${TOP_PRJ}
     )
 
-file(WRITE ${PRJ_FILE_NAME}.tmp ${PRJ_TEXT})
+set(PRJ_BUILD ${PRJ_TEXT} ${MEMORY_PRJ})
+
+file(WRITE ${PRJ_FILE_NAME}.tmp ${PRJ_BUILD})
 
 add_custom_target(hdl
     COMMAND
@@ -135,16 +163,18 @@ configure_file(${UT_IN_FILE_NAME} ${UT_FILE_NAME} @ONLY)
 #-------------------------------------sym---------------------------------------
 add_subdirectory(testbench)
 
-set(prj_libs altor32 soc memory utils work)
+set(prj_libs altor32 soc memory utils work mdio i2c myminimac)
 set(testlibs_list)
 foreach(l ${prj_libs})
     list(APPEND testlibs_list -lib ${l})
 endforeach()
 
 set(test_include_path
-        -i ${CMAKE_CURRENT_BINARY_DIR}
-        -i ${CMAKE_CURRENT_SOURCE_DIR}
-        )
+    -i ${CMAKE_CURRENT_BINARY_DIR}
+    -i ${CMAKE_CURRENT_SOURCE_DIR}
+    -i ${UTILS_INCLUDE_PATH}
+    -i ${MYMINIMAC_INCLUDE_PATH}
+    )
 
 build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	"${XILINX_VERILOG_glbl}")
 build_prj(MEMORY_HDL_SIM_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_SIM_V}")
@@ -161,12 +191,8 @@ foreach(testfile ${TESTBENCH_HDL_V})
     build_prj(TB_PRJ	"verilog tb	%f\n"	"${testfile}")
 
     file(WRITE ${test_prj_file}.tmp
-	${CONFIG_PRJ}
-	${ALTOR32_CORE_PRJ}
-	${SOC_PRJ}
-	${MEMORY_HDL_SIM_PRJ}
-        ${UTILS_PRJ}
-	${TOP_PRJ}
+        ${PRJ_TEXT}
+        ${MEMORY_HDL_SIM_PRJ}
 	${TB_PRJ}
 	${XILINX_VERILOG_glbl_PRJ}
 	)
@@ -180,7 +206,7 @@ foreach(testfile ${TESTBENCH_HDL_V})
             "Refreshing ${testname}.prj"
 	)
 
-    make_fuse(
+    make_Behavioral_testbench(
 	"${testlibs_list}"
 	${test_executable}
 	${test_prj_file}
@@ -194,6 +220,8 @@ endforeach()
 
 #------------------------------------/sym---------------------------------------
 
+math(EXPR _MEMORY_UNIT_SIZE "${MEMORY_UNIT_SIZE}")
+
 set(PRJ_FILE_NAME           ${PRJ_FILE_NAME}            PARENT_SCOPE)
 set(TOP_MODULE_NAME         ${TOP_MODULE_NAME}          PARENT_SCOPE)
 set(PRJ_TEXT                ${PRJ_TEXT}                 PARENT_SCOPE)
@@ -203,3 +231,20 @@ set(UCF_FILE_NAME           ${UCF_FILE_NAME}            PARENT_SCOPE)
 set(F_INPUTS_COUNT          ${F_INPUTS_COUNT}           PARENT_SCOPE)
 
 set(USER_CODE_FLASH_OFFSET  ${USER_CODE_FLASH_OFFSET}   PARENT_SCOPE)
+
+set(MYMINMAC_RX_SLOTS       ${MYMINMAC_RX_SLOTS}        PARENT_SCOPE)
+set(MYMINMAC_TX_SLOTS       ${MYMINMAC_TX_SLOTS}        PARENT_SCOPE)
+set(MAC_TX_MEM_BASE         ${MAC_TX_MEM_BASE}          PARENT_SCOPE)
+set(MAC_RX_MEM_BASE         ${MAC_RX_MEM_BASE}          PARENT_SCOPE)
+set(MAC_CTL_BASE            ${MAC_CTL_BASE}             PARENT_SCOPE)
+set(MTU                     ${MTU}                      PARENT_SCOPE)
+set(MEMORY_UNIT_SIZE        ${_MEMORY_UNIT_SIZE}        PARENT_SCOPE)
+set(MEMORY_UNIT_SIZE_BYTES  ${MEMORY_UNIT_SIZE_BYTES}   PARENT_SCOPE)
+set(FREQMETERS_BASE         ${FREQMETERS_BASE}          PARENT_SCOPE)
+
+set(TESTBENCH_TOP           ${TESTBENCH_TOP}            PARENT_SCOPE)
+set(TESTBENCH_INCLUDE       ${test_include_path}        PARENT_SCOPE)
+
+set(I2C_OVER_GPIO_SDA_PIN   ${I2C_OVER_GPIO_SDA_PIN}    PARENT_SCOPE)
+set(I2C_OVER_GPIO_SCL_PIN   ${I2C_OVER_GPIO_SCL_PIN}    PARENT_SCOPE)
+set(GPIO_PRESENT            ${GPIO_PRESENT}             PARENT_SCOPE)

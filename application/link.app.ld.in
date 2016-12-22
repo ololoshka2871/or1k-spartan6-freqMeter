@@ -2,6 +2,8 @@
 MEMORY 
 {
   sram  (rwx) : ORIGIN = @APP_START@, LENGTH = @APP_SIZE@
+  mactx (rw)  : ORIGIN = @MAC_TX_MEM_BASE@, LENGTH = @MAC_TX_MEM_SIZE@
+  macrx (rw)  : ORIGIN = @MAC_RX_MEM_BASE@, LENGTH = @MAC_RX_MEM_SIZE@
 }
 
 SECTIONS
@@ -10,14 +12,14 @@ SECTIONS
   {
       . = ALIGN(4);
       hader_start = .;
-      LONG(@HEADER_W1@);
-      LONG(@HEADER_W2@);
+      LONG(@SYSTEM_HEADER_W1@);
+      LONG(@SYSTEM_HEADER_W2@);
       LONG(@FLASH_TEXT_START@);             /* test_start (in flash) */
       LONG(ABSOLUTE(hader_start));          /* text_dest (Where to load) */
-      LONG(_data_end - hader_start)         /* size to load */
-      LONG(ABSOLUTE(_bss_start))            /* start of bss_clear */
-      LONG(_bss_end - _bss_start)           /* len to clear */
-      LONG(ABSOLUTE(entry))                 /* address of entry point */
+      LONG(_data_end - hader_start);        /* size to load */
+      LONG(ABSOLUTE(_bss_start));           /* start of bss_clear */
+      LONG(_bss_end - _bss_start);          /* len to clear */
+      LONG(ABSOLUTE(entry));                /* address of entry point */
   } > sram
 
   .text :
@@ -25,12 +27,12 @@ SECTIONS
       . = ALIGN(4);
       PROVIDE(_text_start = .);
       KEEP(*(.text.entry*))
-      *(.text .text.*)                      /* remaining code */
-      *(.rodata)                            /* read-only data (constants) */
-      *(.rodata*)
-      *(.rdata*)
+      *(.text .text.*);                     /* remaining code */
+      *(.rodata);                           /* read-only data (constants) */
+      *(.rodata*);
+      *(.rdata*);
       . = ALIGN(4);
-      PROVIDE(_text_end = .);
+      _text_end = .;
   } > sram
   
   .data : 
@@ -59,12 +61,72 @@ SECTIONS
     . = ALIGN(4);
     PROVIDE(_bss_end = .);
 
+
+  } > sram
+
+  .heap :
+  {
     __heap_start__ = .;
     end = __heap_start__;
     _end = end;
     __end = end;
-    KEEP(*(.heap))
+    KEEP(*(*.heap))
     __heap_end__ = .;
     __HeapLimit = __heap_end__;
   } > sram
+
+  .mac_tx_ram (NOLOAD) :
+  {
+    PROVIDE(mac_tx_ram_start = .);
+    . += @MAC_TX_MEM_SIZE@;
+    PROVIDE(mac_tx_ram_end = .);
+  } > mactx
+
+  .mac_rx_ram (NOLOAD) :
+  {
+    PROVIDE(mac_rx_ram_start = .);
+    . += @MAC_RX_MEM_SIZE@;
+    PROVIDE(mac_rx_ram_end = .);
+  } > macrx
+
+  /* Stabs debugging sections.  */
+  .stab          0 : { *(.stab) }
+  .stabstr       0 : { *(.stabstr) }
+  .stab.excl     0 : { *(.stab.excl) }
+  .stab.exclstr  0 : { *(.stab.exclstr) }
+  .stab.index    0 : { *(.stab.index) }
+  .stab.indexstr 0 : { *(.stab.indexstr) }
+  .comment       0 : { *(.comment) }
+  /* DWARF debug sections.
+     Symbols in the DWARF debugging sections are relative to the beginning
+     of the section so we begin them at 0.  */
+  /* DWARF 1 */
+  .debug          0 : { *(.debug) }
+  .line           0 : { *(.line) }
+  /* GNU DWARF 1 extensions */
+  .debug_srcinfo  0 : { *(.debug_srcinfo) }
+  .debug_sfnames  0 : { *(.debug_sfnames) }
+  /* DWARF 1.1 and DWARF 2 */
+  .debug_aranges  0 : { *(.debug_aranges) }
+  .debug_pubnames 0 : { *(.debug_pubnames) }
+  /* DWARF 2 */
+  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }
+  .debug_abbrev   0 : { *(.debug_abbrev) }
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }
+  .debug_frame    0 : { *(.debug_frame) }
+  .debug_str      0 : { *(.debug_str) }
+  .debug_loc      0 : { *(.debug_loc) }
+  .debug_macinfo  0 : { *(.debug_macinfo) }
+  /* SGI/MIPS DWARF 2 extensions */
+  .debug_weaknames 0 : { *(.debug_weaknames) }
+  .debug_funcnames 0 : { *(.debug_funcnames) }
+  .debug_typenames 0 : { *(.debug_typenames) }
+  .debug_varnames  0 : { *(.debug_varnames) }
+  /* DWARF 3 */
+  .debug_pubtypes 0 : { *(.debug_pubtypes) }
+  .debug_ranges   0 : { *(.debug_ranges) }
+  /* DWARF Extension.  */
+  .debug_macro    0 : { *(.debug_macro) }
+  .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }
 }

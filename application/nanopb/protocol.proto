@@ -1,0 +1,214 @@
+syntax = "proto2";
+
+package ru.sktbelpa.r4_24_2;
+
+
+enum INFO {
+    // верися этого протокола
+    PROTOCOL_VERSION = 2;
+
+    // идентификатор устройства РЧ24-2.0
+    R4_24_2_ID = 0xE001;
+
+    // ИД, преднозначенный для поиска
+    ID_DISCOVER = 0xFFFF;
+}
+
+//------------------------------------------------------------------------------
+
+// Общий запрос: Вызывающий всегда посылает только этот запрос, который содержит
+// все возможные данные как необязательные поля.
+message Request {
+    // Идентификатор запроса. Служит для определения пары запрос/ответ
+    required uint32             id = 1;
+    // id устройства (идентификация)
+    required uint32             deviceID = 2;
+    // версия протокола запрашивающего
+    required uint32             protocolVersion = 3;
+
+    // Таймштамп клиента. Если он есть в сообщении, то часы устройства будут установлены в соответствии с ним
+    optional fixed64            setClock = 4;
+    // Установка/Запрос настроек
+    optional WriteSettingsReq   writeSettingsReq = 5;
+    // Перезвгрузка
+    optional RebootRequest      rebootRequest = 6;
+    // установка времени измерения/разрешения работы канала
+    optional SetMeasureTimeRequest      setMeasureTimeRequest = 7;
+    // Запрс результатов измерений
+    optional GetMeasureResultsReq       getMeasureResultsReq = 8;
+}
+
+//------------------------------------------------------------------------------
+
+// Общий ответ: Устройство всегда отвечает только этим ответом, который содержит
+// все возможные данные как необязательные поля.
+message Response {
+    // Идентификатор запроса, которому соответствует этот ответ
+    required uint32             id = 1;
+    // id устройства (идентификация)
+    required uint32             deviceID = 2;
+    // версия протокола
+    required uint32             protocolVersion = 3;
+    // общий статус выполнения
+    required STATUS             Global_status = 4;
+    // таймштамп устройства, когда фактически был сгененрирован ответ
+    required fixed64            timestamp = 5;
+
+    // Все настройки, если таковые были запрошены
+    optional SettingsResponse   settings = 6;
+    // Ответ на запрос установки времени измерения/разрешения работы канала
+    optional GetMeasureTimeResponce     getMeasureTimeResponce = 7;
+    // Ответ с результатами измерений
+    optional GetMeasureResultsResponce  getMeasureResultsResponce = 8;
+}
+
+//------------------------------------------------------------------------------
+
+// код выполнения операции
+enum STATUS {
+    // успешное завершение
+    OK = 0;
+    // недопустимое значение поля
+    ERRORS_IN_SUBCOMMANDS = 1;
+
+    PROTOCOL_ERROR = 100;
+}
+
+//-----------------------------------------------------------------------------
+
+// Настройки: запись/чтение
+
+// Запись: Если поле не пустое, то его значение будет проверено и записано
+// Можно послать сообщение вообще без полей, тогда это просто запрос на чтение настроек
+message WriteSettingsReq {
+    // установить статический IP-адрес устройству
+    optional uint32             setIPAddr = 1;
+    // установить маску подсети устройству
+    optional uint32             setIPmask = 2;
+    // установить шлюз устройству
+    optional uint32             setIPDefaultGateway = 3;
+    // установить MAC-адрес устройству
+    optional fixed64            setMAC_Addr = 4;
+    // разрешить/запретить устройству использовать протокол DHCP для определения
+    // сетевых настроек автоматически при загрузке.
+    optional bool               setUseDHCP = 5;
+
+
+    // Частота задающего генератора
+    // позволяет установить точное значение после измерения
+    optional uint32             setReferenceFrequency = 6;
+}
+
+// Ответ: Все настройки, после изменения, если таковое было
+message SettingsResponse {
+    // Статус выполнения запроса
+    enum ErrorDescription {
+        OK = 0; // нет ошибки
+        ERR_IP = 1; // недопустимый IP-адресс
+        ERR_NETMASK = 2; // недопустимая маска подсети
+        ERR_GATEWAY = 4; // недопустимый шлюз
+        ERR_MAC = 8; // Недопустимый MAC-адрес
+
+        ERR_F_REF = 16; // недопустимое значение частоты опорного генератора
+    }
+    required ErrorDescription   status = 1; // комбинация флагов
+
+    // далее поля аналогичны полям в сообщении WriteSettigsReq
+    required uint32             IPAddr = 3;
+    required uint32             IPmask = 4;
+    required uint32             IPDefaultGateway = 5;
+    required fixed64            MAC_Addr = 6;
+    required bool               UseDHCP = 7;
+
+    required uint32             ReferenceFrequency = 8;
+}
+
+//-----------------------------------------------------------------------------
+
+// Запрос перезагрузки устройства
+message RebootRequest {
+    // 0 - обычная перезагрузка
+    // 1 - сброс на заводские настройки
+    required bool               resetDefaults = 1;
+}
+
+//-----------------------------------------------------------------------------
+
+// Запрос установки времени измерения/разрешения работы канала
+message SetMeasureTime_message {
+    // Номер канала
+    required uint32             chanelNumber = 1;
+    // время измерения канала, если установить, или это поля отсуствует - прочитать
+    optional uint32             measureTime_ms = 2;
+    // Флаг включения/выключения канала
+    optional bool               chanelEnabled = 3;
+}
+
+// общий запрос установки времени измерения/разрешения работы канала
+message SetMeasureTimeRequest {
+    repeated SetMeasureTime_message chanelSetMeasureTime = 1;
+}
+
+// ответ времени измерения/разрешения работы канала
+message GetMeasureTime_message {
+    enum ErrorDescription {
+        OK = 0; // нет ошибки
+        ERR_INVALID_CHANEL = 1;     // Неверный номер канала (0..(количество каналов-1))
+        ERR_VALUE_TOO_BIG = 2;      // слишком большое время измерения
+        ERR_VALUE_TOO_SMALL = 4;    // слишком малое время измерения
+    }
+    // Номер канала
+    required uint32             chanelNumber = 2;
+    // код ошибки
+    required ErrorDescription   status = 1;
+    // установленное время измерения канала
+    required uint32             measureTime_ms = 3;
+    // Флаг включения/выключения канала
+    required bool               chanelEnabled = 4;
+}
+
+// общий ответ чтения времени измерения/разрешения работы канала
+message GetMeasureTimeResponce {
+    repeated GetMeasureTime_message chanelgetMeasureTime = 1;
+}
+
+//-----------------------------------------------------------------------------
+
+// запрос результата измерений
+message GetMeasureResult_message {
+    // номер канала
+    required uint32             chanelNumber = 1;
+}
+
+// общий запрос результатов измерений
+message GetMeasureResultsReq {
+    repeated GetMeasureResult_message chanels = 1;
+}
+
+// ответ - результат измерения
+message MeasureResult {
+    // номер канала
+    required uint32             chanelNumber = 1;
+    // таймштамп - когда измерение было фактически произведено
+    required fixed64            timestamp = 2;
+
+    // канал включен?
+    required bool               chanelEnabled = 4;
+    // входной сигнал обнаружен
+    required bool               chanelInputSignalPresent = 5;
+    // Частота [Гц]
+    required @SYSTEM_FREQ_TYPE@ Frequency = 6;
+}
+
+//  общий ответ с результатами измерений
+message GetMeasureResultsResponce {
+    enum ErrorDescription {
+        OK = 0;
+        ERR_INVALID_CHANELS = 1;
+    }
+    //код ошибки
+    required ErrorDescription   status = 1;
+
+    // результаты
+    repeated MeasureResult      results = 2;
+}

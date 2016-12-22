@@ -13,9 +13,6 @@
 #*    notice, this list of conditions and the following disclaimer in
 #*    the documentation and/or other materials provided with the
 #*    distribution.
-#* 3. Neither the name NuttX nor the names of its contributors may be
-#*    used to endorse or promote products derived from this software
-#*    without specific prior written permission.
 #*
 #* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -31,6 +28,15 @@
 #* POSSIBILITY OF SUCH DAMAGE.
 #*
 #****************************************************************************/
+
+function(build_prj resultvar pattern filelist)
+    set(result)
+    foreach(f ${filelist})
+        string(REPLACE "%f" ${f} line ${pattern})
+        list(APPEND result ${line})
+    endforeach(f)
+    set(${resultvar} ${result} PARENT_SCOPE)
+endfunction(build_prj)
 
 function(make_prj PRJ_FILE_NAME PRJ_TEXT)
     file(WRITE ${PRJ_FILE_NAME} ${PRJ_TEXT})
@@ -63,13 +69,15 @@ function(make_xst SYR_FILE NGC_FILE PRJ_FILE_NAME XST_FILE_NAME)
     add_custom_target(${PROJECT_NAME}_xst ALL DEPENDS ${SYR_FILE}) #
 endfunction(make_xst)
 
-function(make_ngdbuild NGD_FILE NGO_DIR UCF_FILE_NAME NGC_FILE)
+function(make_ngdbuild PART_NAME NGD_FILE NGO_DIR UCF_FILE_NAME NGC_FILE)
     add_custom_command(OUTPUT ${NGD_FILE}
 	COMMAND
 	    ${XILINX_ngdbuild} -dd ${NGO_DIR}
 		-nt timestamp
 		-uc ${UCF_FILE_NAME}
 		-p ${PART_NAME}
+                -intstyle ise
+                -verbose
 		${NGC_FILE} ${NGD_FILE}
 	DEPENDS
 	    ${NGC_FILE} ${UCF_FILE_NAME}
@@ -92,7 +100,8 @@ function(make_map MAP_FILE PCF_FILE PART_NAME NGD_FILE)
 		-register_duplication off
 		-global_opt off
 		-mt off -ir off
-		-pr off -lc off
+                -pr off
+                -lc auto
 		-power off
 		-o ${MAP_FILE}
 		${NGD_FILE}
@@ -204,7 +213,7 @@ function(make_impact_flash CMD_FILE FLASH_IMAGE)
 	)
 endfunction(make_impact_flash)
 
-function(make_fuse LIBS BENCH_EXECUTABLE TB_PRJ TOP_LVL_MODULE TESTBENCH_DIR INCLUDE_PATH)
+function(make_Behavioral_testbench LIBS BENCH_EXECUTABLE TB_PRJ TOP_LVL_MODULE TESTBENCH_DIR INCLUDE_PATH)
     add_custom_command(
 	OUTPUT
 	    ${BENCH_EXECUTABLE}
@@ -240,7 +249,7 @@ function(make_fuse LIBS BENCH_EXECUTABLE TB_PRJ TOP_LVL_MODULE TESTBENCH_DIR INC
 	WORKING_DIRECTORY
 	    ${TESTBENCH_DIR}
 	)
-endfunction(make_fuse)
+endfunction(make_Behavioral_testbench)
 
 function(build_mcs MCS_FLAH_IMAGE offset0 file0)
     set(argsList -u ${offset0} ${file0})
@@ -269,19 +278,6 @@ function(build_mcs MCS_FLAH_IMAGE offset0 file0)
         )
 endfunction(build_mcs)
 
-#function(build_mcs MCS_FLAH_IMAGE file)
-#    add_custom_command(
-#        OUTPUT
-#            ${MCS_FLAH_IMAGE}
-#        COMMAND
-#            ${XILINX_promgen} -w -spi -c 0xff
-#                -p mcs -o ${MCS_FLAH_IMAGE}
-#                -u 0x0 ${file}
-#        DEPENDS
-#            ${file}
-#        )
-#endfunction(build_mcs)
-
 function(append_data_to_file RESULT iHEX_FILE BINARY_FILE OFFSET)
     set(iHEX_FILE2BIN   ${iHEX_FILE}.bin)
     set(RESULT2BIN      ${RESULT}.bin)
@@ -306,3 +302,72 @@ function(Verilog_GenControlMacro OUTVALUE MACRO STATE)
     endif()
     set(${OUTVALUE} ${result} PARENT_SCOPE)
 endfunction()
+
+function(make_netgen NCD_FILE PCF_FILE OUTDIR OUT_VERILOG OUT_SDF)
+    get_filename_component(module_name ${NCD_FILE} NAME_WE)
+    set(verilog_sim_module  ${OUTDIR}/${module_name}.v)
+    set(sdf_sim_module      ${OUTDIR}/${module_name}.sdf)
+    set(${OUT_VERILOG}      ${verilog_sim_module}       PARENT_SCOPE)
+    set(${OUT_SDF}          ${sdf_sim_module}           PARENT_SCOPE)
+    add_custom_command(
+        OUTPUT
+            ${verilog_sim_module} ${sdf_sim_module}
+        COMMAND
+            mkdir -p ${OUTDIR}
+        COMMAND
+            ${XILINX_netgen} -sim
+                -ofmt verilog
+                -intstyle ise
+                -dir ${OUTDIR}
+                -pcf ${PCF_FILE}
+                -w
+                ${NCD_FILE}
+        DEPENDS
+            ${NGC_FILE} ${PCF_FILE}
+        COMMENT
+            "Generating NetGen Functional Simulation"
+        )
+    add_custom_target(mk_ps_netgen
+        DEPENDS
+            ${verilog_sim_module}
+            ${sdf_sim_module}
+        )
+endfunction(make_netgen)
+
+function(make_Timing_testbench BENCH_EXECUTABLE TB_PRJ TESTBENCH_DIR TOP_LVL_MODULE SDF INCLUDE_PATH)
+    add_custom_command(
+        OUTPUT
+            ${BENCH_EXECUTABLE}
+        COMMAND
+            ${XILINX_fuse}
+                ${INCLUDE_PATH}
+                -intstyle ise
+                -incremental
+                -lib unisims_ver
+                -lib unimacro_ver
+                -lib xilinxcorelib_ver
+                -lib simprims_ver
+                -lib secureip
+                -o ${BENCH_EXECUTABLE}
+                -prj ${TB_PRJ}
+                ${TOP_LVL_MODULE}
+                work.glbl
+        DEPENDS
+            ${TB_PRJ}
+        WORKING_DIRECTORY
+            ${TESTBENCH_DIR}
+        COMMENT
+            "Making timing testbench"
+        )
+
+    add_custom_target(tb.top_timing
+        DEPENDS ${BENCH_EXECUTABLE}
+        )
+    add_custom_target(tb.top_timing.run
+        DEPENDS tb.top_timing
+        COMMAND
+            export PATH=$PATH:${XILINX_DIR} && export XILINX=${XILINX_DIR}/../.. && ${BENCH_EXECUTABLE} -gui -sdftyp ${SDF}
+        WORKING_DIRECTORY
+            ${TESTBENCH_DIR}
+        )
+endfunction(make_Timing_testbench)

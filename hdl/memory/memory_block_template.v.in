@@ -1,0 +1,57 @@
+
+/******************** Memory block: @inst_num@ ************************/
+
+RAMB16BWER #(
+    .DATA_WIDTH_A ( 36 ),
+    .DATA_WIDTH_B ( 36 ),
+    .DOA_REG ( 0 ),
+    .DOB_REG ( 0 ),
+    .EN_RSTRAM_A ( "TRUE" ),
+    .EN_RSTRAM_B ( "TRUE" ),
+    .RST_PRIORITY_A ( "CE" ),
+    .RST_PRIORITY_B ( "CE" ),
+    .RSTTYPE ( "SYNC" ),
+    .WRITE_MODE_A ( "WRITE_FIRST" ),
+    .WRITE_MODE_B ( "WRITE_FIRST" ),
+    .INIT_A ( 36'h000000000 ),
+    .INIT_B ( 36'h000000000 ),
+    .SRVAL_A ( 36'h000000000 ),
+    .SRVAL_B ( 36'h000000000 ),
+    .SIM_COLLISION_CHECK ( "ALL" ),
+    .SIM_DEVICE ( `DEVICE_PART_FAMILY ),
+
+/*INITVALUES*/
+
+    .INITP_00 ( 256'h0000000000000000000000000000000000000000000000000000000000000000 ),
+    .INITP_01 ( 256'h0000000000000000000000000000000000000000000000000000000000000000 ),
+    .INITP_02 ( 256'h0000000000000000000000000000000000000000000000000000000000000000 ),
+    .INITP_03 ( 256'h0000000000000000000000000000000000000000000000000000000000000000 ),
+    .INITP_04 ( 256'h0000000000000000000000000000000000000000000000000000000000000000 ),
+    .INITP_05 ( 256'h0000000000000000000000000000000000000000000000000000000000000000 ),
+    .INITP_06 ( 256'h0000000000000000000000000000000000000000000000000000000000000000 ),
+    .INITP_07 ( 256'h0000000000000000000000000000000000000000000000000000000000000000 )
+
+) _mem_inst_@inst_num@ (
+    .CLKA(~a_clk),
+    .CLKB(b_clk),
+    .ENA(1'b1),
+    .ENB(1'b1),
+    .REGCEA(1'b0),
+    .REGCEB(1'b0),
+    .RSTA(1'b0),
+    .RSTB(1'b0),
+    // http://www.xilinx.com/support/documentation/user_guides/ug383.pdf
+    // for this mode (512 x 32) used only [13:5]
+    .ADDRA({a_block_addr_each, 5'b0}),
+    .ADDRB({b_block_addr_each, 5'b0}),
+    .DIA(a_dat_i),
+    .DIB(b_dat_i),
+    .DIPA(4'b0), // parity inputs
+    .DIPB(4'b0),
+    .DOA(a_dat_o_block[@inst_num@]),
+    .DOB(b_dat_o_block[@inst_num@]),
+    .DOPA( /* open */ ), // parity outputs
+    .DOPB( /* open */ ),
+    .WEA(a_block_we[@inst_num@]),
+    .WEB(b_block_we[@inst_num@])
+);

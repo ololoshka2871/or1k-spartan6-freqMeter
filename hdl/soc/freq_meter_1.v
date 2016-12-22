@@ -13,9 +13,6 @@
 //*    notice, this list of conditions and the following disclaimer in
 //*    the documentation and/or other materials provided with the
 //*    distribution.
-//* 3. Neither the name NuttX nor the names of its contributors may be
-//*    used to endorse or promote products derived from this software
-//*    without specific prior written permission.
 //*
 //* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 //* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -47,13 +44,15 @@ module freq_meter_1
 
     // запрос на сохранение метки начала
     output  wire                                    write_start_req,
-    input   wire                                    write_start_enable_i,
-
     // запрос на сохранение метки конца
     output  wire                                    write_stop_req,
-    input   wire                                    write_stop_enable_i,
 
-    input   wire                                    Fin_unsync
+    input   wire                                    Fin_unsync,
+
+    output  wire                                    ready_o,
+
+    input   wire                                    signal_detect_reset, // сброс детектора входного сигнала
+    output  reg                                     signal_present // 1, если на входе есть фронты
 );
 
 //------------------------------------------------------------------------------
@@ -61,7 +60,6 @@ module freq_meter_1
 reg [INPUT_FREQ_COUNTER_LEN-1:0]    input_counter;
 
 reg input_enable;
-reg p_input_enable;
 
 reg r_write_start_req;
 reg r_write_stop_req;
@@ -82,12 +80,12 @@ wire w_await_start;
 
 wire w_input_front_detector = ~Fin & pFin;
 
-wire input_enable_rst_detector = (~input_enable & p_input_enable);
-
 //------------------------------------------------------------------------------
 
-assign write_start_req  = r_write_start_req & write_start_enable_i;
-assign write_stop_req   = r_write_stop_req  & write_stop_enable_i;
+assign write_start_req  = r_write_start_req;
+assign write_stop_req   = r_write_stop_req;
+
+assign ready_o = zero_detector;
 
 //------------------------------------------------------------------------------
 
@@ -101,6 +99,7 @@ input_synchronizer sync(
 
 srff r_await_start(
     .q(w_await_start),
+    .q1(/*open*/),
     .r(w_input_front_detector | rst_i),
     .s(restart),
     .clk(clk_i)
@@ -110,31 +109,31 @@ srff r_await_start(
 
 //------------------------------------------------------------------------------
 
-always @(posedge clk_i or posedge rst_i) begin
+always @(posedge clk_i) begin
     if (rst_i) begin
         input_enable <= 1'b0;
-        p_input_enable <= 1'b0;
         r_write_start_req <= 1'b0;
         r_write_stop_req <= 1'b0;
+        input_counter <= 0;
+        signal_present <= 1'b0;
     end else begin
-        p_input_enable <= input_enable;
-
         if (restart) begin
             input_counter <= reload_val;
+            signal_present <= 1'b0;
         end else begin
-            input_counter <= input_counter - (input_enable & w_input_front_detector);
+            if (input_enable & w_input_front_detector) begin
+                input_counter <= input_counter -
+                    {{(INPUT_FREQ_COUNTER_LEN-1){1'b0}}, 1'b1};
+                signal_present <= ~signal_detect_reset;
+            end
         end
 
-        input_enable <= ~input_enable ?
-            w_await_start & w_input_front_detector :
-            ~zero_detector;
-
-        r_write_start_req <= r_write_start_req ?
-            ~write_start_req:
+        input_enable <= input_enable ?
+            ~zero_detector :
             w_await_start & w_input_front_detector;
-        r_write_stop_req  <= r_write_stop_req ?
-            ~write_stop_req:
-            input_enable & w_input_front_detector & one_detector;
+
+        r_write_start_req <= w_await_start & w_input_front_detector;
+        r_write_stop_req  <= input_enable & w_input_front_detector & one_detector;
     end
 end
 

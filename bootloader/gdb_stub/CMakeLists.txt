@@ -1,5 +1,4 @@
 #****************************************************************************
-#* src/gdb-stub/CMakeLists.txt
 #*
 #*   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
 #*   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -14,9 +13,6 @@
 #*    notice, this list of conditions and the following disclaimer in
 #*    the documentation and/or other materials provided with the
 #*    distribution.
-#* 3. Neither the name NuttX nor the names of its contributors may be
-#*    used to endorse or promote products derived from this software
-#*    without specific prior written permission.
 #*
 #* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -40,12 +36,22 @@ SET(GDB_NORMAL_SRC	    gdb_main.c)
 SET(GDB_NOTRAP_SRC	    gdb_main_notrap.c)
 SET(GDB_NOTRAP_SIM_SRC	    gdb_main_sim_notrap.c)
 
+
+if(PERIPHERIAL_ENABLE_HW_MUL)
+    list(APPEND GDB_HW_SRC __mulsi3.c)
+endif()
+
 INCLUDE_DIRECTORIES(.)
 
-add_definitions(-DHEADER_W1=${HEADER_W1} -DHEADER_W2=${HEADER_W2} -DSPI_MODULE_TINY)
+add_definitions(
+    -DSYSTEM_HEADER_W1=${SYSTEM_HEADER_W1}
+    -DSYSTEM_HEADER_W2=${SYSTEM_HEADER_W2}
+    -DSPI_MODULE_TINY
+    )
 
 add_library(gdb_stub STATIC ${GDB_HW_SRC} ${GDB_NORMAL_SRC})
 add_library(gdb_stub_notrap STATIC ${GDB_HW_SRC} ${GDB_NOTRAP_SRC})
 add_library(gdb_stub_sim_notrap STATIC ${GDB_HW_SRC} ${GDB_NOTRAP_SIM_SRC})
 
-set(BOOT_S	${CMAKE_CURRENT_SOURCE_DIR}/boot.S	PARENT_SCOPE)
+set(BOOT_S          ${CMAKE_CURRENT_SOURCE_DIR}/boot.S	PARENT_SCOPE)
+set(GDB_STUB_DIR    ${CMAKE_CURRENT_SOURCE_DIR}         PARENT_SCOPE)

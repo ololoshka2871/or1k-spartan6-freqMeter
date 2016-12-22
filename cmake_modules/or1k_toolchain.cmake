@@ -1,5 +1,4 @@
 #****************************************************************************
-#* cmake_modules/or1k_toolchain.cmake
 #*
 #*   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
 #*   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -14,9 +13,6 @@
 #*    notice, this list of conditions and the following disclaimer in
 #*    the documentation and/or other materials provided with the
 #*    distribution.
-#* 3. Neither the name NuttX nor the names of its contributors may be
-#*    used to endorse or promote products derived from this software
-#*    without specific prior written permission.
 #*
 #* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -35,8 +31,6 @@
 
 cmake_minimum_required(VERSION 3.0.2)
 
-INCLUDE(CMakeForceCompiler)
-
 #MESSAGE(STATUS "Setting toolchain or1k-elf-")
 
 SET(CMAKE_SYSTEM_NAME Generic)
@@ -44,19 +38,25 @@ SET(CMAKE_SYSTEM_VERSION 1)
 
 find_program (OR1KND or1knd-elf-gcc)
 if (OR1KND)
-    SET(TOOLCHAIN_PREFIX	or1knd-elf-)
+    SET(TOOLCHAIN_PREFIX       or1knd-elf-)
+    get_filename_component(toolchain_bin ${OR1KND} DIRECTORY)
+    set(TOOLCHAIN_INCLUDE_PATH ${toolchain_bin}/../or1knd-elf/include)
 else()
     find_program (OR1K or1k-elf-gcc)
     if (OR1K)
-       SET(TOOLCHAIN_PREFIX	or1k-elf-)
+       SET(TOOLCHAIN_PREFIX    or1k-elf-)
+       get_filename_component(toolchain_bin ${OR1K} DIRECTORY)
+       set(TOOLCHAIN_INCLUDE_PATH ${toolchain_bin}/../or1k-elf/include)
     else(OR1K)
-        message(ERROR "NO SUTABLE TOOLCHAIN FOUND")
+        message(FATAL "NO SUTABLE TOOLCHAIN FOUND")
     endif(OR1K)
 endif()
 
+set(JUMP_INSTRUCTION    "l.jal")
 
 # specify the cross compiler
 set(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}gcc)
+
 SET(CMAKE_LINKER ${TOOLCHAIN_PREFIX}gcc)
 SET(CMAKE_C_LINK_EXECUTABLE
     "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
@@ -64,13 +64,15 @@ SET(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}gcc)
 SET(CMAKE_ASM_COMPILE_OBJECT
     "<CMAKE_ASM_COMPILER> <FLAGS> -c <SOURCE> -o <OBJECT>")
 
-SET(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}objdump)
-SET(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}objcopy)
+SET(CMAKE_AR        ${TOOLCHAIN_PREFIX}ar)
+SET(CMAKE_READELF   ${TOOLCHAIN_PREFIX}readelf)
+SET(CMAKE_RANLIB    ${TOOLCHAIN_PREFIX}ranlib)
+SET(CMAKE_OBJDUMP   ${TOOLCHAIN_PREFIX}objdump)
+SET(CMAKE_OBJCOPY   ${TOOLCHAIN_PREFIX}objcopy)
 
 SET(COMMON_FLAGS "-msoft-float -std=gnu99 -mno-delay")
 
 SET(CMAKE_C_FLAGS_COMMON "\
-    -Ttext ${MEM_BASE} \
     -Wall \
     -pipe \
     -ffunction-sections -fdata-sections \

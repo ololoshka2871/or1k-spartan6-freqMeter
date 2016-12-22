@@ -13,9 +13,6 @@
 #*    notice, this list of conditions and the following disclaimer in
 #*    the documentation and/or other materials provided with the
 #*    distribution.
-#* 3. Neither the name NuttX nor the names of its contributors may be
-#*    used to endorse or promote products derived from this software
-#*    without specific prior written permission.
 #*
 #* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -32,39 +29,13 @@
 #*
 #****************************************************************************/
 
-#include(ExternalProject)
-#include(ProcessorCount)
-
-#ProcessorCount(make_jobs)
-
-#set(srecord_DIR	    ${CMAKE_CURRENT_BINARY_DIR}/srecord)
-
-#ExternalProject_Add(srecord
-#    DOWNLOAD_DIR    ${CMAKE_CURRENT_BINARY_DIR}
-#    URL		    http://downloads.sourceforge.net/project/srecord/srecord/1.64/srecord-1.64.tar.gz
-#    URL_MD5	    4de4a7497472d7972645c2af91313769
-#    BUILD_IN_SOURCE 1
-#    CONFIGURE_COMMAND ./configure --prefix=${srecord_DIR}
-#    BUILD_COMMAND   ${CMAKE_MAKE_PROGRAM} -j${make_jobs}
-#    INSTALL_DIR	    ${srecord_DIR}
-#    )
-
-#set(utils	cat cmp info)
-#foreach(u ${utils})
-#    find_file(
-#	srec_${u}
-#	${u}
-#	PATHS
-#	    ${srecord_DIR}/bin
-#	)
-#endforeach(u)
-
 add_custom_target(tools.editor
     SOURCES
         filter_debug_io_log.py
         mkgdb_server.sh
         merge_binary.py
         calc_best_signal_test_devider.py
+        gen-callgraph.py
     )
 
 set(tools_DIR       ${CMAKE_CURRENT_SOURCE_DIR}         PARENT_SCOPE)
