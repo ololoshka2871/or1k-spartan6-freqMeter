@@ -36,6 +36,11 @@ SET(GDB_NORMAL_SRC	    gdb_main.c)
 SET(GDB_NOTRAP_SRC	    gdb_main_notrap.c)
 SET(GDB_NOTRAP_SIM_SRC	    gdb_main_sim_notrap.c)
 
+
+if(PERIPHERIAL_ENABLE_HW_MUL)
+    list(APPEND GDB_HW_SRC __mulsi3.c)
+endif()
+
 INCLUDE_DIRECTORIES(.)
 
 add_definitions(

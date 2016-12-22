@@ -54,11 +54,14 @@ static void GDB_STUB_SECTION_TEXT test_freqmeter() {
 }
 
 static void GDB_STUB_SECTION_TEXT test_multiplication() {
-    volatile uint32_t a = 15;
-    volatile uint32_t b = 48;
+    volatile int32_t a = -15;
+    volatile int32_t b = 48;
     volatile uint32_t res;
-
+#ifdef HW_MUL_MODULE
+    res = a * b;
+#else
     asm volatile("l.mul %0, %1, %2" : "=r" (res) : "r" (a), "r" (b)); // sim to 130us
+#endif
 }
 
 static void GDB_STUB_SECTION_TEXT test_mdio() {

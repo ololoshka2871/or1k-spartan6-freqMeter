@@ -215,37 +215,38 @@ uint32_t fm_getActualReloadValue(uint8_t chanel) {
 }
 
 void fm_process() {
-    for (uint8_t i = 0; i < FREQMETERS_COUNT; ++i) {
-        struct freqmeter_chanel* chanel = &freqmeters[i];
-        if (chanel->signal_present) {
+    static uint32_t i = 0;
+    struct freqmeter_chanel* chanel = &freqmeters[i];
+    if (chanel->signal_present) {
 #ifndef SIM
-            irq_disable(IS_FREQMETERS);
+        irq_disable(IS_FREQMETERS);
 #endif
-            uint32_t periods = chanel->reloadVals.readyReload_val;
-            uint32_t value   = hybrid2bin(chanel->res_stop_v) - hybrid2bin(chanel->res_start_v);
-            if (value & (1 << 31))
-                value = ((1ul << (SYSTEM_FREF_COUNTER_LEN)) - 1) -
-                    hybrid2bin(chanel->res_start_v) +
-                    hybrid2bin(chanel->res_stop_v);
+        uint32_t periods = chanel->reloadVals.readyReload_val;
+        uint32_t value   = hybrid2bin(chanel->res_stop_v) - hybrid2bin(chanel->res_start_v);
+        if (value & (1 << 31))
+            value = ((1ul << (SYSTEM_FREF_COUNTER_LEN)) - 1) -
+                hybrid2bin(chanel->res_start_v) +
+                hybrid2bin(chanel->res_stop_v);
 #ifndef SIM
-            irq_enable(IS_FREQMETERS);
+        irq_enable(IS_FREQMETERS);
 #endif
 
-            if ((!value) || (!periods))
-                continue;
+        if ((!value) || (!periods))
+            return;
 
-            freq_type_t F = (freq_type_t)periods / (freq_type_t)value *
+        freq_type_t F = (freq_type_t)periods / (freq_type_t)value *
 #ifdef SIM
-                    (freq_type_t)F_REF
+                (freq_type_t)F_REF
 #else
-                    (freq_type_t)(settings.ReferenceFrequency * FREQMETER_MASTER_CLOCK_RATIO)
+                (freq_type_t)(settings.ReferenceFrequency * FREQMETER_MASTER_CLOCK_RATIO)
 #endif
-                    ;
+                ;
 
-            chanel->reloadVals.newReload_val = measure_time_ms2ticks(F, measure_time_ms[i]);
-            chanel->F = F;
+        chanel->reloadVals.newReload_val = measure_time_ms2ticks(F, measure_time_ms[i]);
+        chanel->F = F;
         }
-    }
+    if (++i == FREQMETERS_COUNT)
+        i = 0;
 }
 
 enum enSetMeasureTimeError fm_setMeasureTime(uint8_t chanel, uint16_t new_measure_time_ms) {

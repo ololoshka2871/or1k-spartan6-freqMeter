@@ -24,7 +24,7 @@
 #define GPIO_BASE               (IO_BASE + 0x400)
 #define MDIO_BASE               (IO_BASE + 0x500)
 #define IICMB_BASE_ADDR         (IO_BASE + 0x600)
-#define CRC32_BASE              (IO_BASE + 0x700)
+#define HW_MAP_BASE             (IO_BASE + 0x700)
 
 //-----------------------------------------------------------------
 // Interrupts

@@ -46,8 +46,8 @@ static inline uint32_t _crc32(const void* data, uint32_t length)
 
 #ifdef CRC32_HW
 
-#define CRC32_IO_REG                (*(REG32(CRC32_BASE)))
-#define CRC32_RESET_REG             (*(REG32(CRC32_BASE + sizeof(uint32_t))))
+#define CRC32_IO_REG                (*(REG32(HW_MAP_BASE)))
+#define CRC32_RESET_REG             (*(REG32(HW_MAP_BASE + sizeof(uint32_t))))
 
 /// Hardware CRC32 caclculator
 uint32_t crc32(const void* data, uint32_t length) {

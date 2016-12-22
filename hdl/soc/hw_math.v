@@ -30,26 +30,34 @@
 //*
 //****************************************************************************/
 
+`include "config.v"
 
-module crc32_calc
+module hw_math
 (
     // WISHBONE bus slave interface
     input  wire				clk_i,         // clock
     input  wire				rst_i,         // reset (asynchronous active low)
-    input  wire [2:0]                   addr_i,        // address
+    input  wire [3:0]                   addr_i,        // address
     input  wire [31:0]                  dat_i,         // data input
     output wire [31:0]                  dat_o,         // data output
     input  wire				stb_i,         // strobe
     input  wire				we_i           // write enable
 );
 
-// addr 000 - add
-wire crc32_add_value = stb_i & we_i & !addr_i[2];
-
-// addr 100 - reset
-wire reset_crc = (stb_i & we_i & addr_i[2]) | rst_i;
+localparam REG_CRC32_IO = 2'b00;
+localparam REG_CRC32_RST = 2'b01;
+localparam REG_MULT_IO = 2'b10;
+localparam REG_MULT_CTL = 2'b11;
 
 ///////////////////////////////////////////////////////////////////////////////
+
+`ifdef CRC32_ENABLED
+
+// addr 000 - add
+wire crc32_add_value = stb_i & we_i & (addr_i[3:2] == REG_CRC32_IO);
+
+// addr 100 - reset
+wire reset_crc = (stb_i & we_i & (addr_i[3:2] == REG_CRC32_RST)) | rst_i;
 
 // polynomial: x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + 1
 // data width: 8
@@ -114,7 +122,7 @@ always @(posedge clk_i) begin
         crc32_ <= nextCRC32_D8( next_byte , crc32_ );
 end
 
-assign dat_o = { ~crc32_[0], ~crc32_[1], ~crc32_[2], ~crc32_[3],
+wire [31:0] crc32_res = { ~crc32_[0], ~crc32_[1], ~crc32_[2], ~crc32_[3],
                  ~crc32_[4], ~crc32_[5], ~crc32_[6], ~crc32_[7],
                  ~crc32_[8], ~crc32_[9], ~crc32_[10], ~crc32_[11],
                  ~crc32_[12], ~crc32_[13], ~crc32_[14], ~crc32_[15],
@@ -122,5 +130,49 @@ assign dat_o = { ~crc32_[0], ~crc32_[1], ~crc32_[2], ~crc32_[3],
                  ~crc32_[20], ~crc32_[21], ~crc32_[22], ~crc32_[23],
                  ~crc32_[24], ~crc32_[25], ~crc32_[26], ~crc32_[27],
                  ~crc32_[28], ~crc32_[29], ~crc32_[30], ~crc32_[31]};
+
+`else
+wire [31:0] crc32_res = 32'd0;
+`endif // CRC32_ENABLED
+
+///////////////////////////////////////////////////////////////////////////////
+
+`ifdef HW_MUL_ENABLED
+
+// functionality of gcc math function: int __mulsi3 (int a, int b)
+
+// W -> set arguments | R -> read result
+wire multiplyer_io  = stb_i & (addr_i[3:2] == REG_MULT_IO);
+
+// control
+wire multiplyer_ctl = stb_i & (addr_i[3:2] == REG_MULT_CTL);
+
+
+reg signed [31:0] product;
+
+reg signed [31:0] a;
+reg signed [31:0] b;
+
+always @(posedge clk_i) begin
+    if (rst_i) begin
+        a <= 32'd0;
+        b <= 32'd0;
+    end else begin
+        product <= a * b;
+
+        if(multiplyer_io & we_i) begin
+            b <= a;
+            a <= dat_i;
+        end
+    end
+end
+
+`else
+wire [31:0] product = 32'd0;
+`endif // HW_MUL_ENABLED
+
+////////////////////////////////////////////////////////////////////////////////
+
+assign dat_o = addr_i[3] ? product : crc32_res;
 
 endmodule

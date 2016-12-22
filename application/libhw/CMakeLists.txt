@@ -53,6 +53,10 @@ SET(LIBHW_SOURCES
     crc32.c
     )
 
+if(PERIPHERIAL_ENABLE_HW_MUL)
+    list(APPEND LIBHW_SOURCES __mulsi3.c)
+endif()
+
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR} ${LIBBASE_INCLUDE_DIR})
 
 execute_process(COMMAND date +%s

@@ -107,8 +107,10 @@ set(PERIPHERIAL_ENABLE_TIMER    ON
     CACHE BOOL  "Enable timer at 0x12000100")
 set(PERIPHERIAL_ENABLE_UART0    ON
     CACHE BOOL  "Enable UART0 IPCore at 0x12000000")
-set(PERIPHERIAL_ENABLE_CRC32    OFF
+set(PERIPHERIAL_ENABLE_CRC32    ON
     CACHE BOOL  "Enable CRC32 calculaton unit at 0x12000700")
+set(PERIPHERIAL_ENABLE_HW_MUL   ON
+    CACHE BOOL  "Enable Hardware multiplicator unit at 0x12000708")
 set(PERIPHERIAL_ENABLE_GPIO     ON
     CACHE BOOL  "Enable i2c IPCore at 0x12000400")
 set(PERIPHERIAL_ENABLE_I2C      OFF
@@ -134,7 +136,7 @@ set(CLOCK_FREF_PLL_MULTIPLYER   20
     CACHE STRING "Reference clock multiplier")
 set(CLOCK_FREF_CLOCK_DEVIDER    10
     CACHE STRING "Reference clock devider")
-set(CLOCK_CPU_PLL_MULTIPLYER    35
+set(CLOCK_CPU_PLL_MULTIPLYER    32
     CACHE STRING "Input clock to CPU multiplier")
 set(CLOCK_CPU_CLOCK_DEVIDER     24
     CACHE STRING "Input clock to CPU devider")

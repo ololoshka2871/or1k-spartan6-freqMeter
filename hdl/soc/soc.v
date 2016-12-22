@@ -151,11 +151,11 @@ wire               uart0_we;
 wire               uart0_stb;
 wire               uart0_intr;
 
-wire [31:0]        crc32_data_w;
-wire [31:0]        crc32_data_r;
-wire               crc32_we;
-wire               crc32_stb;
-wire [7:0]         crc32_addr;
+wire [31:0]        hw_math_data_w;
+wire [31:0]        hw_math_data_r;
+wire               hw_math_we;
+wire               hw_math_stb;
+wire [7:0]         hw_math_addr;
 
 wire [7:0]         timer_addr;
 wire [31:0]        timer_data_o;
@@ -269,11 +269,11 @@ u2_soc
     .periph6_stb_o(i2c_stb),
 
     // CRC32 = 0x12000700 - 0x120007FF
-    .periph7_addr_o(crc32_addr),
-    .periph7_data_o(crc32_data_w),
-    .periph7_data_i(crc32_data_r),
-    .periph7_we_o(crc32_we),
-    .periph7_stb_o(crc32_stb)
+    .periph7_addr_o(hw_math_addr),
+    .periph7_data_o(hw_math_data_w),
+    .periph7_data_i(hw_math_data_r),
+    .periph7_we_o(hw_math_we),
+    .periph7_stb_o(hw_math_stb)
 );
 
 //-----------------------------------------------------------------
@@ -304,22 +304,18 @@ assign uart0_tx_o = 1'b1;
 `endif
 
 //-----------------------------------------------------------------
-// CRC32
+// HW MATH
 //-----------------------------------------------------------------
-`ifdef CRC32_ENABLED
-crc32_calc crc32_periph
+hw_math hw_math_periph
 (
     .clk_i(clk_i),
     .rst_i(rst_i),
-    .addr_i(crc32_addr),
-    .dat_o(crc32_data_r),
-    .dat_i(crc32_data_w),
-    .we_i(crc32_we),
-    .stb_i(crc32_stb)
+    .addr_i(hw_math_addr),
+    .dat_o(hw_math_data_r),
+    .dat_i(hw_math_data_w),
+    .we_i(hw_math_we),
+    .stb_i(hw_math_stb)
 );
-`else
-assign crc32_data_r = 4'h000000;
-`endif
 
 //-----------------------------------------------------------------
 // Timer

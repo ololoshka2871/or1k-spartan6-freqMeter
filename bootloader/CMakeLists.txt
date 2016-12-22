@@ -69,8 +69,7 @@ add_executable(${PROJECT_NAME}_sim.elf
     ${TEST_SRC}
     )
 target_link_libraries(${PROJECT_NAME}_sim.elf
-    ${BOOT_LIB_SIM_NOTRAP}
-    testsrc
+    -Wl,--start-group testsrc ${BOOT_LIB_SIM_NOTRAP} -Wl,--end-group
     )
 
 function(elf2hex ELF_FILE BIN_FILE HEX_FILE)
