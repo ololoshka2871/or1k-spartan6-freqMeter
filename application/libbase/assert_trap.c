@@ -32,6 +32,8 @@
 void __assert (const char *msg, const char *file, int line) {
 #ifndef NDEBUG
     asm volatile ("l.trap 0");
+#else
+    while (1);
 #endif
 }
 
@@ -39,5 +41,7 @@ void __assert_func (const char *file, int line, const char *fun,
                     const char *assertation) {
 #ifndef NDEBUG
     asm volatile ("l.trap 0");
+#else
+    while (1);
 #endif
 }
