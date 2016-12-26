@@ -30,7 +30,6 @@
  ****************************************************************************/
 
 #include <stdio.h>
-#include <assert.h>
 #include <string.h>
 #include <syscall.h>
 
@@ -197,7 +196,7 @@ static void fill_generic_fields(ru_sktbelpa_r4_24_2_Response *responce) {
 static void sendResponce(ru_sktbelpa_r4_24_2_Response *responce) {
     uint8_t* wrpos = nic_get_wrpointer();
     pb_ostream_t output_stream = { TxCallback, wrpos, SIZE_MAX, 0 };
-    assert(pb_encode(&output_stream, ru_sktbelpa_r4_24_2_Response_fields, responce));
+    pb_encode(&output_stream, ru_sktbelpa_r4_24_2_Response_fields, responce);
     udp_writen_directly(wrpos, output_stream.bytes_written);
 }
 

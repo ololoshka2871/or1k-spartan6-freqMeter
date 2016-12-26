@@ -44,6 +44,7 @@
 
 #include "prog_timer.h"
 
+#ifdef STACK_USE_DHCP
 static void tick_1ms(void* p)  {
     (void)p;
 
@@ -51,12 +52,14 @@ static void tick_1ms(void* p)  {
     if (eth_dhcp_1ms_timer)
         eth_dhcp_1ms_timer--;
 }
+#endif
 
 static void tick_1s(void* p)  {
     (void)p;
-
+#ifdef STACK_USE_DHCP
     if (eth_dhcp_1sec_renewal_timer)
         eth_dhcp_1sec_renewal_timer--;
+#endif
     if (eth_dhcp_1sec_lease_timer)
         eth_dhcp_1sec_lease_timer--;
 
@@ -74,7 +77,9 @@ static void tick_10ms(void* p)  {
 
 void init_eth_timers() {
     // save no pointer, can't free
+#ifdef STACK_USE_DHCP
     progtimer_new(1, tick_1ms, NULL);
+#endif
     progtimer_new(10, tick_10ms, NULL);
     progtimer_new(1000, tick_1s, NULL);
 }

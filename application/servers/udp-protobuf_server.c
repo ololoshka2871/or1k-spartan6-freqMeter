@@ -76,7 +76,7 @@ void process_protobuf_server() {
         if (our_udp_socket != UDP_INVALID_SOCKET)
         {
             our_udp_server_state = SM_PROCESS_SOCKET;
-            break;
+            return;
         }
         //Could not open a socket - none currently available - keep trying
         return;
@@ -111,13 +111,13 @@ void process_protobuf_server() {
             //Only enable the line below if you are broadcasting responses and
             //don't want to miss incoming packets to this socket from other devices
             //udp_socket[our_udp_socket].remote_device_info.ip_address.val = 0xffffffff;
-            break;
+            return;
         }
         protobuf_format_answer(&cookie);
         break;
     case SM_TX_ERROR_MSG:
         if (!udp_setup_tx(our_udp_socket)) {
-            break;
+            return;
         }
         protobuf_format_error_message();
         break;

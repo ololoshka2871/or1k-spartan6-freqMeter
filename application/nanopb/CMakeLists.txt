@@ -75,7 +75,7 @@ set(_NANOPB_INCLUDE_DIRS
 
 add_definitions(
     -DPB_FIELD_16BIT
-#    -DPB_NO_ERRMSG
+    -DPB_NO_ERRMSG
     )
 
 include_directories(${_NANOPB_INCLUDE_DIRS} ${LIBHW_INCLUDE_DIR} ${IBEXUK_IP_INCLUDE_DIRS})
