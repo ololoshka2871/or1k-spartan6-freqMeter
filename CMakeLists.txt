@@ -97,8 +97,6 @@ set(SYSTEM_MEASURE_TIME_MIN     5
     CACHE STRING "Frequency measure time minimum (in ms)")
 set(SYSTEM_INPUT_TEST_EVRY_MS   1000
     CACHE STRING "Test input signal present aproximaly every")
-set(SYSTEM_FREQ_TYPE            float
-    CACHE STRING "Type of frequency units calculation float/double")
 
 #---------------------------/SYSTEM---------------------------------------------
 

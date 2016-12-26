@@ -197,7 +197,7 @@ message MeasureResult {
     // входной сигнал обнаружен
     required bool               chanelInputSignalPresent = 5;
     // Частота [Гц]
-    required @SYSTEM_FREQ_TYPE@ Frequency = 6;
+    required float              Frequency = 6;
 }
 
 //  общий ответ с результатами измерений

@@ -40,9 +40,9 @@
 #include "settings.h"
 
 
-#define REFERENCE_FREQ_OFFSET_MAX       (SYSTEM_FREQ_TYPE)50000.0
-#define REFERENCE_FREQ_MIN              ((SYSTEM_FREQ_TYPE)DEVICE_REF_CLOCK_HZ - REFERENCE_FREQ_OFFSET_MAX)
-#define REFERENCE_FREQ_MAX              ((SYSTEM_FREQ_TYPE)DEVICE_REF_CLOCK_HZ + REFERENCE_FREQ_OFFSET_MAX)
+#define REFERENCE_FREQ_OFFSET_MAX       50000
+#define REFERENCE_FREQ_MIN              (DEVICE_REF_CLOCK_HZ - REFERENCE_FREQ_OFFSET_MAX)
+#define REFERENCE_FREQ_MAX              (DEVICE_REF_CLOCK_HZ + REFERENCE_FREQ_OFFSET_MAX)
 
 
 struct sSettings settings;
@@ -95,7 +95,7 @@ static void default_MAC_settings(struct sSettings *settings) {
 }
 
 static void default_freqmeter_settings(struct sSettings *settings) {
-    settings->ReferenceFrequency = (SYSTEM_FREQ_TYPE)DEVICE_REF_CLOCK_HZ;
+    settings->ReferenceFrequency = DEVICE_REF_CLOCK_HZ;
 }
 
 void settings_defaults(struct sSettings *settings) {

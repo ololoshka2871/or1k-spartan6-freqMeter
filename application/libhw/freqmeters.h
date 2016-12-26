@@ -45,7 +45,11 @@
 #define FM_STOP_VAL_CH(chanel)  (*(REG32(FM_STOP_VALS_BASE + (chanel) * sizeof(uint32_t))))
 #define FM_RELOAD_CH(chanel, v) (*(REG32(FM_RELOADINGS_BASE + (chanel) * sizeof(uint32_t))) = (v))
 
-typedef SYSTEM_FREQ_TYPE freq_type_t;
+#ifndef SIM
+typedef uint32_t freq_type_t;
+#else
+typedef float freq_type_t;
+#endif
 
 enum enSetMeasureTimeError {
     ERR_MT_OK = 0,
@@ -63,10 +67,11 @@ struct freqmeter_chanel {
     uint32_t res_start_v;
     uint32_t res_stop_v;
 
-    freq_type_t   F;
-#ifndef SIM
+    float   F;
+#ifndef SIM 
     progtimer_time_t timestamp;
 #endif
+
     uint8_t enabled;
     uint8_t signal_present;
 };
@@ -85,6 +90,7 @@ uint32_t fm_getMeasureTimestamp(uint8_t chanel);
 uint32_t fm_getMeasureStart_pos(uint8_t chanel);
 bool     fm_checkAlive(uint8_t chanel);
 enum enSetMeasureTimeError fm_setMeasureTime(uint8_t chanel, uint16_t new_measure_time_ms);
+float fm_getFrequency(uint8_t chanel);
 
 void fm_getCopyOffreqmeterState(uint8_t chanel, struct freqmeter_chanel* chanel_state);
 

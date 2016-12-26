@@ -39,6 +39,7 @@
 #include "graycode.h"
 #include "rtc.h"
 #include "settings.h"
+#include "fixedptc.h"
 #endif
 
 #ifndef FREQMETER_MEASURE_TIME_MAX
@@ -103,7 +104,8 @@ static uint32_t measure_time_ms2ticks(freq_type_t F, uint16_t _measure_time_ms) 
 #ifndef SIM
     if (_measure_time_ms > FREQMETER_MEASURE_TIME_MAX)
         _measure_time_ms = FREQMETER_MEASURE_TIME_MAX;
-    uint32_t reload_val = (uint32_t)(F * _measure_time_ms / 1000);
+    uint32_t reload_val = fixedpt_toint(
+            fixedpt_mul(F, fixedpt_div(fixedpt_fromint(_measure_time_ms), fixedpt_fromint(1000))));
     if (!reload_val)
         reload_val = 1;
     return reload_val;
@@ -234,17 +236,22 @@ void fm_process() {
         if ((!value) || (!periods))
             return;
 
-        freq_type_t F = (freq_type_t)periods / (freq_type_t)value *
 #ifdef SIM
-                (freq_type_t)F_REF
+        freq_type_t F = (freq_type_t)periods / (freq_type_t)value * (freq_type_t)F_REF;
 #else
-                (freq_type_t)(settings.ReferenceFrequency * FREQMETER_MASTER_CLOCK_RATIO)
+        // value shifted right for (FIXEDPT_BITS - FIXEDPT_WBITS)
+        fixedpt F_Ref_sr = (fixedpt)settings.ReferenceFrequency;
+        F_Ref_sr = fixedpt_mul(F_Ref_sr, fixedpt_rconst(FREQMETER_MASTER_CLOCK_RATIO));
+
+        // calc and shift back
+        freq_type_t F = fixedpt_mul(F_Ref_sr, fixedpt_fromint(periods));
+        F = fixedpt_div(F, fixedpt_fromint(value));
+        F = fixedpt_fromint(F);
 #endif
-                ;
 
         chanel->reloadVals.newReload_val = measure_time_ms2ticks(F, measure_time_ms[i]);
-        chanel->F = F;
-        }
+        chanel->F = fixedpt_tofloat(F);
+    }
     if (++i == FREQMETERS_COUNT)
         i = 0;
 }
@@ -277,4 +284,8 @@ void fm_getCopyOffreqmeterState(uint8_t chanel, struct freqmeter_chanel *chanel_
 
 bool fm_isChanelEnabled(uint8_t chanel) {
     return freqmeters[chanel].enabled;
+}
+
+float fm_getFrequency(uint8_t chanel) {
+    return (freqmeters[chanel].F);
 }
