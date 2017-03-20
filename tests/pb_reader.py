@@ -58,7 +58,7 @@ def main():
 
     device.enable_channels(ch2rd)
     device.setMeasureTime(ch2rd, args.measure_time)
-    device.setClock(time.time())
+    #device.setClock(time.time())
 
     time.sleep(2 * args.measure_time / 1000.0)
 

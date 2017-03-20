@@ -102,15 +102,6 @@ endif()
 
 add_custom_target(mkldscript DEPENDS ${LD_SCRIPT_FILE})
 
-add_subdirectory(libbase)
-add_subdirectory(libhw)
-add_subdirectory(ibexukIP)
-add_subdirectory(nanopb)
-add_subdirectory(servers)
-
-set(MAIN_SRC             ${CMAKE_CURRENT_SOURCE_DIR}/main.c)
-set(APPLICATION_ELF_NAME app.elf)
-
 set(ETHERNET_CONFIG_INCLUDE_FILE    ${CMAKE_CURRENT_BINARY_DIR}/ETH_config.h)
 
 if(ETHERNET_MAC_ADDRESS_FORCE)
@@ -142,11 +133,20 @@ add_custom_target(regen_mac
         "Force regenerate MAC address on next build"
     )
 
+add_subdirectory(libbase)
+add_subdirectory(libhw)
+add_subdirectory(ibexukIP)
+add_subdirectory(nanopb)
+add_subdirectory(servers)
+
 include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
     libhw libbase libnet servers
     ${IBEXUK_IP_INCLUDE_DIRS}
     )
+
+set(MAIN_SRC             ${CMAKE_CURRENT_SOURCE_DIR}/main.c)
+set(APPLICATION_ELF_NAME app.elf)
 
 get_target_property(hwlib_difenitions hw COMPILE_DEFINITIONS)
 get_target_property(ibexukIP_difenitions ibexukIP COMPILE_DEFINITIONS)
