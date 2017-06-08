@@ -1,0 +1,110 @@
+#################### BUILD Constants device sensitive ##########################
+#
+# Position of user progremm image in flash
+#
+# USER_CODE_FLASH_OFFSET=0x80000
+#
+# USE_PHISICAL_INPUTS=1
+# MEMORY_UNIT_SIZE=(16*1024)
+# DEVICE_PART_FAMILY="SPARTAN6"
+#
+
+#clock
+NET "clk_i"                     LOC = P56  | IOSTANDARD = "LVCMOS33";
+
+#UART0
+@UART0_DISABLE@NET "tx0"        LOC = P12  | IOSTANDARD = "LVCMOS33";
+@UART0_DISABLE@NET "rx0"        LOC = P15  | IOSTANDARD = "LVCMOS33";
+
+#reset CPU
+NET "rst_i"                     LOC = P58  | IOSTANDARD = "LVCMOS33" | PULLUP;
+
+# SPI
+NET "flash_CS"                  LOC = P38 | IOSTANDARD = "LVCMOS33";
+NET "sck_o"                     LOC = P70 | IOSTANDARD = "LVCMOS33";
+NET "mosi_o"                    LOC = P64 | IOSTANDARD = "LVCMOS33";
+NET "miso_i"                    LOC = P65 | IOSTANDARD = "LVCMOS33" | PULLUP;
+
+# i2c
+@I2C_DISABLE@NET "i2c_sda"      LOC = P41  | IOSTANDARD = "LVCMOS33" | PULLUP;
+@I2C_DISABLE@NET "i2c_scl"      LOC = P40  | IOSTANDARD = "LVCMOS33" | PULLUP;
+
+# GPIO
+#leds
+@GPIO_DISABLE@NET "gpio[0]"     LOC = P48  | IOSTANDARD = "LVCMOS33";
+@GPIO_DISABLE@NET "gpio[1]"     LOC = P47  | IOSTANDARD = "LVCMOS33";
+@GPIO_DISABLE@NET "gpio[2]"     LOC = P46  | IOSTANDARD = "LVCMOS33";
+#BUTTON
+@GPIO_DISABLE@NET "gpio[3]"     LOC = P59  | IOSTANDARD = "LVCMOS33";
+#N/C
+@GPIO_DISABLE@NET "gpio[4]"     LOC = P45  | IOSTANDARD = "LVCMOS33";
+@GPIO_DISABLE@NET "gpio[5]"     LOC = P44  | IOSTANDARD = "LVCMOS33";
+
+# RMII
+NET "phy_tx_en"                 LOC = P29  | IOSTANDARD = "LVCMOS33" | IOB = True;
+NET "phy_rmii_tx_data[0]"       LOC = P33  | IOSTANDARD = "LVCMOS33" | IOB = True;
+NET "phy_rmii_tx_data[1]"       LOC = P32  | IOSTANDARD = "LVCMOS33" | IOB = True;
+NET "phy_rmii_rx_data[0]"       LOC = P22  | IOSTANDARD = "LVCMOS33" | IOB = True;
+NET "phy_rmii_rx_data[1]"       LOC = P21  | IOSTANDARD = "LVCMOS33" | IOB = True;
+NET "phy_rmii_crs"              LOC = P14  | IOSTANDARD = "LVCMOS33" | IOB = True;
+NET "phy_rmii_clk"              LOC = P23  | IOSTANDARD = "LVCMOS33" | IOB = True;
+NET "phy_mdclk"                 LOC = P10  | IOSTANDARD = "LVCMOS33";
+NET "phy_mdio"                  LOC = P11  | IOSTANDARD = "LVCMOS33" | PULLUP;
+
+# Freqmeter inputs
+NET "Fin[0]"                    LOC = P132 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[1]"                    LOC = P133 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[2]"                    LOC = P98  | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[3]"                    LOC = P124 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[4]"                    LOC = P138 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[5]"                    LOC = P139 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[6]"                    LOC = P131 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[7]"                    LOC = P134 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[8]"                    LOC = P94  | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[9]"                    LOC = P102 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[10]"                   LOC = P137 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[11]"                   LOC = P140 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+
+NET "Fin[12]"                   LOC = P127 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[13]"                   LOC = P99  | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[14]"                   LOC = P97  | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[15]"                   LOC = P101 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[16]"                   LOC = P123 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[17]"                   LOC = P141 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[18]"                   LOC = P126 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[19]"                   LOC = P95  | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[20]"                   LOC = P93  | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[21]"                   LOC = P100 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[22]"                   LOC = P121 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[23]"                   LOC = P142 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+
+## RMII
+### Clock source 50 MHz/20 ns ###
+TIMESPEC TS_RMII_CLK = PERIOD TS_RMII_CLK 20 ns HIGH;
+Net phy_rmii_clk TNM_NET = TS_RMII_CLK;
+
+NET "phy_rmii_clk"              TNM = RMII_GROUP;
+NET "phy_rmii_crs"              TNM = RMII_GROUP;
+NET "phy_tx_en"                 TNM = RMII_GROUP;
+NET "phy_rmii_tx_data[0]"       TNM = RMII_GROUP;
+NET "phy_rmii_tx_data[1]"       TNM = RMII_GROUP;
+NET "phy_rmii_rx_data[0]"       TNM = RMII_GROUP;
+NET "phy_rmii_rx_data[1]"       TNM = RMII_GROUP;
+
+NET "phy_rmii_clk"              IOBDELAY = NONE;
+NET "phy_rmii_crs"              IOBDELAY = NONE;
+NET "phy_tx_en"                 IOBDELAY = NONE;
+NET "phy_rmii_tx_data[0]"       IOBDELAY = NONE;
+NET "phy_rmii_tx_data[1]"       IOBDELAY = NONE;
+NET "phy_rmii_rx_data[0]"       IOBDELAY = NONE;
+NET "phy_rmii_rx_data[1]"       IOBDELAY = NONE;
+
+## TIMINGS
+TIMESPEC TS_CLK_IN = PERIOD TS_CLK_IN @INPUT_CLOCK_PERIOD_NS_F@ns HIGH;
+NET "clk_i" TNM_NET = TS_CLK_IN;
+
+TIMESPEC "TS_clk_to_clk_ref" = FROM "clk" TO "clk_ref" TIG;
+TIMESPEC "TS_clk_ref_to_clk" = FROM "clk_ref" TO "clk" TIG;
+
+TIMESPEC "TS_clk_to_rmii_clk"= FROM "clk" TO "phy_rmii_clk" TIG;
+TIMESPEC "TS_rmii_clk_to_clk"= FROM "phy_rmii_clk" TO "clk" TIG;
