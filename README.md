@@ -233,7 +233,7 @@
 * Тесты поведения
 	1. Тест модулей FPGA находятся в каталоге hdl/testbench. Для их запуска выполните команду
 
-		```{r, engine='bash', cmake_config}
+		```{r, engine='bash', run_tests}
 		make tb.<название файла теста>.run
 		```
 
@@ -244,21 +244,137 @@
 		* Убедитесь, что связь успешно установлена при помощи команды **ping**
 		* Запустите сценарий тестировния
 
-			```{r, engine='bash', cmake_config}
-			EST_IP=<IP-адрес устройства> make pb_pytest.run 
+			```{r, engine='bash', run_itest}
+			TEST_IP=<IP-адрес устройства> make pb_pytest.run 
 			```
 			
 ### Прошивка ###
-Прошивка устройства производится при помощи програматора Xilinx Platform Cable USB
+Прошивка устройства производится при помощи програматора Xilinx Platform Cable USB. 
+* Установка программатора		
+	Необходим пакет fxload.
+	Создайте правило udev (**/etc/udev/rules.d/xusbdfwu.rules**) со следующим содержимым:
 
+	```{r, engine='bash', xilinx_udev}
+	ATTRS{idVendor}=="03fd", ATTRS{idProduct}=="0008", MODE="666"
+	SUBSYSTEMS=="usb", ACTION=="add", ATTRS{idVendor}=="03fd", ATTRS{idProduct}=="0007", RUN+="/sbin/fxload -v -t fx2 -I /path/to/xusbdfwu.hex -D $tempnode"
+	SUBSYSTEMS=="usb", ACTION=="add", ATTRS{idVendor}=="03fd", ATTRS{idProduct}=="0009", RUN+="/sbin/fxload -v -t fx2 -I /path/to/xusb_xup.hex -D $tempnode"
+	SUBSYSTEMS=="usb", ACTION=="add", ATTRS{idVendor}=="03fd", ATTRS{idProduct}=="000d", RUN+="/sbin/fxload -v -t fx2 -I /path/to/xusb_emb.hex -D $tempnode"
+	SUBSYSTEMS=="usb", ACTION=="add", ATTRS{idVendor}=="03fd", ATTRS{idProduct}=="000f", RUN+="/sbin/fxload -v -t fx2 -I /path/to/xusb_xlp.hex -D $tempnode"
+	SUBSYSTEMS=="usb", ACTION=="add", ATTRS{idVendor}=="03fd", ATTRS{idProduct}=="0013", RUN+="/sbin/fxload -v -t fx2 -I /path/to/xusb_xp2.hex -D $tempnode"
+	SUBSYSTEMS=="usb", ACTION=="add", ATTRS{idVendor}=="03fd", ATTRS{idProduct}=="0015", RUN+="/sbin/fxload -v -t fx2 -I /path/to/xusb_xse.hex -D $tempnode"
+	```
 
-### Contribution guidelines ###
+	Здесь **/path/to** Это подкаталог в каталоге установки Xilinx ISE, **14.3/ISE_DS/common/bin/lin{32/64}**
+	Перезагрузите правила udev:
 
-* Writing tests
-* Code review
-* Other guidelines
+	```{r, engine='bash', xilinx_udev
+	sudo udevadm control --reload-rules
+	```
 
-### Who do I talk to? ###
+	Затем, отключите и вновь подключите программатор
+* Прошивка		
+	Выполните команду при подключенном к плате программаторе
 
-* Repo owner or admin
-* Other community or team contact
+	```{r, engine='bash', flash_do
+	make flash
+	```
+
+### Структура проекта ###
+```
+├── application		# Основное приложение
+│   ├── ibexukIP		# Сетевой стек 
+│   ├── libbase		# Общие модули
+│   ├── libhw			# Драйверы устройств
+│   ├── nanopb		# Библиотека доступа по протокуолу protobuf
+│   ├── scripts		# Скрипты автоматизации процесса сборки
+│   └── servers		# Сетевые серверы
+├── bootloader		# Загрузчик
+│   ├── gdb_stub		# Драйвер отладочного моста UART
+│   └── testsrc		# Тестовые программы для поддержки тестирования аппаратных модулей
+├── cmake_modules	# вспомогательные модули cmake
+├── doc				# Документация
+├── hdl				# Исходные коды конфигурации FPGA
+│   ├── altor32		# Ядро процессора AltOr32
+│   ├── iicmb			# Модуль i2c
+│   ├── mdio			# Модуль MDIO
+│   ├── memory		# Модули реализующие области памяти
+│   ├── myminimac		# модуль Ethernet
+│   ├── scripts		# Скрипты автоматизации процесса сборки 
+│   ├── soc			# Вспомогательные модульи поддержки для "системы на чипе"
+│   ├── testbench		# Тесты аппаратных модулей
+│   ├── ucf			# Файлы конфигурации конкретной плат
+│   └── utils			# Общие вспомогательные моули
+├── tests			# Тесты, запускаемые со стороны ПК
+├── tools			# Вспомогательные средства сборки
+└── www				# Файлы внутреннего веб-сервера
+    ├── scripts		# Скрипты автоматизации процесса сборки
+    └── siteroot		# Корневой каталог сайта
+        ├── api		# Внешний API
+        ├── css		# Стили
+        ├── fonts	# Шрифты
+        ├── img		# Изображения
+        ├── js		# Клиентские скрипты
+        └── pages	# HTML страницы
+```
+
+### Вспомогательные возможности ###
+* Отладка		
+	1. Отладка произвдится при помощи моста UART. Необходимо иметь разрешенный аппаратный модуль в настройках проекта.
+	1. Необходимо собрать проект в режиме отладки чтобы выходной файл прошивки содержал отладочную информацию, кроме того в этом режиме активирован драйвер отладки gdb_stub
+	1. Подключите выводы RX, TX и GND на отлаживаемом устройстве к соответствующим контактам переходника USB-UART. **ВНИМАНИЕ!!!** *Используйте только переходники с логическими уровнями 3,3 В, иначе возможно повреждение FPFA*
+	1. Проверка работы драйвера отладки.		
+		Выполните команду, чтобы открыть последовательный порт:
+
+		```{r, engine='bash', test_dbb
+		screen /dev/ttyUSB0 115200
+		```
+
+		Где **/dev/ttyUSB0** - Ваш переходник USB-UART
+		
+		В соседнем терминале выполните команду прошивки:
+
+		```{r, engine='bash', flash_do
+		make flash
+		```
+
+		По окончании которой вы должны увидеть в терминале screen сообщение вида:
+	
+		```{r, engine='bash', dbgb_ansver
+		Cjj,otbyt
+		```
+
+	1. Подключение отладчика.		
+		Выполните команду, открывающую подключение к последовательному порту
+		
+		```{r, engine='bash', mkgdb_server
+	 	tools/mkgdb_server.sh
+		```
+
+		В соседнем терминале выполните запуск отладчика
+		
+		```{r, engine='bash', gdb_exec
+	 	or1knd-elf-gdb application/app.elf
+		```
+
+		Затем в консоли отладчика gdb
+		```{r, engine='gdb', gdb_test
+		(gdb) set remote interrupt-on-connect
+	 	(gdb) target remote :3333
+		```
+		
+		В случае успешного подключения отладчик готов к работе. Теперь можно настройить интеграцию отладки с IDE.		
+		*ПРИМЕЧАНИЕ: отладчик довольно нестабилен, поэтому не используйте отладку по шагам, лучге установить точку останова в требуемом месте и дождаться её срабатывания, проанализировать локальные переменные и перезапустить программу с начала*
+
+* Тестирование чтения.		
+	Протестировать работоспособность каналов можно используя python-скрипт pb_reader.py, запуск которого производится следующим образом
+
+	```{r, engine='bash', gdb_exec
+ 	TEST_IP=<IP-адрес устройства> make pb_reader.run
+	```
+		
+* Граф вызовов функций С		
+	Можно построить и вывезти специальный граф вызовов функций приложения и сохранить его в SVG. Требуется **Doxygen**:
+
+	```{r, engine='bash', gdb_exec
+ 	make application_call_graph
+	```
