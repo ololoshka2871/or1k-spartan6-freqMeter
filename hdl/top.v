@@ -93,7 +93,11 @@ module top
 // Params
 //-----------------------------------------------------------------
 
+`ifdef CLOCK_USE_PLL
 parameter CLK_KHZ = `DEVICE_REF_CLOCK_HZ * `CLOCK_CPU_PLL_MULTIPLYER / `CLOCK_CPU_CLOCK_DEVIDER / 1000;
+`else
+parameter CLK_KHZ = `DEVICE_REF_CLOCK_HZ / 1000;
+`endif
 
 //-----------------------------------------------------------------
 // Ports

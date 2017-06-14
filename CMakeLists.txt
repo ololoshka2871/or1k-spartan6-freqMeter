@@ -132,6 +132,8 @@ set(BAUD_I2C                    100000
 
 #------------------------------------ CLOCK ------------------------------------
 
+set(CLOCK_USE_PLL               ON
+    CACHE BOOL  "Enable PLL")
 set(CLOCK_FREF_PLL_MULTIPLYER   20
     CACHE STRING "Reference clock multiplier")
 set(CLOCK_FREF_CLOCK_DEVIDER    10
@@ -216,11 +218,15 @@ set(SIM_TEST_CRC32          OFF
 
 #--------------------------------Calculable-------------------------------------
 
-math(EXPR REFERENCE_CLOCK_HZ
-    "${DEVICE_REF_CLOCK_HZ} * ${CLOCK_FREF_PLL_MULTIPLYER} / ${CLOCK_FREF_CLOCK_DEVIDER}")
-
-math(EXPR CPU_CLOCK_HZ
-    "${DEVICE_REF_CLOCK_HZ} * ${CLOCK_CPU_PLL_MULTIPLYER} / ${CLOCK_CPU_CLOCK_DEVIDER}")
+if (NOT CLOCK_USE_PLL)
+    set(REFERENCE_CLOCK_HZ  ${DEVICE_REF_CLOCK_HZ})
+    set(CPU_CLOCK_HZ        ${DEVICE_REF_CLOCK_HZ})
+else()
+    math(EXPR REFERENCE_CLOCK_HZ
+        "${DEVICE_REF_CLOCK_HZ} * ${CLOCK_FREF_PLL_MULTIPLYER} / ${CLOCK_FREF_CLOCK_DEVIDER}")
+    math(EXPR CPU_CLOCK_HZ
+        "${DEVICE_REF_CLOCK_HZ} * ${CLOCK_CPU_PLL_MULTIPLYER} / ${CLOCK_CPU_CLOCK_DEVIDER}")
+endif()
 
 math(EXPR INPUT_CLOCK_PERIOD_NS_F_m100
     "1000000000 / (${DEVICE_REF_CLOCK_HZ} / 100)")

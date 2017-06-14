@@ -59,15 +59,16 @@ const char hostname[15] =
 #define IS_STATIC_IP_FORCED()       (~gpio_port_get_val(GPIO_PORTA) & FORCE_STATIC_IP_PIN)
 
 static void configure_ethernet_PHY() {
+    volatile uint8_t v;
     // force 100 Mb/s FD
     MDIO_WriteREG(-1, PHY_BMCR, PHY_BMCR_SPEED100MB | PHY_BMCR_FULL_DUPLEX);
-
+    v = MDIO_ReadREG_sync(-1, PHY_BMCR);
     // set elastic bufer max len
-    uint8_t v;
     v = MDIO_ReadREG_sync(-1, PHY_RBR);
     MDIO_WriteREG(-1, PHY_RBR, (v & ~(PHY_RBR_ELAST_BUF_MSK))
                   | PHY_RBR_RMII_REV1_0
                   | (0b00 << PHY_RBR_ELAST_BUF_SH));
+    v = MDIO_ReadREG_sync(-1, PHY_RBR);
 }
 
 static void init_tcpip() {
