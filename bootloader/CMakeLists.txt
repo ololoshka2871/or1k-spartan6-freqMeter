@@ -49,7 +49,7 @@ include_directories(${TOOLCHAIN_INCLUDE_PATH})
 
 add_subdirectory(gdb_stub)
 SET(BOOT_LIB_SIM_NOTRAP	    gdb_stub_sim_notrap)
-if(DEBUGER_AT_BOOTLOADER)
+if(SYSTEM_TRAP_EARLY)
     SET(BOOT_LIB    gdb_stub)
 else()
     SET(BOOT_LIB    gdb_stub_notrap)
