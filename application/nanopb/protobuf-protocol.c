@@ -175,7 +175,7 @@ protobuf_handle_request(uint16_t rx_data_bytes_remaining,
     // reboot
     if (request.has_rebootRequest) {
         if (request.rebootRequest.resetDefaults) {
-            settings_defaults(&settings); // reset settings to default
+            Settings_defaults(&settings); // reset settings to default
             Settings_write(&settings);
         }
         reboot();

@@ -30,6 +30,7 @@
 #****************************************************************************/
 
 set(PB_PYTEST           ${CMAKE_CURRENT_SOURCE_DIR}/pytest_libr4_24_2.py)
+set(PB_NETMASK_TEST     ${CMAKE_CURRENT_SOURCE_DIR}/netmask_test.py)
 set(PB_READER           ${CMAKE_CURRENT_SOURCE_DIR}/pb_reader.py)
 
 add_custom_target(tests.editor
@@ -39,6 +40,7 @@ add_custom_target(tests.editor
         test_data_querryer.py
         ws_tester.html
         ${PB_PYTEST}
+        ${PB_NETMASK_TEST}
         ${PB_READER}
     )
 
@@ -84,6 +86,15 @@ if (PROTOC_EXECUTABLE)
             COMMAND
                 ${CMAKE_COMMAND} -E env \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_SOURCE_DIR}\"
                 ${PYTHON_EXECUTABLE} ${PYTEST} -q ${PB_PYTEST}
+            DEPENDS
+                ${PB_UNITTEST} ${protocol_python_module}
+            WORKING_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}
+            )
+        add_custom_target(pb_netmasktest.run
+            COMMAND
+                ${CMAKE_COMMAND} -E env \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_SOURCE_DIR}\"
+                ${PYTHON_EXECUTABLE} ${PYTEST} -q ${PB_NETMASK_TEST} -s
             DEPENDS
                 ${PB_UNITTEST} ${protocol_python_module}
             WORKING_DIRECTORY

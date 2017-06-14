@@ -12,7 +12,7 @@ import time
 
 def print_help():
     print("Возможно вы пытаитесь запустить этот файл напрямую?\n"
-    "Запстите: $ TEST_IP=<ip_аддресс> make pb_unittest.run\n")
+    "Запстите: $ TEST_IP=<ip_аддресс> make pb_pytest.run\n")
 
 
 @pytest.fixture

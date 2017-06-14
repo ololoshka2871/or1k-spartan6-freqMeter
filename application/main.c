@@ -74,9 +74,9 @@ static void init_tcpip() {
     //----- CONFIGURE ETHERNET -----
     eth_dhcp_our_name_pointer = (BYTE*)hostname;
 
-    if (settings.DHCP &&
+    if (settings.DHCP
 #if GPIO_ENABLED
-        !IS_STATIC_IP_FORCED()
+        && !IS_STATIC_IP_FORCED()
 #endif
         ) {
         eth_dhcp_using_manual_settings = 0;

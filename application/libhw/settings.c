@@ -98,7 +98,7 @@ static void default_freqmeter_settings(struct sSettings *settings) {
     settings->ReferenceFrequency = (SYSTEM_FREQ_TYPE)DEVICE_REF_CLOCK_HZ;
 }
 
-void settings_defaults(struct sSettings *settings) {
+void Settings_defaults(struct sSettings *settings) {
     default_ip_settings(settings);
     default_MAC_settings(settings);
     default_freqmeter_settings(settings);
@@ -120,11 +120,11 @@ void Settings_init() {
     if (ds1338z_init() == DS1338Z_OK) {
         Settings_read(&settings);
     }
+    Settings_validate(&settings, Settings_defaults);
 #ifdef MAC_ADDR_FORCE
     default_MAC_settings(&settings);
     settings_update_crc32(&settings);
 #endif
-    Settings_validate(&settings, settings_defaults);
     Settings_write(&settings);
 }
 
@@ -139,7 +139,7 @@ Settings_validate(struct sSettings *validateing_object, validate_restorer restor
     restorer(&restored);
     if (!verify_settings_crc32(&restored)) {
         // restored settings incorrect, set restored to default
-        settings_defaults(&restored);
+        Settings_defaults(&restored);
     }
 
     if (!verify_settings_crc32(validateing_object)) {

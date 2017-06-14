@@ -41,7 +41,7 @@
 
 #include "bb_i2c.h"
 
-#if !ENABLE_I2C || I2C_DISABLED
+#if !ENABLE_I2C && !defined(I2C_DISABLED)
 
 #ifndef BB_I2C_PORT
 #warning "BB_I2C_PORT not defined, assuming PORTA"
