@@ -12,14 +12,14 @@
 #
 
 #clock
-NET "clk_i"                     LOC = P56  | IOSTANDARD = "LVCMOS33";
+NET "clk_i"                     LOC = P56 | IOSTANDARD = "LVCMOS33";
 
 #UART0
-@UART0_DISABLE@NET "tx0"        LOC = P12  | IOSTANDARD = "LVCMOS33";
-@UART0_DISABLE@NET "rx0"        LOC = P15  | IOSTANDARD = "LVCMOS33";
+@UART0_DISABLE@NET "tx0"        LOC = P35 | IOSTANDARD = "LVCMOS33";
+@UART0_DISABLE@NET "rx0"        LOC = P34 | IOSTANDARD = "LVCMOS33";
 
 #reset CPU
-NET "rst_i"                     LOC = P58  | IOSTANDARD = "LVCMOS33" | PULLUP;
+NET "rst_i"                     LOC = P58 | IOSTANDARD = "LVCMOS33" | PULLUP;
 
 # SPI
 NET "flash_CS"                  LOC = P38 | IOSTANDARD = "LVCMOS33";
