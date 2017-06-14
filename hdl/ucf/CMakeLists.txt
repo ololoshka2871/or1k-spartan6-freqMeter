@@ -123,6 +123,12 @@ file(STRINGS ${ucp_filename} DEVICE_PART_FAMILY
     )
 string(REGEX REPLACE ".*DEVICE_PART_FAMILY=(.*)" "\\1" DEVICE_PART_FAMILY ${DEVICE_PART_FAMILY})
 
+file(STRINGS ${ucp_filename} DEVICE_BOARD_NAME_CFG
+    REGEX "BOARD_DEF=.*")
+string(REGEX REPLACE ".*BOARD_DEF=(.*)" "\\1" DEVICE_BOARD_NAME_CFG ${DEVICE_BOARD_NAME_CFG})
+message(STATUS "Board name: ${DEVICE_BOARD_NAME_CFG}")
+
+
 #-------------------------------------------------------------------------------
 
 add_custom_target(constraints_src
@@ -143,4 +149,4 @@ set(DEVICE_PART_FAMILY      ${DEVICE_PART_FAMILY}       PARENT_SCOPE)
 set(I2C_OVER_GPIO_SDA_PIN   ${I2C_OVER_GPIO_SDA_PIN}    PARENT_SCOPE)
 set(I2C_OVER_GPIO_SCL_PIN   ${I2C_OVER_GPIO_SCL_PIN}    PARENT_SCOPE)
 set(GPIO_PRESENT            ${GPIO_PRESENT}             PARENT_SCOPE)
-
+set(DEVICE_BOARD_NAME_CFG   ${DEVICE_BOARD_NAME_CFG}    PARENT_SCOPE)

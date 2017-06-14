@@ -50,6 +50,9 @@
 
 `define     BAUD_SPI_CLK_DEVIDER_LEN    @BAUD_SPI_CLK_DEVIDER_LEN@
 
+// board
+`define     @DEVICE_BOARD_NAME_CFG@
+
 // peripherial
 @UART0_ENABLED_STR@
 @CRC32_ENABLED_STR@
