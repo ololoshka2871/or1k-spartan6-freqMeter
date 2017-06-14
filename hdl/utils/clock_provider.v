@@ -44,6 +44,8 @@ module clock_provider
     output wire                 clk_ref_o
 );
 
+`ifdef DEVICE_BOARD_NAME_ZR_TECH_V200 // board ZR-Tech_v2.00
+
 // reference clock gen clk_ref = clk_i * `FREF_PLL_MULTIPLYER / `FREF_CLOCK_DEVIDER
 DCM_CLKGEN #(
    .CLKFXDV_DIVIDE(2),       // CLKFXDV divide value (2, 4, 8, 16, 32)
@@ -96,7 +98,23 @@ DCM_CLKGEN_f_rmii (
    .RST(1'b0)              // 1-bit input: Reset input pin
 );
 
-// RMII clock - from PHY
 assign rmii_logick_clk_o = rmii_clk_to_PHY_i;
+
+`define CONFIG_OK
+//-----------------------------------------------------------------------------
+`endif
+`ifdef DEVICE_BOARD_NAME_RCH2_V20 // board RCH_2.0
+
+assign sys_clk_o = clk_i;
+assign clk_ref_o = clk_i;
+
+assign rmii_logick_clk_o = clk_i;
+
+`define CONFIG_OK
+`endif
+//-----------------------------------------------------------------------------
+`ifndef CONFIG_OK // no valid board specified
+`error_DEVICE_BOARD_NAME_NOT_SET
+`endif
 
 endmodule
