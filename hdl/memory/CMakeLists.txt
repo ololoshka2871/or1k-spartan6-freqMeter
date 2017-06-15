@@ -95,6 +95,7 @@ add_custom_command(
         ${BOOTLOADER_IMAGE}
         ${SYSTEM_MEMORY_FILE_NAME_IN}
         ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
+        ${COUNT_TEST_MEMORY_IMAGE} # need to success build
         ${MK_SYSMEM_MODULE}
     COMMENT
         "Making system memory image"

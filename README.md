@@ -162,7 +162,7 @@ git submodule --init update
 ```
 #!bash
 mkdir build && cd build
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Release
 ```
 
 * Настройка проекта. В случае возникновения проблем с конфигурацией cmake список настроек будет отображаться неполностью, пока вы не устраните соответствующую проблему.		

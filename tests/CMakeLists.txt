@@ -32,6 +32,7 @@
 set(PB_PYTEST_IN        ${CMAKE_CURRENT_SOURCE_DIR}/pytest_libr4_24_2.py.in)
 set(PB_PYTEST           ${CMAKE_CURRENT_BINARY_DIR}/pytest_libr4_24_2.py)
 set(PB_NETMASK_TEST     ${CMAKE_CURRENT_SOURCE_DIR}/netmask_test.py)
+set(PB_CLOCK_TEST       ${CMAKE_CURRENT_SOURCE_DIR}/pb_clocktest.py)
 set(PB_READER           ${CMAKE_CURRENT_SOURCE_DIR}/pb_reader.py)
 
 add_custom_target(tests.editor
@@ -42,6 +43,7 @@ add_custom_target(tests.editor
         ws_tester.html
         ${PB_PYTEST}
         ${PB_NETMASK_TEST}
+        ${PB_CLOCK_TEST}
         ${PB_READER}
     )
 
@@ -83,25 +85,23 @@ if (PROTOC_EXECUTABLE)
 
     find_program(PYTEST NAMES py.test2 py.test)
     if (PYTEST)
+        function(add_python_test NAME SCRIPT ADD_FLAGS)
+            add_custom_target(${NAME}.run
+                COMMAND
+                    ${CMAKE_COMMAND} -E env \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_SOURCE_DIR}\"
+                    ${PYTHON_EXECUTABLE} ${PYTEST} -q ${SCRIPT} ${ADD_FLAGS}
+                DEPENDS
+                    ${SCRIPT} ${protocol_python_module}
+                WORKING_DIRECTORY
+                    ${CMAKE_CURRENT_BINARY_DIR}
+                )
+        endfunction()
+
         configure_file(${PB_PYTEST_IN} ${PB_PYTEST} @ONLY)
-        add_custom_target(pb_pytest.run
-            COMMAND
-                ${CMAKE_COMMAND} -E env \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_SOURCE_DIR}\"
-                ${PYTHON_EXECUTABLE} ${PYTEST} -q ${PB_PYTEST}
-            DEPENDS
-                ${PB_UNITTEST} ${protocol_python_module}
-            WORKING_DIRECTORY
-                ${CMAKE_CURRENT_BINARY_DIR}
-            )
-        add_custom_target(pb_netmasktest.run
-            COMMAND
-                ${CMAKE_COMMAND} -E env \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_SOURCE_DIR}\"
-                ${PYTHON_EXECUTABLE} ${PYTEST} -q ${PB_NETMASK_TEST} -s
-            DEPENDS
-                ${PB_UNITTEST} ${protocol_python_module}
-            WORKING_DIRECTORY
-                ${CMAKE_CURRENT_BINARY_DIR}
-            )
+
+        add_python_test(pb_pytest ${PB_PYTEST} "")
+        add_python_test(pb_netmasktest ${PB_NETMASK_TEST} -s)
+        add_python_test(pb_clocktest ${PB_CLOCK_TEST} -s)
     else()
         message(STATUS "'py.test' not found, trotocol tests not avalable")
     endif()

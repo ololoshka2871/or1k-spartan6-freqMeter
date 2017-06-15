@@ -72,7 +72,7 @@ void rtc_init() {
         return;
     if (current_time.tv_sec < BULD_TIMESTAMP)
         current_time.tv_sec = BULD_TIMESTAMP;
-    clock_settime(0, current_time.tv_sec * 1000);
+    clock_settime(0, (uint64_t)1000 * current_time.tv_sec);
 }
 
 int clock_gettime(clockid_t clockid, struct timespec *ts) {
