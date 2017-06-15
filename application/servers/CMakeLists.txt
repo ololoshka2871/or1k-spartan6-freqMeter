@@ -41,6 +41,7 @@ include_directories(.
 add_definitions(
     -DUDP_SERVER_PORT=${SERVER_UDP_PORT}
     -DWEBSOC_SERVER_PORT=${SERVER_WEBSOC_PORT}
+    -DGPIO_ENABLED=${GPIO_PRESENT}
     )
 
 set(SERVERS_SRC

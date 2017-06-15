@@ -53,7 +53,7 @@ enum enProtobufServer_state {
     SM_TX_ERROR_MSG
 };
 
-void process_protobuf_server() {
+void process_protobuf_server(void (*pblinker)(void)) {
     static BYTE our_udp_socket = UDP_INVALID_SOCKET;
     static enum enProtobufServer_state our_udp_server_state = SM_OPEN_SOCKET;
     static struct sAnsverParameters cookie;
@@ -88,6 +88,8 @@ void process_protobuf_server() {
                                             &cookie)) {
             case PB_OK:
                 our_udp_server_state = SM_TX_RESPONSE;
+                if (pblinker)
+                    pblinker();
                 break;
             case PB_SKIP:
                 SOCK_RESET(our_udp_socket);

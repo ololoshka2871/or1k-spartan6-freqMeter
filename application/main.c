@@ -107,6 +107,15 @@ static void led_blinker(void* cookie) {
     gpio_port_set_val(GPIO_PORTA, new_v, v);
 }
 
+static void Led_toggle() {
+#if GPIO_ENABLED
+    uint32_t v = gpio_port_get_val(GPIO_PORTA) & 1;
+    uint32_t set = (~v) & 1;
+
+    gpio_port_set_val(GPIO_PORTA, set, v);
+#endif
+}
+
 static void initAll() {
     interrupts_init();
     progtimer_init();
@@ -134,7 +143,7 @@ int main(void)
         tcp_ip_process_stack();
 
 #ifdef PROCESS_SERVER_UDP
-        process_protobuf_server();
+        process_protobuf_server(NULL);
 #endif
 
 #ifdef PROCESS_SERVER_WEBSOC
