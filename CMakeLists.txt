@@ -62,11 +62,11 @@ find_package(Xilinx REQUIRED)
 
 set(DEVICE_CHIP_NAME            "xc6slx9-2-tqg144"
     CACHE STRING "Xilinx FPGA model to synthesis")
-set(DEVICE_BOARD_NAME           "ZR-Tech_v2.00"
+set(DEVICE_BOARD_NAME           "RCH2_v2.0"
     CACHE STRING "Board name")
-set(DEVICE_REF_CLOCK_HZ         48000000
+set(DEVICE_REF_CLOCK_HZ         50000000
     CACHE STRING "FPGA main clock source (Hz)")
-set(DEVICE_SPI_FLASH_CHIP       "W25Q32BV"
+set(DEVICE_SPI_FLASH_CHIP       "W25Q16BV"
     CACHE STRING "SPI flash memory part name")
 
 #----------------------------------/DEVICE--------------------------------------

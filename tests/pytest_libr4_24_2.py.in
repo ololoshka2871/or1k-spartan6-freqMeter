@@ -256,9 +256,9 @@ def test_incorrect_gateway_subnetmask(device, settings_req, test_mask, test_gate
 
 @pytest.mark.parametrize("test_f,result",
     [(1038, False),
-     (50500000, False),
-     (47999999, True),
-     (48000010, True)])
+     (@DEVICE_REF_CLOCK_HZ@ + 2500000, False),
+     (@DEVICE_REF_CLOCK_HZ@ - 1, True),
+     (@DEVICE_REF_CLOCK_HZ@ + 10, True)])
 def test_referrence_frequency(device, settings_req, test_f, result):
     settings_req.writeSettingsReq.setReferenceFrequency = test_f
     resp = device.process_request_sync(settings_req)

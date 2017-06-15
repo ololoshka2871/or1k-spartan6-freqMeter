@@ -29,7 +29,8 @@
 #*
 #****************************************************************************/
 
-set(PB_PYTEST           ${CMAKE_CURRENT_SOURCE_DIR}/pytest_libr4_24_2.py)
+set(PB_PYTEST_IN        ${CMAKE_CURRENT_SOURCE_DIR}/pytest_libr4_24_2.py.in)
+set(PB_PYTEST           ${CMAKE_CURRENT_BINARY_DIR}/pytest_libr4_24_2.py)
 set(PB_NETMASK_TEST     ${CMAKE_CURRENT_SOURCE_DIR}/netmask_test.py)
 set(PB_READER           ${CMAKE_CURRENT_SOURCE_DIR}/pb_reader.py)
 
@@ -82,6 +83,7 @@ if (PROTOC_EXECUTABLE)
 
     find_program(PYTEST NAMES py.test2 py.test)
     if (PYTEST)
+        configure_file(${PB_PYTEST_IN} ${PB_PYTEST} @ONLY)
         add_custom_target(pb_pytest.run
             COMMAND
                 ${CMAKE_COMMAND} -E env \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_SOURCE_DIR}\"
