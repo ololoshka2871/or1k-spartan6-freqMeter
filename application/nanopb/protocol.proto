@@ -5,7 +5,7 @@ package ru.sktbelpa.r4_24_2;
 
 enum INFO {
     // верися этого протокола
-    PROTOCOL_VERSION = 2;
+    PROTOCOL_VERSION = 3;
 
     // идентификатор устройства РЧ24-2.0
     R4_24_2_ID = 0xE001;
@@ -147,6 +147,9 @@ message SetMeasureTime_message {
 // общий запрос установки времени измерения/разрешения работы канала
 message SetMeasureTimeRequest {
     repeated SetMeasureTime_message chanelSetMeasureTime = 1;
+
+    // Установить время измерения сразу для всех каналов
+    optional uint32                 AllChanels_measureTime_ms = 2;
 }
 
 // ответ времени измерения/разрешения работы канала
