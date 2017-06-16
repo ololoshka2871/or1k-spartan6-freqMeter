@@ -60,6 +60,7 @@
 
 static struct freqmeter_chanel freqmeters[FREQMETERS_COUNT];
 static uint16_t measure_time_ms[FREQMETERS_COUNT];
+static struct freqmeter_chanel init_value;
 
 static void reload_cycle(uint8_t chanel_num) {
     struct freqmeter_chanel* chanel = &freqmeters[chanel_num];
@@ -112,9 +113,7 @@ static uint32_t measure_time_ms2ticks(freq_type_t F, uint16_t _measure_time_ms) 
 #endif
 }
 
-void fm_init() {
-    struct freqmeter_chanel init_value;
-    init_value.enabled = 0;
+void fm_init() {   
     init_value.reloadVals.newReload_val = 1;
     init_value.enabled = true;
     init_value.reloadVals.newReload_val =
@@ -139,6 +138,7 @@ void fm_updateChanel(uint8_t chanel) {
         FM_IE &= ~chanel_mask;
     }
     if (freqmeters[chanel].enabled) { // update/restart
+        freqmeters[chanel].reloadVals = init_value.reloadVals;
         reload_cycle(chanel);
         FM_IE |= chanel_mask;
     }

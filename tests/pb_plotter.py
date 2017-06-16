@@ -50,8 +50,10 @@ def reader():
             raise RuntimeError('Error {} during read values'.format(response.Global_status))
 
         r = response.getMeasureResultsResponce.results._values[0]
-        print((r.timestamp, r.Frequency))
-        yield (r.timestamp, r.Frequency)
+        F = r.Frequency
+        if not r.chanelEnabled:
+            F = float('nan')
+        yield (r.timestamp, F)
 
 def main():
     parser = argparse.ArgumentParser()

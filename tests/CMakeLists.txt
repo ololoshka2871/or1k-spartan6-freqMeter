@@ -35,6 +35,7 @@ set(PB_NETMASK_TEST     ${CMAKE_CURRENT_SOURCE_DIR}/netmask_test.py)
 set(PB_CLOCK_TEST       ${CMAKE_CURRENT_SOURCE_DIR}/pb_clocktest.py)
 set(PB_READER           ${CMAKE_CURRENT_SOURCE_DIR}/pb_reader.py)
 set(PB_PLOTTER          ${CMAKE_CURRENT_SOURCE_DIR}/pb_plotter.py)
+set(PB_EN_DIS_CH        ${CMAKE_CURRENT_SOURCE_DIR}/py_endis_ch.py)
 
 add_custom_target(tests.editor
     SOURCES
@@ -47,6 +48,7 @@ add_custom_target(tests.editor
         ${PB_CLOCK_TEST}
         ${PB_READER}
         ${PB_PLOTTER}
+        ${PB_EN_DIS_CH}
     )
 
 find_program(PROTOC_EXECUTABLE protoc)
@@ -117,6 +119,7 @@ if (PROTOC_EXECUTABLE)
         add_python_test(pb_pytest ${PB_PYTEST} "")
         add_python_test(pb_netmasktest ${PB_NETMASK_TEST} -s)
         add_python_test(pb_clocktest ${PB_CLOCK_TEST} -s)
+        add_python_test(pb_py_endis_ch ${PB_EN_DIS_CH} -s)
     else()
         message(STATUS "'py.test' not found, trotocol tests not avalable")
     endif()
