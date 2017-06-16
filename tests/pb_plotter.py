@@ -77,7 +77,7 @@ def main():
     device.setMeasureTime([args.chanel], args.measure_time)
     #device.setClock(time.time())
 
-    #time.sleep(2 * args.measure_time / 1000.0)
+    time.sleep(2 * args.measure_time / 1000.0)
 
     fig, ax = plt.subplots()
     scope = Scope(ax)
