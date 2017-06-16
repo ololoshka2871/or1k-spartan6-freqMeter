@@ -20,25 +20,23 @@ class Scope(object):
         self.ydata = [0]
         self.line = Line2D(self.tdata, self.ydata)
         self.ax.add_line(self.line)
-        self.ax.set_autoscaley_on(True)
-        self.ax.set_autoscalex_on(True)
-        #self.ax.set_ylim(-.1, 1.1)
-        #self.ax.set_xlim(0, self.maxt)
+        self.ax.autoscale_view(True,True,True)
+        self.points_count = 0
 
     def update(self, v):
+        maxpoints = 100
+        self.points_count += 1
+        if self.points_count > 100:  # reset the arrays
+            self.points_count = 100
+            self.tdata = self.tdata[1:]
+            self.ydata = self.ydata[1:]
 
-        #lastt = self.tdata[-1]
-        #if lastt > self.tdata[0] + self.maxt:  # reset the arrays
-        #    self.tdata = [self.tdata[-1]]
-        #    self.ydata = [self.ydata[-1]]
-        #    self.ax.set_xlim(self.tdata[0], self.tdata[0] + self.maxt)
-        #    self.ax.figure.canvas.draw()
-        print(v)
         self.tdata.append(v[0])
         self.ydata.append(v[1])
         self.line.set_data(self.tdata, self.ydata)
 
-        self.ax.figure.canvas.draw()
+        self.ax.relim()
+        self.ax.autoscale_view(True,True,True)
         return self.line,
 
 def reader():
@@ -52,6 +50,7 @@ def reader():
             raise RuntimeError('Error {} during read values'.format(response.Global_status))
 
         r = response.getMeasureResultsResponce.results._values[0]
+        print((r.timestamp, r.Frequency))
         yield (r.timestamp, r.Frequency)
 
 def main():
@@ -83,8 +82,8 @@ def main():
     fig, ax = plt.subplots()
     scope = Scope(ax)
 
-    ani = animation.FuncAnimation(fig, scope.update, reader, interval=args.measure_time * 10,
-                                  blit=True)
+    ani = animation.FuncAnimation(fig, scope.update, reader, interval=args.measure_time,
+                                  blit=False)
     plt.show()
 
 
