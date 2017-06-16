@@ -34,6 +34,7 @@ set(PB_PYTEST           ${CMAKE_CURRENT_BINARY_DIR}/pytest_libr4_24_2.py)
 set(PB_NETMASK_TEST     ${CMAKE_CURRENT_SOURCE_DIR}/netmask_test.py)
 set(PB_CLOCK_TEST       ${CMAKE_CURRENT_SOURCE_DIR}/pb_clocktest.py)
 set(PB_READER           ${CMAKE_CURRENT_SOURCE_DIR}/pb_reader.py)
+set(PB_PLOTTER          ${CMAKE_CURRENT_SOURCE_DIR}/pb_plotter.py)
 
 add_custom_target(tests.editor
     SOURCES
@@ -45,6 +46,7 @@ add_custom_target(tests.editor
         ${PB_NETMASK_TEST}
         ${PB_CLOCK_TEST}
         ${PB_READER}
+        ${PB_PLOTTER}
     )
 
 find_program(PROTOC_EXECUTABLE protoc)
@@ -82,6 +84,19 @@ if (PROTOC_EXECUTABLE)
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_BINARY_DIR}
         )
+
+    find_package(NumPy)
+    find_package(Matplotlib)
+    if (PYTHON_NUMPY_FOUND AND MATPLOTLIB_FOUND)
+        add_custom_target(pb_plotter.run
+            COMMAND
+                ${CMAKE_COMMAND} -E env "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}" ${PYTHON_EXECUTABLE} ${PB_PLOTTER}
+            DEPENDS
+                ${PB_PLOTTER} ${protocol_python_module}
+            WORKING_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}
+            )
+    endif()
 
     find_program(PYTEST NAMES py.test2 py.test)
     if (PYTEST)
