@@ -370,6 +370,32 @@ def test_set_measure_times(device, chanels_set_mt):
             assert cv == ch2mt_dict[rc]['measureTime_ms']
 
 
+@pytest.mark.parametrize("param",
+    [(0, False),
+     (2000, True),
+     (138, True),
+     (3000, False),
+     (10, True)
+    ])
+def test_set_all_ch_Measure_time(device, param):
+    mt, expected_res = param
+    req = libr4_24_2.r4_24_2_requestBuilder.build_all_chanels_measure_time_request(mt)
+
+    resp = device.process_request_sync(req)
+    assert resp
+    assert (resp.Global_status != protocol_pb2.STATUS.Value('ERRORS_IN_SUBCOMMANDS')) == expected_res
+
+    results = map(lambda x: (x.chanelNumber, x.measureTime_ms, x.status),
+                         resp.getMeasureTimeResponce.chanelgetMeasureTime._values)
+
+    for r in results:
+        rc, cv, status = r
+        ok = (status == protocol_pb2._GETMEASURETIME_MESSAGE_ERRORDESCRIPTION.values_by_name['OK'].number)
+        assert ok == expected_res
+        if ok:
+            assert cv == mt
+
+
 # ############# read values ################################
 
 @pytest.mark.parametrize("chanels_list",

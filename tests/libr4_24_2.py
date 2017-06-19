@@ -133,6 +133,21 @@ class r4_24_2_requestBuilder:
         req.getMeasureResultsReq.CopyFrom(product)
         return req
 
+    @staticmethod
+    def build_all_chanels_measure_time_request(ms):
+        """
+        Создаёт запрос записи времени измерения всем каналам
+
+        :param ms: Время измерения частоты в милисекундах
+        :return: объект типа protocol_pb2.Request
+        """
+        req = r4_24_2_requestBuilder.build_request()
+
+        product = protocol_pb2.SetMeasureTimeRequest()
+        product.AllChanels_measureTime_ms = ms
+        req.setMeasureTimeRequest.CopyFrom(product)
+        return req
+
 
 class r4_24_2_io:
     """Класс для простого доступа к РЧ-24 v2 по ротоколу UDP с использованием google protocol buffers"""
@@ -269,4 +284,10 @@ class r4_24_2_io:
 
     def setMeasureTime(self, chanels, measure_time_ms):
         self.ch_ctl(chanels, {'measureTime_ms': measure_time_ms})
+
+    def setAllChanelsMeasureTime(self, measure_time_ms):
+        request = r4_24_2_requestBuilder.build_all_chanels_measure_time_request(measure_time_ms)
+        response = self.process_request_sync(request)
+        if response.Global_status != protocol_pb2.STATUS.Value('OK'):
+            raise RuntimeError('Error {} then trying to set chanels settings in device'.format(response.Global_status))
 

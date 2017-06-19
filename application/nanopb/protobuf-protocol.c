@@ -149,6 +149,13 @@ protobuf_handle_request(uint16_t rx_data_bytes_remaining,
                 setMeasureTimeResults[i].chanel = -1;
             }
         }
+        if (request.setMeasureTimeRequest.has_AllChanels_measureTime_ms) {
+            for(uint32_t i = 0; i < FREQMETERS_COUNT; ++i) {
+                setMeasureTimeResults[i].chanel = i;
+                setMeasureTimeResults[i].result =
+                     fm_setMeasureTime(i, request.setMeasureTimeRequest.AllChanels_measureTime_ms);
+            }
+        }
     }
 
     if (request.has_getMeasureResultsReq) {
