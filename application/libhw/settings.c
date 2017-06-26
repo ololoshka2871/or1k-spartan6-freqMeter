@@ -35,7 +35,7 @@
 #include "GPIO.h"
 #include "crc32.h"
 
-#include "../ETH_config.h"
+#include "ETH_config.h"
 
 #include "settings.h"
 

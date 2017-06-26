@@ -31,6 +31,22 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
+set(SETTINGS_SRC                    settings.c)
+set(ETHERNET_CONFIG_INCLUDE_FILE    ${CMAKE_CURRENT_BINARY_DIR}/ETH_config.h)
+
+if(ETHERNET_MAC_ADDRESS_FORCE)
+    set(_gen_MAC        ${ETHERNET_MAC_ADDRESS_FORCED})
+else(ETHERNET_MAC_ADDRESS_FORCE)
+    set(_gen_MAC        ${ETHERNET_MAC_ADDRESS_MSB})
+endif(ETHERNET_MAC_ADDRESS_FORCE)
+
+set(_genMAC_ARGUMENTS
+    ${_gen_MAC}
+    ${ETHERNET_STATIC_IP_ADDR}
+    ${ETHERNET_STATIC_IP_NETMASK}
+    ${ETHERNET_STATIC_IP_GATEWAY}
+    )
+
 SET(LIBHW_SOURCES
     cache.c
     irq.c
@@ -49,8 +65,25 @@ SET(LIBHW_SOURCES
     i2c.c
     ds1338z.c
     rtc.c
-    settings.c
+    ${SETTINGS_SRC}
     crc32.c
+    )
+
+add_custom_command(
+    OUTPUT ${ETHERNET_CONFIG_INCLUDE_FILE}
+    COMMAND
+        ${GEN_ETH_CONFIG} ${_genMAC_ARGUMENTS} > ${ETHERNET_CONFIG_INCLUDE_FILE}
+    DEPENDS ${MACADDR_GENERATOR}
+    COMMENT
+        "Generating random MAC address"
+    )
+add_custom_target(gen_mac DEPENDS ${ETHERNET_CONFIG_INCLUDE_FILE})
+
+add_custom_target(regen_mac
+    COMMAND
+        rm ${ETHERNET_CONFIG_INCLUDE_FILE} && touch ${SETTINGS_SRC}
+    COMMENT
+        "Force regenerate MAC address on next build"
     )
 
 if(PERIPHERIAL_ENABLE_HW_MUL)
@@ -123,6 +156,8 @@ if (PERIPHERIAL_ENABLE_CRC32)
 endif()
 
 add_library(hw STATIC ${LIBHW_SOURCES})
+
+add_dependencies(hw gen_mac)
 
 set_target_properties(hw PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
 
