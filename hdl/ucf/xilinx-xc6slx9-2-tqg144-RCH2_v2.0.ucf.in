@@ -53,31 +53,31 @@ NET "phy_mdclk"                 LOC = P10  | IOSTANDARD = "LVCMOS33";
 NET "phy_mdio"                  LOC = P11  | IOSTANDARD = "LVCMOS33" | PULLUP;
 
 # Freqmeter inputs
-NET "Fin[0]"                    LOC = P132 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[1]"                    LOC = P133 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[2]"                    LOC = P98  | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[3]"                    LOC = P124 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[4]"                    LOC = P138 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[5]"                    LOC = P139 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[6]"                    LOC = P131 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[7]"                    LOC = P134 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[8]"                    LOC = P94  | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[9]"                    LOC = P102 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[10]"                   LOC = P137 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[11]"                   LOC = P140 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[0]"                    LOC = P139 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[1]"                    LOC = P138 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[2]"                    LOC = P124 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[3]"                    LOC = P98  | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[4]"                    LOC = P133 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[5]"                    LOC = P132 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[6]"                    LOC = P140 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[7]"                    LOC = P137 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[8]"                    LOC = P102 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[9]"                    LOC = P94  | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[10]"                   LOC = P134 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[11]"                   LOC = P131 | IOSTANDARD = LVCMOS33 | PULLDOWN;
 
-NET "Fin[12]"                   LOC = P127 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[13]"                   LOC = P99  | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[14]"                   LOC = P97  | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[15]"                   LOC = P101 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[16]"                   LOC = P123 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[17]"                   LOC = P141 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[18]"                   LOC = P126 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[19]"                   LOC = P95  | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[20]"                   LOC = P93  | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[21]"                   LOC = P100 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[22]"                   LOC = P121 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[23]"                   LOC = P142 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[12]"                   LOC = P141 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[13]"                   LOC = P123 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[14]"                   LOC = P101 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[15]"                   LOC = P97  | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[16]"                   LOC = P99  | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[17]"                   LOC = P127 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[18]"                   LOC = P142 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[19]"                   LOC = P121 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[20]"                   LOC = P100 | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[21]"                   LOC = P93  | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[22]"                   LOC = P95  | IOSTANDARD = LVCMOS33 | PULLDOWN;
+NET "Fin[23]"                   LOC = P126 | IOSTANDARD = LVCMOS33 | PULLDOWN;
 
 ## RMII
 NET "phy_rmii_crs"              TNM = RMII_GROUP;
